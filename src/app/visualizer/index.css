@@ -1,0 +1,128 @@
+@import './dsatrek-theme.css';
+
+/* Override default Vite styles with DSATrek theme */
+:root {
+  font-family: var(--font-gilroy), Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: 500;
+  color: var(--brand);
+  text-decoration: inherit;
+  transition: color 0.3s ease;
+}
+a:hover {
+  color: var(--highlight);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--background);
+  color: var(--foreground);
+  display: flex;
+  place-items: center;
+}
+
+#race {
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: var(--card);
+  color: var(--card-foreground);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+#race:hover {
+  border-color: var(--brand);
+  background-color: var(--accent);
+}
+
+#race:focus,
+#race:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+/* Custom scrollbar styles with DSATrek theme */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--muted);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--brand);
+}
+
+@layer components {
+  .card {
+    @apply p-4 rounded-lg shadow-lg;
+    background-color: var(--card);
+    color: var(--card-foreground);
+    border: 1px solid var(--border);
+  }
+
+  /* Responsive container classes */
+  .container-responsive {
+    @apply w-full px-2 sm:px-4 md:px-6;
+  }
+
+  /* Mobile-first text utilities */
+  .text-responsive {
+    @apply text-sm sm:text-base md:text-lg;
+  }
+
+  /* Mobile-friendly card padding */
+  .card-responsive {
+    @apply p-2 sm:p-4 md:p-6;
+  }
+
+  /* Touch-target friendly buttons */
+  .btn-touch {
+    @apply p-3 sm:p-2 min-h-[44px] min-w-[44px];
+  }
+}
+
+/* Specific mobile adjustments */
+@media (max-width: 640px) {
+  body {
+    font-size: 14px;
+  }
+
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  /* Prevent text from getting too small on mobile */
+  .text-xs {
+    font-size: 0.75rem;
+  }
+}

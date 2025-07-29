@@ -1,0 +1,1 @@
+ALTER TABLE "problems" ADD COLUMN "is_premium" boolean DEFAULT false;

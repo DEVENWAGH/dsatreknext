@@ -1,0 +1,213 @@
+/* Fix horizontal scrolling issues */
+html,
+body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+}
+
+#root {
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em var(--brand));
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em var(--highlight));
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: var(--muted-foreground);
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+/* Add custom scrollbar for the main content */
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted-foreground) var(--muted);
+}
+
+.overflow-y-auto::-webkit-scrollbar {
+  width: 8px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: var(--muted);
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: var(--brand);
+}
+
+/* Sorting visualizer scrollbar */
+.sorting-container {
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted-foreground) var(--muted);
+}
+
+.sorting-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sorting-container::-webkit-scrollbar-track {
+  background: var(--muted);
+}
+
+.sorting-container::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: 4px;
+}
+
+.sorting-container::-webkit-scrollbar-thumb:hover {
+  background: var(--brand);
+}
+
+/* Fix for algorithm card dropdowns */
+.dropdown-menu {
+  z-index: 100 !important;
+  position: relative;
+}
+
+/* Ensure cards with open dropdowns stay on top */
+.card-expanded {
+  z-index: 20 !important;
+}
+
+/* Ensure consistent border-radius for cards and their shadows */
+.rounded-xl {
+  border-radius: 0.75rem !important;
+  overflow: hidden;
+}
+
+/* Fix for algorithm card hover effects */
+@media (hover: hover) {
+  .algorithm-card {
+    transition:
+      box-shadow 0.3s ease-in-out,
+      transform 0.3s ease-in-out;
+    will-change: transform, box-shadow;
+  }
+
+  .algorithm-card:hover {
+    /* Use a cleaner shadow that respects border radius better */
+    box-shadow: 0 0 20px -1px var(--brand);
+  }
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding-left: 0 !important;
+  }
+
+  .app-header {
+    padding-left: 1rem;
+    height: 64px; /* Revert navbar height */
+  }
+
+  /* Ensure content takes full width */
+  .content-container {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Hide sidebar completely on mobile */
+  .visualizer-sidebar {
+    display: none !important;
+  }
+
+  /* Prevent horizontal overflow on mobile */
+  .container {
+    width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    overflow-x: hidden;
+  }
+}
+
+/* Mobile and tablet responsive adjustments */
+@media (max-width: 1280px) {
+  .main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding-left: 0 !important;
+  }
+
+  .app-header {
+    padding-left: 1rem;
+    height: 64px; /* Revert navbar height */
+  }
+
+  /* Ensure content takes full width */
+  .content-container {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Hide sidebar completely on mobile and tablet */
+  .visualizer-sidebar {
+    display: none !important;
+  }
+}
+
+/* Touch-friendly adjustments */
+@media (pointer: coarse) {
+  input[type='range'] {
+    height: 24px;
+  }
+
+  /* Increase spacing for touch targets */
+  .touch-spacing > * {
+    margin: 0.25rem 0;
+  }
+}
