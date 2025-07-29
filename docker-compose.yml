@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  dsatrek:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: dsatrek-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXTAUTH_URL=https://dsatrek.com
+      - PORT=3000
+    env_file:
+      - .env.production
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.5'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - dsatrek-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: dsatrek-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      dsatrek:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - dsatrek-network
+
+networks:
+  dsatrek-network:
+    driver: bridge
