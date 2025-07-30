@@ -18,19 +18,14 @@ export const useAuthStore = create(
         
         set({ isCheckingAuth: true, error: null });
         try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 5000);
-          
           const response = await fetch('/api/auth/session', {
             credentials: 'include',
-            signal: controller.signal,
+            cache: 'no-cache',
           });
-          
-          clearTimeout(timeoutId);
 
           if (response.ok) {
             const session = await response.json();
-            if (session?.user && !session.error) {
+            if (session?.user) {
               set({ authUser: session.user });
               return session.user;
             }
@@ -39,9 +34,7 @@ export const useAuthStore = create(
           set({ authUser: null });
           return null;
         } catch (error) {
-          if (error.name !== 'AbortError') {
-            console.error('Auth check error:', error);
-          }
+          console.error('Auth check error:', error);
           set({ authUser: null });
           return null;
         } finally {

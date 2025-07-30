@@ -10,11 +10,9 @@ if (!connectionString) {
 }
 
 const client = postgres(connectionString, {
-  prepare: false,
-  max: 5,
+  max: 1,
   ssl: 'require',
-  connect_timeout: 30,
-  idle_timeout: 30,
+  prepare: false,
   onnotice: () => {},
 });
 
