@@ -35,7 +35,18 @@ export const authConfig = {
           if (isSignup === 'true') {
             // Handle signup
             if (!email || !password || !firstName || !lastName) {
-              throw new Error('Missing required fields');
+              throw new Error('Please fill in all required fields');
+            }
+
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+              throw new Error('Please enter a valid email address');
+            }
+
+            // Validate password strength
+            if (password.length < 6) {
+              throw new Error('Password must be at least 6 characters long');
             }
 
             // Check if user already exists
@@ -46,7 +57,7 @@ export const authConfig = {
               .limit(1);
 
             if (existingUser.length > 0) {
-              throw new Error('User with this email already exists');
+              throw new Error('An account with this email already exists. Please login instead.');
             }
 
             // Hash password
@@ -86,7 +97,7 @@ export const authConfig = {
           } else {
             // Handle login
             if (!email || !password) {
-              throw new Error('Email and password are required');
+              throw new Error('Please enter both email and password');
             }
 
             // Find user by email
@@ -97,7 +108,7 @@ export const authConfig = {
               .limit(1);
 
             if (!userResult.length) {
-              throw new Error('Invalid credentials');
+              throw new Error('Invalid email or password');
             }
 
             const existingUser = userResult[0];
@@ -109,7 +120,7 @@ export const authConfig = {
             );
 
             if (!isPasswordValid) {
-              throw new Error('Invalid credentials');
+              throw new Error('Invalid email or password');
             }
 
             return {

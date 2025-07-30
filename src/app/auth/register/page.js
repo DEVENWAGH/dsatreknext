@@ -93,7 +93,18 @@ export default function Register() {
       });
 
       if (result?.error) {
-        throw new Error(result.error);
+        if (result.error.includes('already exists')) {
+          toast.error('An account with this email already exists. Please login instead.');
+        } else if (result.error.includes('valid email')) {
+          toast.error('Please enter a valid email address');
+        } else if (result.error.includes('required fields')) {
+          toast.error('Please fill in all required fields');
+        } else if (result.error.includes('6 characters')) {
+          toast.error('Password must be at least 6 characters long');
+        } else {
+          toast.error(result.error || 'Registration failed');
+        }
+        return;
       }
 
       toast.success('Account created successfully!');
