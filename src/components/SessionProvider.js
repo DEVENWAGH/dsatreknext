@@ -12,14 +12,19 @@ export function SessionProvider({ children }) {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        await checkAuth();
+        // Only check auth if NextAuth session is not already loading
+        if (status !== 'loading') {
+          await checkAuth();
+        }
       } catch (error) {
         console.error('Initial auth check failed:', error);
       }
     };
 
-    initAuth();
-  }, [checkAuth]);
+    // Delay initial auth check to allow NextAuth to initialize
+    const timer = setTimeout(initAuth, 100);
+    return () => clearTimeout(timer);
+  }, [checkAuth, status]);
 
   // Add visibility change listener for additional session checking
   useEffect(() => {

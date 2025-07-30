@@ -188,8 +188,12 @@ const LandingPage = () => {
       <div className="hidden md:block">
         <VerticalBinaryRain />
       </div>
-      {/* Smooth Cursor - only show in hero section */}
-      {showCursor && <SmoothCursor />}
+      {/* Smooth Cursor - only show in hero section on large screens */}
+      {showCursor && (
+        <div className="hidden lg:block">
+          <SmoothCursor />
+        </div>
+      )}
 
       {/* Hero Section with Animated Grid */}
       <section
@@ -198,7 +202,7 @@ const LandingPage = () => {
         onMouseLeave={() => setShowCursor(false)}
       >
         {/* CircularText in top-right */}
-        <div className="absolute z-20 hidden top-8 right-8 sm:block">
+        <div className="absolute z-20 hidden top-8 right-8 lg:block">
           <CircularText
             text="Code → Learn → Excel → Conquer → "
             onHover="speedUp"
@@ -694,12 +698,18 @@ const LandingPage = () => {
               <div className="absolute inset-y-0 right-0 z-10 w-32 pointer-events-none md:w-40 bg-gradient-to-l from-background via-background/80 to-transparent"></div>
             </div>
             {/* MorphingText in bottom-left - Fix positioning */}
-            <div className="absolute z-20 hidden w-full px-4 left-1/2 bottom-0 transform -translate-x-1/2 lg:block max-w-7xl">
+            <motion.div 
+              className="absolute z-20 hidden w-full px-4 left-1/2 bottom-0 transform -translate-x-1/2 lg:block max-w-7xl"
+              initial={{ opacity: 0, scale: 0.3, z: -100 }}
+              whileInView={{ opacity: 1, scale: 1, z: 0 }}
+              transition={{ duration: 1.2, ease: "easeOut" }}
+              viewport={{ once: true, margin: "-100px" }}
+            >
               <MorphingText
                 texts={morphWords}
-                className="text-[24pt] md:text-[30pt] lg:text-[124pt] h-12 md:h-16"
+                className="lg:text-[124pt] h-12"
               />
-            </div>
+            </motion.div>
           </motion.div>
         </div>
       </section>

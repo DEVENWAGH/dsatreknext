@@ -12,12 +12,16 @@ export const useAuthStore = create(
       subscription: null,
       error: null,
 
-      checkAuth: async () => {
+      checkAuth: async (retryCount = 0) => {
         set({ isCheckingAuth: true, error: null });
         try {
-          // Use NextAuth session endpoint
+          // Use NextAuth session endpoint with retry logic
           const response = await fetch('/api/auth/session', {
             credentials: 'include',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            },
           });
 
           if (response.ok) {
@@ -28,6 +32,10 @@ export const useAuthStore = create(
               get().checkUserSubscription();
               return session.user;
             }
+          } else if (response.status === 503 && retryCount < 2) {
+            // Retry on 503 errors up to 2 times with exponential backoff
+            await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
+            return get().checkAuth(retryCount + 1);
           }
 
           // If no valid session, clear auth state
@@ -35,6 +43,13 @@ export const useAuthStore = create(
           return null;
         } catch (error) {
           console.error('Auth check error:', error);
+          
+          // Retry on network errors
+          if (retryCount < 2 && (error.name === 'TypeError' || error.message.includes('fetch'))) {
+            await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
+            return get().checkAuth(retryCount + 1);
+          }
+          
           set({ authUser: null, subscription: null });
           return null;
         } finally {

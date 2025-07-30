@@ -8,13 +8,28 @@ if (!connectionString) {
   throw new Error('DATABASE_URL environment variable is not set');
 }
 
-const client = postgres(connectionString, {
-  prepare: false,
-  max: 1,
-  ssl: 'require',
-});
+// Create connection with retry logic
+let client;
+let db;
 
-const db = drizzle(client, { schema });
+const createConnection = () => {
+  if (!client) {
+    client = postgres(connectionString, {
+      prepare: false,
+      max: 10,
+      ssl: 'require',
+      connect_timeout: 10,
+      idle_timeout: 20,
+      max_lifetime: 60 * 30,
+      onnotice: () => {}, // Suppress notices
+    });
+    db = drizzle(client, { schema });
+  }
+  return db;
+};
 
-export { db };
-export default db;
+// Initialize connection
+const database = createConnection();
+
+export { database as db };
+export default database;

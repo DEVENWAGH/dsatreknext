@@ -119,7 +119,7 @@ const ScrollStack = ({ children, className = '', itemDistance = 1000 }) => {
           if (window.innerWidth < 440) return '-60%';
           if (window.innerWidth < 650) return '-70%'; // mobile
           if (window.innerWidth < 770) return '-90%'; // tablet/medium
-          return '-90%'; // desktop
+          return '-95%'; // desktop
         },
         ease: 'power2.inOut',
       },
