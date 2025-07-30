@@ -1,9 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
-  experimental: {
-    runtime: 'nodejs',
-  },
   images: {
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
