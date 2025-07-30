@@ -53,13 +53,14 @@ export default function AdminDashboard() {
         setStats(statsData || adminStore.totalStats);
       } catch (error) {
         console.error('Failed to fetch admin data:', error);
+        setStats(adminStore.totalStats); // Use cached data on error
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchData();
-  }, [session, status, router, adminStore]);
+  }, [session, status, router]); // Removed adminStore from deps to prevent loops
 
   if (status === 'loading' || isLoading) {
     return (

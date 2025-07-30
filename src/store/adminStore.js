@@ -95,9 +95,14 @@ export const useAdminStore = create(
         }
       },
 
-      // Get admin statistics with deduplication
-      getTotalStats: async () => {
+      // Get admin statistics with caching
+      getTotalStats: async (forceRefresh = false) => {
         const state = get();
+        
+        // Return cached data if available and not forcing refresh
+        if (!forceRefresh && state.totalStats.totalUsers > 0) {
+          return state.totalStats;
+        }
         
         // Return existing promise if already fetching
         if (state._statsPromise) {
@@ -120,7 +125,7 @@ export const useAdminStore = create(
           } catch (error) {
             set({ error: error.message, isLoadingStats: false, _statsPromise: null });
             console.error('Error fetching admin stats:', error);
-            return null;
+            return get().totalStats; // Return cached data on error
           }
         })();
         
