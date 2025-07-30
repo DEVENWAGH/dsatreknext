@@ -13,26 +13,36 @@ export const useAuthStore = create(
       error: null,
 
       checkAuth: async () => {
+        const state = get();
+        if (state.isCheckingAuth) return state.authUser;
+        
         set({ isCheckingAuth: true, error: null });
         try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000);
+          
           const response = await fetch('/api/auth/session', {
             credentials: 'include',
+            signal: controller.signal,
           });
+          
+          clearTimeout(timeoutId);
 
           if (response.ok) {
             const session = await response.json();
             if (session?.user && !session.error) {
               set({ authUser: session.user });
-              get().checkUserSubscription();
               return session.user;
             }
           }
 
-          set({ authUser: null, subscription: null });
+          set({ authUser: null });
           return null;
         } catch (error) {
-          console.error('Auth check error:', error);
-          set({ authUser: null, subscription: null });
+          if (error.name !== 'AbortError') {
+            console.error('Auth check error:', error);
+          }
+          set({ authUser: null });
           return null;
         } finally {
           set({ isCheckingAuth: false });
@@ -41,28 +51,32 @@ export const useAuthStore = create(
 
       // Get user's subscription status
       checkUserSubscription: async () => {
+        const defaultSub = { planId: 'freemium', planName: 'Freemium' };
         try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 3000);
+          
           const response = await fetch('/api/payments/subscription', {
             credentials: 'include',
+            signal: controller.signal,
           });
+          
+          clearTimeout(timeoutId);
 
           if (response.ok) {
             const data = await response.json();
             const subscription = data.success ? data.data : data;
             set({ subscription });
             return subscription;
-          } else {
-            // Fallback to freemium if API call fails
-            const defaultSub = { planId: 'freemium', planName: 'Freemium' };
-            set({ subscription: defaultSub });
-            return defaultSub;
           }
         } catch (error) {
-          console.error('Subscription check error:', error);
-          const defaultSub = { planId: 'freemium', planName: 'Freemium' };
-          set({ subscription: defaultSub });
-          return defaultSub;
+          if (error.name !== 'AbortError') {
+            console.error('Subscription check error:', error);
+          }
         }
+        
+        set({ subscription: defaultSub });
+        return defaultSub;
       },
 
       signup: async userData => {

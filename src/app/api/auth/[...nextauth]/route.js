@@ -7,13 +7,7 @@ const withErrorHandling = (handler) => async (req, context) => {
     return await handler(req, context);
   } catch (error) {
     console.error('Auth handler error:', error);
-    return new Response(
-      JSON.stringify({ error: 'Service temporarily unavailable' }),
-      { 
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
+    return Response.json({ error: null, user: null });
   }
 };
 
