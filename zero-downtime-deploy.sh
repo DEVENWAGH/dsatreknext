@@ -12,7 +12,21 @@ docker-compose up -d --scale dsatrek=2 --no-recreate
 
 # Wait for new instance to be ready
 echo "Waiting for new instance to be ready..."
-sleep 30
+echo "Testing container health..."
+
+# Get container IDs
+CONTAINERS=$(docker-compose ps -q dsatrek)
+NEW_CONTAINER=$(echo "$CONTAINERS" | tail -n 1)
+
+# Test if new container responds
+for i in {1..30}; do
+  if docker exec $NEW_CONTAINER wget -q --spider http://localhost:3000/ 2>/dev/null; then
+    echo "New container is healthy!"
+    break
+  fi
+  echo "Attempt $i/30: Container not ready yet..."
+  sleep 2
+done
 
 # Scale down to 1 instance (removes old one)
 echo "Scaling down to 1 instance..."

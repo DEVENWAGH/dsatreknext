@@ -3,7 +3,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: dsatrek-app
     ports:
       - '3000'
     environment:
