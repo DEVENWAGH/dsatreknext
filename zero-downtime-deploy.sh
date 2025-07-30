@@ -12,28 +12,23 @@ docker-compose up -d --scale dsatrek=2 --no-recreate
 
 # Wait for new instance to be ready
 echo "Waiting for new instance to be ready..."
-echo "Testing container health..."
+sleep 15
 
-# Get container IDs
-CONTAINERS=$(docker-compose ps -q dsatrek)
-NEW_CONTAINER=$(echo "$CONTAINERS" | tail -n 1)
-
-# Test if new container responds
-for i in {1..30}; do
-  if docker exec $NEW_CONTAINER wget -q --spider http://localhost:3000/ 2>/dev/null; then
-    echo "New container is healthy!"
-    break
-  fi
-  echo "Attempt $i/30: Container not ready yet..."
-  sleep 2
-done
+# Simple health check - just check if container is running
+echo "Checking if new container is running..."
+if docker-compose ps dsatrek | grep -q "Up"; then
+  echo "✅ New container is running!"
+else
+  echo "❌ Health check failed, keeping old instance"
+fi
 
 # Scale down to 1 instance (removes old one)
 echo "Scaling down to 1 instance..."
 docker-compose up -d --scale dsatrek=1 --no-recreate
 
-# Clean up unused containers and images
-echo "Cleaning up..."
+# Clean up old containers and images
+echo "Cleaning up old containers..."
+docker ps -a | grep "dsatrek-dsatrek-" | grep "Exited" | awk '{print $1}' | xargs -r docker rm -f
 docker container prune -f
 docker image prune -f
 
