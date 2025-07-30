@@ -21,11 +21,11 @@ services:
           memory: 1G
           cpus: '0.5'
     healthcheck:
-      test: ['CMD', 'sh', '-c', 'wget -q --spider http://localhost:3000/api/health || exit 1']
-      interval: 15s
+      test: ['CMD', 'wget', '-q', '--spider', 'http://localhost:3000/api/health']
+      interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 30s
+      retries: 2
+      start_period: 60s
     networks:
       - dsatrek-network
 
