@@ -1,7 +1,15 @@
+import { NextResponse } from 'next/server';
+
 export async function GET() {
-  return Response.json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString(),
-    service: 'DSATrek'
-  })
+  try {
+    return NextResponse.json({ 
+      status: 'healthy',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { status: 'unhealthy', error: error.message },
+      { status: 500 }
+    );
+  }
 }

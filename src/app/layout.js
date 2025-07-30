@@ -5,8 +5,7 @@ import { Providers } from '@/components/Providers';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import PropTypes from 'prop-types';
 import { GoogleAnalytics } from '@next/third-parties/google';
-import { SpeedInsights } from '@vercel/speed-insights/next';
-import { Analytics } from '@vercel/analytics/next';
+
 import LenisFramerMotion from '@/components/LenisFramerMotion';
 import LayoutWrapper from '@/components/LayoutWrapper';
 import localFont from 'next/font/local';
@@ -44,8 +43,6 @@ export default function RootLayout({ children }) {
           </ErrorBoundary>
         </Providers>
         <GoogleAnalytics gaId="G-R6N78MTMLW" />
-        <SpeedInsights />
-        <Analytics />
       </body>
     </html>
   );
