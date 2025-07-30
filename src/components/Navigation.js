@@ -118,8 +118,22 @@ const Navigation = () => {
       });
       setUserStreak(0);
       setPlanLabel('SUBSCRIBE');
+      setUserAvatar(null);
     }
   }, [authUser, fetchUserData, getUserSubscription, isLoggedIn]);
+
+  // Force re-render when session changes
+  useEffect(() => {
+    if (session) {
+      setIsLoggedIn(true);
+      if (session.user) {
+        fetchUserData();
+        getUserSubscription();
+      }
+    } else {
+      setIsLoggedIn(false);
+    }
+  }, [session, fetchUserData, getUserSubscription]);
 
   useEffect(() => {
     // Set plan label based on subscription
@@ -128,7 +142,7 @@ const Navigation = () => {
     else setPlanLabel('SUBSCRIBE'); // Show SUBSCRIBE for freemium or no subscription
   }, [subscription]);
 
-  // Listen for stats updates
+  // Listen for stats updates and auth changes
   useEffect(() => {
     const handleStatsUpdate = () => {
       if (authUser?.id) {
@@ -136,9 +150,22 @@ const Navigation = () => {
       }
     };
 
+    const handleAuthChange = () => {
+      // Force re-check of session state
+      if (session?.user) {
+        setIsLoggedIn(true);
+        fetchUserData();
+        getUserSubscription();
+      }
+    };
+
     window.addEventListener('statsUpdate', handleStatsUpdate);
-    return () => window.removeEventListener('statsUpdate', handleStatsUpdate);
-  }, [authUser?.id, fetchUserData]);
+    window.addEventListener('auth-change', handleAuthChange);
+    return () => {
+      window.removeEventListener('statsUpdate', handleStatsUpdate);
+      window.removeEventListener('auth-change', handleAuthChange);
+    };
+  }, [authUser?.id, fetchUserData, session, getUserSubscription]);
 
   const user = {
     id: authUser?.id,

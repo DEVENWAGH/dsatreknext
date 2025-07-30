@@ -5,31 +5,20 @@ import * as schema from './schema';
 const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
+  console.error('DATABASE_URL not set');
   throw new Error('DATABASE_URL environment variable is not set');
 }
 
-// Create connection with retry logic
-let client;
-let db;
+const client = postgres(connectionString, {
+  prepare: false,
+  max: 5,
+  ssl: 'require',
+  connect_timeout: 30,
+  idle_timeout: 30,
+  onnotice: () => {},
+});
 
-const createConnection = () => {
-  if (!client) {
-    client = postgres(connectionString, {
-      prepare: false,
-      max: 10,
-      ssl: 'require',
-      connect_timeout: 10,
-      idle_timeout: 20,
-      max_lifetime: 60 * 30,
-      onnotice: () => {}, // Suppress notices
-    });
-    db = drizzle(client, { schema });
-  }
-  return db;
-};
+const db = drizzle(client, { schema });
 
-// Initialize connection
-const database = createConnection();
-
-export { database as db };
-export default database;
+export { db };
+export default db;

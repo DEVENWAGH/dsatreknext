@@ -4,15 +4,13 @@ export const runtime = 'nodejs';
 
 const withErrorHandling = (handler) => async (req, context) => {
   try {
-    return await handler(req, context);
+    const response = await handler(req, context);
+    return response;
   } catch (error) {
     console.error('Auth handler error:', error);
-    return new Response(
-      JSON.stringify({ error: 'Authentication service temporarily unavailable' }),
-      {
-        status: 503,
-        headers: { 'Content-Type': 'application/json' },
-      }
+    return Response.json(
+      { error: 'Service temporarily unavailable' },
+      { status: 503 }
     );
   }
 };

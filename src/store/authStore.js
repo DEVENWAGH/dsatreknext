@@ -164,12 +164,16 @@ export const useAuthStore = create(
                 set({ authUser: session.user });
                 // Fetch subscription data after login
                 get().checkUserSubscription();
+                // Trigger navigation update
+                window.dispatchEvent(new Event('auth-change'));
               }
             }
 
             toast.success('Login successful!');
-            // Redirect after successful login
-            window.location.href = '/';
+            // Small delay to allow state updates
+            setTimeout(() => {
+              window.location.href = '/';
+            }, 100);
             return { success: true };
           } else {
             throw new Error('Login failed');
