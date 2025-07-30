@@ -707,7 +707,7 @@ const LandingPage = () => {
             >
               <MorphingText
                 texts={morphWords}
-                className="lg:text-[124pt] h-12"
+                className="text-[100pt] xl:text-[124pt] h-12"
               />
             </motion.div>
           </motion.div>

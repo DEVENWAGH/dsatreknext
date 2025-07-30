@@ -8,31 +8,25 @@ import { MagicCard } from '@/components/magicui/magic-card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft, X, Check } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { signIn, getCsrfToken } from 'next-auth/react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import SplineModel from '@/components/SplineModel';
 
-const formSchema = z
-  .object({
-    firstName: z
-      .string()
-      .min(2, { message: 'First name must be at least 2 characters.' }),
-    lastName: z
-      .string()
-      .min(2, { message: 'Last name must be at least 2 characters.' }),
-    email: z.string().email({ message: 'Invalid email address.' }),
-    password: z
-      .string()
-      .min(6, { message: 'Password must be at least 6 characters.' }),
-    confirmPassword: z.string(),
-  })
-  .refine(data => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ['confirmPassword'],
-  });
+const formSchema = z.object({
+  firstName: z
+    .string()
+    .min(2, { message: 'First name must be at least 2 characters.' }),
+  lastName: z
+    .string()
+    .min(2, { message: 'Last name must be at least 2 characters.' }),
+  email: z.string().email({ message: 'Invalid email address.' }),
+  password: z
+    .string()
+    .min(6, { message: 'Password must be at least 6 characters.' }),
+});
 
 export default function Register() {
   const {
@@ -46,12 +40,11 @@ export default function Register() {
       lastName: '',
       email: '',
       password: '',
-      confirmPassword: '',
     },
   });
 
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState({ score: 0, text: '', color: '' });
   const [isSigningUp, setIsSigningUp] = useState(false);
   const [csrfToken, setCsrfToken] = useState(null);
   const router = useRouter();
@@ -60,6 +53,29 @@ export default function Register() {
     // Get CSRF token on component mount
     getCsrfToken().then(setCsrfToken);
   }, []);
+
+  const checkPasswordStrength = (password) => {
+    const criteria = {
+      length: password.length >= 8,
+      lowercase: /[a-z]/.test(password),
+      uppercase: /[A-Z]/.test(password),
+      number: /\d/.test(password),
+      special: /[^\w\s]/.test(password)
+    };
+    
+    const score = Object.values(criteria).filter(Boolean).length;
+
+    const strength = {
+      0: { text: 'Very Weak', color: 'bg-red-500' },
+      1: { text: 'Weak', color: 'bg-red-400' },
+      2: { text: 'Fair', color: 'bg-yellow-500' },
+      3: { text: 'Good', color: 'bg-blue-500' },
+      4: { text: 'Strong', color: 'bg-green-500' },
+      5: { text: 'Very Strong', color: 'bg-green-600' }
+    };
+
+    return { score, criteria, ...strength[score] };
+  };
 
   const onSubmit = async values => {
     setIsSigningUp(true);
@@ -171,7 +187,9 @@ export default function Register() {
                       id="password"
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Enter your password"
-                      {...register('password')}
+                      {...register('password', {
+                        onChange: (e) => setPasswordStrength(checkPasswordStrength(e.target.value))
+                      })}
                       className={
                         errors.password ? 'border-destructive pr-10' : 'pr-10'
                       }
@@ -190,6 +208,80 @@ export default function Register() {
                       )}
                     </Button>
                   </div>
+                  
+                  {/* Password Strength Indicator */}
+                  <div className="space-y-2">
+                    <div className="flex gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <div
+                          key={i}
+                          className={`h-1 flex-1 rounded transition-all duration-300 ${
+                            i < passwordStrength.score ? passwordStrength.color : 'bg-gray-200'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    {passwordStrength.text && (
+                      <p className={`text-xs transition-all duration-300 ${
+                        passwordStrength.score >= 3 ? 'text-green-600' : 
+                        passwordStrength.score >= 2 ? 'text-yellow-600' : 'text-red-600'
+                      }`}>
+                        Password strength: {passwordStrength.text}
+                      </p>
+                    )}
+                    
+                    {/* Password Criteria */}
+                    {passwordStrength.criteria && (
+                      <div className="space-y-1 text-xs">
+                        <div className={`flex items-center gap-2 transition-colors duration-300 ${
+                          passwordStrength.criteria.length ? 'text-green-600' : 'text-red-500'
+                        }`}>
+                          {passwordStrength.criteria.length ? 
+                            <Check className="h-3 w-3" /> : 
+                            <X className="h-3 w-3" />
+                          }
+                          <span>At least 8 characters</span>
+                        </div>
+                        <div className={`flex items-center gap-2 transition-colors duration-300 ${
+                          passwordStrength.criteria.lowercase ? 'text-green-600' : 'text-red-500'
+                        }`}>
+                          {passwordStrength.criteria.lowercase ? 
+                            <Check className="h-3 w-3" /> : 
+                            <X className="h-3 w-3" />
+                          }
+                          <span>One lowercase letter</span>
+                        </div>
+                        <div className={`flex items-center gap-2 transition-colors duration-300 ${
+                          passwordStrength.criteria.uppercase ? 'text-green-600' : 'text-red-500'
+                        }`}>
+                          {passwordStrength.criteria.uppercase ? 
+                            <Check className="h-3 w-3" /> : 
+                            <X className="h-3 w-3" />
+                          }
+                          <span>One uppercase letter</span>
+                        </div>
+                        <div className={`flex items-center gap-2 transition-colors duration-300 ${
+                          passwordStrength.criteria.number ? 'text-green-600' : 'text-red-500'
+                        }`}>
+                          {passwordStrength.criteria.number ? 
+                            <Check className="h-3 w-3" /> : 
+                            <X className="h-3 w-3" />
+                          }
+                          <span>One number</span>
+                        </div>
+                        <div className={`flex items-center gap-2 transition-colors duration-300 ${
+                          passwordStrength.criteria.special ? 'text-green-600' : 'text-red-500'
+                        }`}>
+                          {passwordStrength.criteria.special ? 
+                            <Check className="h-3 w-3" /> : 
+                            <X className="h-3 w-3" />
+                          }
+                          <span>One special character</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
                   {errors.password && (
                     <p className="text-sm text-destructive">
                       {errors.password.message}
@@ -197,42 +289,7 @@ export default function Register() {
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="confirmPassword"
-                      type={showConfirmPassword ? 'text' : 'password'}
-                      placeholder="Confirm your password"
-                      {...register('confirmPassword')}
-                      className={
-                        errors.confirmPassword
-                          ? 'border-destructive pr-10'
-                          : 'pr-10'
-                      }
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-0 top-0 h-full px-3 py-2"
-                      onClick={() =>
-                        setShowConfirmPassword(!showConfirmPassword)
-                      }
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                  {errors.confirmPassword && (
-                    <p className="text-sm text-destructive">
-                      {errors.confirmPassword.message}
-                    </p>
-                  )}
-                </div>
+
 
                 <Button type="submit" className="w-full" disabled={isSigningUp}>
                   {isSigningUp ? 'Creating account...' : 'Create Account'}

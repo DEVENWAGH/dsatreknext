@@ -59,13 +59,14 @@ const VerticalBinaryRain = () => {
       }}
     >
       {Array.from({ length: NUM_COLUMNS }).map((_, colIdx) => {
-        const left = `${(colIdx / NUM_COLUMNS) * 100}%`;
+        const left = `${((colIdx + 1) / (NUM_COLUMNS + 1)) * 100}%`;
         return (
           <div
             key={colIdx}
             style={{
               position: 'absolute',
               left,
+              transform: 'translateX(-50%)',
               width: '2vw',
               height: dropHeight,
               display: 'flex',
