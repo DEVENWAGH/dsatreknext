@@ -21,7 +21,7 @@ const AdminDailyChallenges = () => {
   useEffect(() => {
     getAllProblems();
     fetchChallenges();
-  }, []);
+  }, [getAllProblems]);
 
   const fetchChallenges = async () => {
     try {

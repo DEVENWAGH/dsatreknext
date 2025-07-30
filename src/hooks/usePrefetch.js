@@ -49,8 +49,9 @@ export const usePrefetch = (currentProblemId, sortedProblems) => {
 
   // Clean up prefetch cache when component unmounts
   useEffect(() => {
+    const currentRef = prefetchedRef.current;
     return () => {
-      prefetchedRef.current.clear();
+      currentRef.clear();
     };
   }, []);
 };

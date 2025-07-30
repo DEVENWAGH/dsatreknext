@@ -211,7 +211,7 @@ export default function EditProblem() {
     } finally {
       setIsLoading(false);
     }
-  }, [params.id]);
+  }, [params.id, SUPPORTED_LANGUAGES, form]);
 
   useEffect(() => {
     if (status === 'loading') return;

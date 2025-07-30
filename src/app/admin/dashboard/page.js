@@ -59,7 +59,7 @@ export default function AdminDashboard() {
     };
 
     fetchData();
-  }, [session, status, router]);
+  }, [session, status, router, adminStore]);
 
   if (status === 'loading' || isLoading) {
     return (
