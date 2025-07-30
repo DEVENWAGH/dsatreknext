@@ -21,7 +21,7 @@ services:
           memory: 1G
           cpus: '0.5'
     healthcheck:
-      test: ['CMD', 'wget', '-q', '--spider', 'http://localhost:3000/api/health']
+      test: ['CMD', 'wget', '-q', '--spider']
       interval: 30s
       timeout: 10s
       retries: 2
