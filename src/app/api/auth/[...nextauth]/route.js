@@ -1,6 +1,7 @@
 import { handlers } from '@/auth';
 
-// Add error handling wrapper
+export const runtime = 'nodejs';
+
 const withErrorHandling = (handler) => async (req, context) => {
   try {
     return await handler(req, context);
