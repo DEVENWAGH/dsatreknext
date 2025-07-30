@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+
+export const runtime = 'nodejs';
 import { uploadToS3 } from '@/lib/aws/s3';
 import { auth } from '@/auth';
 

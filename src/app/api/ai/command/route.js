@@ -1,4 +1,6 @@
 import { createOpenAI } from '@ai-sdk/openai';
+
+export const runtime = 'nodejs';
 import { InvalidArgumentError } from '@ai-sdk/provider';
 import { delay as originalDelay } from '@ai-sdk/provider-utils';
 import { convertToCoreMessages, streamText } from 'ai';

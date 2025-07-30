@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+
+export const runtime = 'nodejs';
 import { Liveblocks } from '@liveblocks/node';
 
 const liveblocks = new Liveblocks({

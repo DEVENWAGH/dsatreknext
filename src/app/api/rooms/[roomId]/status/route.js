@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+export const runtime = 'nodejs';
+
 // Simple in-memory store for ended rooms (in production, use database)
 const endedRooms = new Set();
 

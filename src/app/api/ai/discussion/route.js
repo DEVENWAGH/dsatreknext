@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+
+export const runtime = 'nodejs';
 import { generateAIDiscussionResponse } from '@/services/aiDiscussionService';
 
 export async function POST(request) {

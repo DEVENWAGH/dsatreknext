@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+
+export const runtime = 'nodejs';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { Community } from '@/lib/schema';

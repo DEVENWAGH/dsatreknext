@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+
+export const runtime = 'nodejs';
 import { db } from '@/lib/db';
 import { User } from '@/lib/schema';
 import { eq, count } from 'drizzle-orm';

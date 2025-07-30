@@ -1,4 +1,6 @@
 import { auth } from '@/auth';
+
+export const runtime = 'nodejs';
 import { db } from '@/lib/db';
 import { User } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
