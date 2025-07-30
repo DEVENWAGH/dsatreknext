@@ -1,19 +1,25 @@
 #!/bin/bash
 
-echo "Starting deployment..."
+echo "Starting zero-downtime deployment..."
 
-# Stop and remove old containers
-echo "Stopping old containers..."
-docker-compose down
+# Build new image
+echo "Building new image..."
+docker-compose build
 
-# Clean up old containers
+# Scale up with new container
+echo "Starting new container..."
+docker-compose up -d --scale dsatrek=2 --no-recreate
+
+# Wait for new container
+echo "Waiting for new container..."
+sleep 20
+
+# Scale down to remove old container
+echo "Removing old container..."
+docker-compose up -d --scale dsatrek=1
+
+# Clean up
 echo "Cleaning up..."
-docker ps -a | grep "dsatrek" | awk '{print $1}' | xargs -r docker rm -f
-docker container prune -f
 docker image prune -f
 
-# Build and start new containers
-echo "Building and starting new containers..."
-docker-compose up -d --build
-
-echo "Deployment completed!"
+echo "Zero-downtime deployment completed!"
