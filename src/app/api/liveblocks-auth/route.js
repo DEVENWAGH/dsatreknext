@@ -7,13 +7,17 @@ const liveblocks = new Liveblocks({
 
 export async function POST(request) {
   try {
-    // Get user from session/auth
+    // Get user from session/auth with proper SSL handling
     const sessionResponse = await fetch(
       `${request.nextUrl.origin}/api/auth/session`,
       {
         headers: {
           cookie: request.headers.get('cookie') || '',
         },
+        // Fix SSL issues in production
+        ...(process.env.NODE_ENV === 'production' && {
+          agent: false,
+        }),
       }
     );
 
