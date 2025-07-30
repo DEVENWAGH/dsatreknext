@@ -3,9 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: dsatrek-app
     ports:
-      - '3000:3000'
+      - '3000'
     environment:
       - NODE_ENV=production
       - NEXTAUTH_URL=https://dsatrek.com
