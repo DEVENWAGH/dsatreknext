@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import SplineModel from '@/components/SplineModel';
+
 
 export default function StartInterviewPage() {
   const { interviewId } = useParams();
@@ -446,7 +446,9 @@ export default function StartInterviewPage() {
                     )}
                   </div>
                   <div className="hidden lg:block">
-                    <SplineModel />
+                    <div className="w-64 h-64 flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg">
+                      <img src="/user.png" alt="User" className="w-32 h-32 rounded-full" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -479,7 +481,7 @@ export default function StartInterviewPage() {
                 <div className="text-center space-y-4">
                   <div className="flex flex-col items-center gap-3">
                     <Avatar className="w-20 h-20">
-                      <AvatarImage src="/ai-avatar.png" alt="AI Interviewer" />
+                      <AvatarImage src="/user.png" alt="AI Interviewer" />
                       <AvatarFallback className="bg-primary/10">
                         <Bot className="w-10 h-10 text-primary" />
                       </AvatarFallback>

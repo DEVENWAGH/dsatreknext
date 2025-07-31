@@ -1,15 +1,32 @@
 'use client';
 
-import Spline from '@splinetool/react-spline';
 import { useState, useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
+
+// Dynamically import Spline with no SSR
+const Spline = dynamic(() => import('@splinetool/react-spline'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center h-full">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>
+  ),
+});
 
 export default function SplineModel() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
   const [shouldLoad, setShouldLoad] = useState(false);
   const containerRef = useRef(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -25,7 +42,7 @@ export default function SplineModel() {
     }
 
     return () => observer.disconnect();
-  }, []);
+  }, [mounted]);
 
   return (
     <div ref={containerRef} className="relative h-180 flex-shrink-0">
@@ -46,19 +63,25 @@ export default function SplineModel() {
               <p className="text-gray-500 text-sm">Failed to load model</p>
             </div>
           )}
-          <Spline
-            scene="https://prod.spline.design/2gD1BKUgJa9zGb13/scene.splinecode"
-            onLoad={() => setIsLoading(false)}
-            onError={() => {
-              setError(true);
-              setIsLoading(false);
-            }}
-            style={{
-              width: '100%',
-              height: '100%',
-              transform: 'scale(1.2) translate(5%, -5%)',
-            }}
-          />
+          {mounted && (
+            <Spline
+              scene="https://prod.spline.design/2gD1BKUgJa9zGb13/scene.splinecode"
+              onLoad={() => {
+                setIsLoading(false);
+                setError(false);
+              }}
+              onError={(err) => {
+                console.warn('Spline model failed to load:', err);
+                setError(true);
+                setIsLoading(false);
+              }}
+              style={{
+                width: '100%',
+                height: '100%',
+                transform: 'scale(1.2) translate(5%, -5%)',
+              }}
+            />
+          )}
         </>
       )}
     </div>
