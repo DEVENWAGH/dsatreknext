@@ -66,10 +66,10 @@ const ThemeSelector = () => {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="fixed inset-4 flex items-center justify-center z-[9999]"
+              className="fixed inset-4 lg:inset-auto lg:top-16 lg:right-4 flex items-center justify-center lg:items-start lg:justify-end z-[9999]"
             >
-              <Card className="w-96 max-h-[80vh] overflow-y-auto bg-card/95 backdrop-blur-md border-border shadow-2xl">
-                <CardContent className="p-6">
+              <Card className="w-96 lg:w-48 xl:w-80 max-h-[80vh] lg:max-h-[60vh] overflow-y-auto bg-card/95 backdrop-blur-md border-border shadow-2xl">
+                <CardContent className="p-4 lg:p-3">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -108,7 +108,7 @@ const ThemeSelector = () => {
                             <div
                               className={`w-4 h-4 rounded-full bg-gradient-to-r ${themeData.color} shadow-sm`}
                             />
-                            <span className="text-sm font-medium">
+                            <span className="text-sm font-medium truncate">
                               {themeData.name}
                             </span>
                           </div>

@@ -16,17 +16,12 @@ import { useSubscriptionStore } from '@/store/subscriptionStore';
 import { userAPI } from '@/api/api';
 import {
   Trophy,
-  Mic,
   Flame,
-  Menu,
-  X,
   Settings,
   User,
   LogOut,
   Crown,
   Award,
-  MessageCircle,
-  Medal,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -289,19 +284,19 @@ const Navigation = () => {
               <HoverCard openDelay={0} closeDelay={100}>
                 <HoverCardTrigger asChild>
                   <div className="items-center hidden gap-3 p-2 transition-colors rounded-lg cursor-pointer select-none lg:flex hover:bg-accent/50">
-                    <div className="relative">
+                    <div className="relative" onClick={(e) => { e.stopPropagation(); router.push(`/profile/${user.id}`); }}>
                       {user.avatar ? (
                         <Image
                           src={user.avatar}
                           alt={user.name}
                           width={32}
                           height={32}
-                          className="object-cover w-8 h-8 border-2 rounded-full shadow-sm border-border"
+                          className="object-cover w-8 h-8 border-2 rounded-full shadow-sm border-border cursor-pointer"
                           quality={100}
                           unoptimized
                         />
                       ) : (
-                        <AvatarFallback name={user.name} size={32} className="border-2 border-border shadow-sm" />
+                        <AvatarFallback name={user.name} size={32} className="border-2 border-border shadow-sm cursor-pointer" />
                       )}
                       {user.role === 'admin' && (
                         <Crown className="absolute w-4 h-4 text-yellow-500 -top-1 -right-1" />
