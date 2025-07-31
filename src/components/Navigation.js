@@ -398,22 +398,6 @@ const Navigation = () => {
                           <User className="w-4 h-4" />
                           My Profile
                         </Button>
-                        <Button
-                          variant="ghost"
-                          className="justify-start w-full gap-2"
-                          onClick={() => router.push('/settings')}
-                        >
-                          <Settings className="w-4 h-4" />
-                          Settings
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          className="justify-start w-full gap-2"
-                          onClick={() => router.push('/achievements')}
-                        >
-                          <Award className="w-4 h-4" />
-                          Achievements
-                        </Button>
                         <div className="my-2 border-t border-border"></div>
                         <Button
                           variant="ghost"
@@ -585,28 +569,6 @@ const Navigation = () => {
                     >
                       <User className="w-4 h-4" />
                       My Profile
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="justify-start w-full gap-2"
-                      onClick={() => {
-                        setMenuOpen(false);
-                        router.push('/settings');
-                      }}
-                    >
-                      <Settings className="w-4 h-4" />
-                      Settings
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="justify-start w-full gap-2"
-                      onClick={() => {
-                        setMenuOpen(false);
-                        router.push('/achievements');
-                      }}
-                    >
-                      <Award className="w-4 h-4" />
-                      Achievements
                     </Button>
                     <Button
                       variant="ghost"

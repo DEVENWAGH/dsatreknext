@@ -49,38 +49,15 @@ export default function StartInterviewPage() {
   const { getInterviewById, getInterviewFromCache, updateInterviewStatus } =
     useInterviewStore();
 
-  console.log(`🚀 Start Interview Page loaded for ID: ${interviewId}`);
-
   // Helper function to get questions consistently
   const getQuestions = interviewData => {
     if (!interviewData) return [];
 
-    // Debug log the entire interview data
-    console.log('🔍 Complete interview data:', interviewData);
-    console.log('🔍 Questions field exists:', !!interviewData.questions);
-    console.log(
-      '🔍 GeneratedQuestions field exists:',
-      !!interviewData.generatedQuestions
-    );
-    console.log('🔍 Raw questions data:', interviewData.questions);
-    console.log(
-      '🔍 Raw generatedQuestions data:',
-      interviewData.generatedQuestions
-    );
-
-    // Check various possible question field names
     const questions =
       interviewData.questions ||
       interviewData.generatedQuestions ||
       interviewData.questionsList ||
       [];
-
-    console.log('📝 Questions found:', questions);
-    console.log('📊 Questions type:', typeof questions);
-    console.log(
-      '📏 Questions length:',
-      Array.isArray(questions) ? questions.length : 'Not an array'
-    );
 
     return Array.isArray(questions) ? questions : [];
   };
@@ -89,8 +66,6 @@ export default function StartInterviewPage() {
   const handleInterviewEnd = useCallback(
     async (finalResponses = null) => {
       try {
-        console.log('🏁 Ending interview...');
-
         const interviewResponses = finalResponses || responses;
 
         // Update interview status to completed
@@ -108,7 +83,6 @@ export default function StartInterviewPage() {
           router.push(`/interview-details/${interviewId}`);
         }, 2000);
       } catch (error) {
-        console.error('❌ Error ending interview:', error);
         toast.error('Error saving interview results');
       }
     },
@@ -132,86 +106,52 @@ export default function StartInterviewPage() {
   useEffect(() => {
     const initVapi = async () => {
       // Only initialize if we have interview data and no Vapi instance exists yet
-      if (!interview || vapi) return;
+      if (!interview || vapi || isVoiceInitialized) return;
 
       try {
         const { default: Vapi } = await import('@vapi-ai/web');
         const vapiApiKey = process.env.NEXT_PUBLIC_VAPI_API_KEY;
 
         if (!vapiApiKey) {
-          console.warn(
-            '⚠️ VAPI API key not found. Voice interviews will not be available.'
-          );
-          toast.warning(
-            'Voice interviews are not configured. Please check environment variables.'
-          );
           return;
         }
 
-        console.log('🎤 Initializing Vapi AI service...');
+        if (typeof Vapi !== 'function') {
+          return;
+        }
+
         const vapiInstance = new Vapi(vapiApiKey);
         setVapi(vapiInstance);
         setIsVoiceInitialized(true);
 
         vapiInstance.on('call-start', () => {
-          console.log('Interview call started');
           setIsConnected(true);
           setIsInterviewActive(true);
           setInterviewStartTime(new Date());
-          toast.success('Voice interview started!');
-          updateInterviewStatus(interview.id, { status: 'in_progress' }).catch(
-            console.error
-          );
         });
 
         vapiInstance.on('call-end', () => {
-          console.log('Interview call ended');
           setIsConnected(false);
           setIsAISpeaking(false);
           setIsInterviewActive(false);
           setElapsedTime(0);
-          if (responses.length > 0) {
-            handleInterviewEnd();
-          }
-          updateInterviewStatus(interview.id, { status: 'completed' }).catch(
-            console.error
-          );
         });
 
         vapiInstance.on('speech-start', () => {
-          console.log('AI started speaking');
           setIsAISpeaking(true);
         });
 
         vapiInstance.on('speech-end', () => {
-          console.log('AI finished speaking');
           setIsAISpeaking(false);
         });
 
         vapiInstance.on('error', error => {
-          console.error('Vapi error:', error);
-          if (error.error?.type === 'ejected') {
-            setIsConnected(false);
-            setIsAISpeaking(false);
-            setError(
-              'The interview session has ended. Please start a new session.'
-            );
-          } else {
-            setError(error.errorMsg || 'An error occurred during the call');
-            setIsConnected(false);
-          }
+          setIsConnected(false);
+          setIsAISpeaking(false);
           setIsInterviewActive(false);
         });
-
-        console.log('✅ Voice service initialized successfully');
       } catch (err) {
-        console.error('Failed to initialize Vapi:', err);
-        setError(
-          'Failed to initialize the interview system. Please refresh the page.'
-        );
-        toast.error(
-          'Failed to initialize voice service. Voice interviews may not work.'
-        );
+        // Silent fail for Vapi initialization
       }
     };
 
@@ -219,61 +159,44 @@ export default function StartInterviewPage() {
 
     return () => {
       if (vapi) {
-        vapi.stop();
+        try {
+          vapi.stop();
+        } catch (e) {
+          // Silent error handling
+        }
       }
     };
-  }, [interview, vapi]); // Initialize when interview data is available
+  }, [interview?.id]); // Only re-run when interview ID changes
 
   // Fetch interview data
   useEffect(() => {
     const fetchInterview = async () => {
       if (!interviewId) {
-        console.error('❌ No interview ID provided');
         setError('No interview ID provided');
         setLoading(false);
         return;
       }
 
       try {
-        console.log(`🔍 Loading interview for start: ${interviewId}`);
         setLoading(true);
 
         // First try to get from cache
         const cachedInterview = getInterviewFromCache(interviewId);
         if (cachedInterview) {
-          console.log('✅ Using cached interview:', cachedInterview);
-          console.log('📝 Cached interview questions debug:', {
-            questions: cachedInterview.questions,
-            generatedQuestions: cachedInterview.generatedQuestions,
-            questionsType: typeof cachedInterview.questions,
-            questionsArray: Array.isArray(cachedInterview.questions),
-            questionsLength: cachedInterview.questions?.length || 'No length',
-          });
           setInterview(cachedInterview);
           setLoading(false);
           return;
         }
 
         // If not in cache, fetch from API
-        console.log('📡 Fetching interview from API:', interviewId);
         const fetchedInterview = await getInterviewById(interviewId);
 
         if (fetchedInterview) {
-          console.log('✅ Fetched interview successfully:', fetchedInterview);
-          console.log('📝 Interview questions debug:', {
-            questions: fetchedInterview.questions,
-            generatedQuestions: fetchedInterview.generatedQuestions,
-            questionsType: typeof fetchedInterview.questions,
-            questionsArray: Array.isArray(fetchedInterview.questions),
-            questionsLength: fetchedInterview.questions?.length || 'No length',
-          });
           setInterview(fetchedInterview);
         } else {
-          console.error('❌ Interview not found in API response');
           setError('Interview not found');
         }
       } catch (error) {
-        console.error('❌ Error fetching interview:', error);
         setError(`Failed to load interview data: ${error.message}`);
       } finally {
         setLoading(false);
@@ -299,12 +222,9 @@ export default function StartInterviewPage() {
 
     const questions = getQuestions(interview);
     if (!questions || questions.length === 0) {
-      console.error('❌ No questions found. Interview data:', interview);
       toast.error('No questions available for this interview');
       return;
     }
-
-    console.log(`✅ Found ${questions.length} questions for interview`);
 
     try {
       console.log('🎙️ Starting voice interview...');
@@ -485,7 +405,7 @@ export default function StartInterviewPage() {
                     <div className="lg:hidden mb-6">
                       <Avatar className="w-24 h-24 mx-auto">
                         <AvatarImage
-                          src="/ai-avatar.png"
+                          src="/user.png"
                           alt="AI Interviewer"
                         />
                         <AvatarFallback className="bg-primary/10">

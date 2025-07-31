@@ -153,7 +153,7 @@ export const useInterviewStore = create(
             };
           });
 
-          toast.success('Interview status updated successfully');
+          // Status updated silently
           return updatedInterview;
         } catch (error) {
           set({ error: error.message, isUpdating: false });
