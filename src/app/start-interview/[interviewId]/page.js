@@ -102,11 +102,10 @@ export default function StartInterviewPage() {
     return () => clearInterval(interval);
   }, [isInterviewActive, interviewStartTime]);
 
-  // Initialize Vapi (similar to Vite Meeting.jsx approach)
+  // Initialize Vapi
   useEffect(() => {
     const initVapi = async () => {
-      // Only initialize if we have interview data and no Vapi instance exists yet
-      if (!interview || vapi || isVoiceInitialized) return;
+      if (vapi || isVoiceInitialized) return;
 
       try {
         const { default: Vapi } = await import('@vapi-ai/web');
@@ -114,10 +113,7 @@ export default function StartInterviewPage() {
 
         if (!vapiApiKey) {
           console.warn('VAPI API key not configured');
-          return;
-        }
-
-        if (typeof Vapi !== 'function') {
+          setIsVoiceInitialized(false);
           return;
         }
 
@@ -152,7 +148,8 @@ export default function StartInterviewPage() {
           setIsInterviewActive(false);
         });
       } catch (err) {
-        // Silent fail for Vapi initialization
+        console.error('Failed to initialize Vapi:', err);
+        setIsVoiceInitialized(false);
       }
     };
 
@@ -167,7 +164,7 @@ export default function StartInterviewPage() {
         }
       }
     };
-  }, [interview?.id]); // Only re-run when interview ID changes
+  }, []);
 
   // Fetch interview data
   useEffect(() => {
@@ -437,13 +434,15 @@ export default function StartInterviewPage() {
                       size="lg"
                       className="px-6"
                     >
-                      Start Interview
+                      {!isVoiceInitialized ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Initializing...
+                        </>
+                      ) : (
+                        'Start Interview'
+                      )}
                     </Button>
-                    {!isVoiceInitialized && (
-                      <p className="text-sm text-muted-foreground">
-                        Voice interviews require additional configuration.
-                      </p>
-                    )}
                   </div>
                   <div className="hidden lg:block">
                     <div className="w-64 h-64 flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg">
