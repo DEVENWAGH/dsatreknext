@@ -1,5 +1,11 @@
 export const DISCUSSION_MODELS = [
   {
+    id: 'gemini-direct',
+    name: 'Gemini 2.5 Flash (Direct)',
+    provider: 'Google Direct',
+  },
+  { id: 'google/gemini-pro-1.5', name: 'Gemini Pro 1.5', provider: 'Google' },
+  {
     id: 'deepseek/deepseek-r1-0528:free',
     name: 'DeepSeek R1 (Free)',
     provider: 'DeepSeek',
@@ -12,7 +18,6 @@ export const DISCUSSION_MODELS = [
     name: 'Claude 3.5 Sonnet',
     provider: 'Anthropic',
   },
-  { id: 'google/gemini-pro-1.5', name: 'Gemini Pro 1.5', provider: 'Google' },
   {
     id: 'meta-llama/llama-3.1-70b-instruct',
     name: 'Llama 3.1 70B',
@@ -25,7 +30,7 @@ export const DISCUSSION_MODELS = [
   },
 ];
 
-export const DEFAULT_DISCUSSION_MODEL = 'qwen/qwen3-coder:free';
+export const DEFAULT_DISCUSSION_MODEL = 'gemini-direct';
 
 export const INTERVIEW_MODELS = [
   {
