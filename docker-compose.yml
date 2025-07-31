@@ -1,7 +1,6 @@
 services:
   dsatrek-1:
     build: .
-    container_name: dsatrek-dsatrek-1
     restart: unless-stopped
     environment:
       - NODE_ENV=production
@@ -16,7 +15,6 @@ services:
 
   dsatrek-2:
     build: .
-    container_name: dsatrek-dsatrek-2
     restart: unless-stopped
     environment:
       - NODE_ENV=production

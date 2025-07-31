@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MessageSquare, Send, User, Clock, Copy, Check } from 'lucide-react';
+import { MessageSquare, Send, User, Clock, Copy, Check, Trash2 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -45,6 +45,16 @@ export default function ProblemDiscussion({ problemId }) {
 
   const handleSubmit = async () => {
     if (!content || loading || !session?.user) return;
+    
+    // Check if content is empty
+    const hasContent = content.some(block => {
+      if (block.type === 'p') {
+        return block.children?.some(child => child.text?.trim());
+      }
+      return block.text?.trim() || block.url;
+    });
+    
+    if (!hasContent) return;
 
     setLoading(true);
     try {
@@ -78,6 +88,22 @@ export default function ProblemDiscussion({ problemId }) {
     }
   };
 
+  const handleDelete = async (discussionId) => {
+    if (!confirm('Are you sure you want to delete this discussion?')) return;
+    
+    try {
+      const response = await fetch(`/api/community/problem/${problemId}/${discussionId}`, {
+        method: 'DELETE',
+      });
+      
+      if (response.ok) {
+        fetchDiscussions();
+      }
+    } catch (error) {
+      console.error('Error deleting:', error);
+    }
+  };
+
   useEffect(() => {
     fetchDiscussions();
   }, [problemId]);
@@ -95,11 +121,14 @@ export default function ProblemDiscussion({ problemId }) {
     if (Array.isArray(content)) {
       const elements = [];
 
-      for (const block of content) {
+      for (let i = 0; i < content.length; i++) {
+        const block = content[i];
+        const key = block.id || `block-${i}`;
+        
         if (block.type === 'img') {
           elements.push(
             <Image
-              key={block.id}
+              key={key}
               src={block.url}
               alt=""
               className="max-w-full h-auto rounded-lg my-2"
@@ -110,7 +139,7 @@ export default function ProblemDiscussion({ problemId }) {
         } else if (block.type === 'video') {
           elements.push(
             <div
-              key={block.id}
+              key={key}
               className="my-2 rounded-lg overflow-hidden"
               style={{ maxHeight: '400px' }}
             >
@@ -158,7 +187,7 @@ export default function ProblemDiscussion({ problemId }) {
             }) || [];
 
           elements.push(
-            <p key={block.id} className="mb-2">
+            <p key={key} className="mb-2">
               {content}
             </p>
           );
@@ -171,7 +200,7 @@ export default function ProblemDiscussion({ problemId }) {
             '';
           elements.push(
             <CodeBlock
-              key={block.id}
+              key={key}
               code={codeContent}
               language={block.lang || 'javascript'}
             />
@@ -182,7 +211,7 @@ export default function ProblemDiscussion({ problemId }) {
               if (child.type === 'a') {
                 return (
                   <a
-                    key={child.id}
+                    key={child.id || `link-${Math.random()}`}
                     href={child.url}
                     target={child.target}
                     className="text-blue-600 hover:underline"
@@ -195,7 +224,7 @@ export default function ProblemDiscussion({ problemId }) {
             }) || '';
 
           elements.push(
-            <h3 key={block.id} className="font-bold text-lg mb-2">
+            <h3 key={key} className="font-bold text-lg mb-2">
               {text}
             </h3>
           );
@@ -335,11 +364,23 @@ export default function ProblemDiscussion({ problemId }) {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 text-sm mb-2">
-                    <span className="font-medium">{discussion.username}</span>
-                    <span className="text-gray-500">
-                      {new Date(discussion.createdAt).toLocaleDateString()}
-                    </span>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="font-medium">{discussion.username}</span>
+                      <span className="text-gray-500">
+                        {new Date(discussion.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    {discussion.userId === session?.user?.id && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(discussion.id)}
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
                   <div className="prose prose-sm max-w-none text-gray-700 dark:text-gray-300">
                     {renderContent(discussion.content)}
