@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  turbopack: {
+    resolveAlias: {
+      '@vapi-ai/web': '@vapi-ai/web',
+    },
+  },
   images: {
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',

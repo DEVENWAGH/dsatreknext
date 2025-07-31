@@ -108,8 +108,29 @@ export default function StartInterviewPage() {
       if (vapi || isVoiceInitialized) return;
 
       try {
-        const VapiModule = await import('@vapi-ai/web');
-        const Vapi = VapiModule.default || VapiModule;
+        // Dynamic import with better error handling for production
+        const VapiModule = await import('@vapi-ai/web').catch(err => {
+          console.error('Failed to import @vapi-ai/web:', err);
+          throw new Error('Vapi module not available');
+        });
+        
+        let Vapi;
+        
+        // Handle different export formats in dev vs production
+        if (VapiModule.default && typeof VapiModule.default === 'function') {
+          Vapi = VapiModule.default;
+        } else if (VapiModule.Vapi && typeof VapiModule.Vapi === 'function') {
+          Vapi = VapiModule.Vapi;
+        } else if (typeof VapiModule === 'function') {
+          Vapi = VapiModule;
+        } else {
+          // Last resort: check all properties for a constructor
+          const constructors = Object.values(VapiModule).filter(val => typeof val === 'function');
+          if (constructors.length > 0) {
+            Vapi = constructors[0];
+          }
+        }
+        
         const vapiApiKey = process.env.NEXT_PUBLIC_VAPI_API_KEY;
 
         if (!vapiApiKey) {
@@ -119,7 +140,7 @@ export default function StartInterviewPage() {
         }
 
         if (typeof Vapi !== 'function') {
-          console.error('Vapi is not a constructor');
+          console.error('Vapi is not a constructor. Available exports:', Object.keys(VapiModule));
           setIsVoiceInitialized(false);
           return;
         }
