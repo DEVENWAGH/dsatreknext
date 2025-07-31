@@ -113,6 +113,7 @@ export default function StartInterviewPage() {
         const vapiApiKey = process.env.NEXT_PUBLIC_VAPI_API_KEY;
 
         if (!vapiApiKey) {
+          console.warn('VAPI API key not configured');
           return;
         }
 
@@ -439,8 +440,8 @@ export default function StartInterviewPage() {
                       Start Interview
                     </Button>
                     {!isVoiceInitialized && (
-                      <p className="text-sm text-yellow-600">
-                        Voice service not available. Check configuration.
+                      <p className="text-sm text-muted-foreground">
+                        Voice interviews require additional configuration.
                       </p>
                     )}
                   </div>
