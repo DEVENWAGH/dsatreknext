@@ -117,18 +117,19 @@ export default function StartInterviewPage() {
         let Vapi;
         
         // Handle different export formats in dev vs production
-        if (VapiModule.default && typeof VapiModule.default === 'function') {
-          Vapi = VapiModule.default;
+        if (VapiModule.default) {
+          // In production, default might be wrapped
+          if (typeof VapiModule.default === 'function') {
+            Vapi = VapiModule.default;
+          } else if (VapiModule.default.default && typeof VapiModule.default.default === 'function') {
+            Vapi = VapiModule.default.default;
+          } else if (VapiModule.default.Vapi && typeof VapiModule.default.Vapi === 'function') {
+            Vapi = VapiModule.default.Vapi;
+          }
         } else if (VapiModule.Vapi && typeof VapiModule.Vapi === 'function') {
           Vapi = VapiModule.Vapi;
         } else if (typeof VapiModule === 'function') {
           Vapi = VapiModule;
-        } else {
-          // Last resort: check all properties for a constructor
-          const constructors = Object.values(VapiModule).filter(val => typeof val === 'function');
-          if (constructors.length > 0) {
-            Vapi = constructors[0];
-          }
         }
         
         const vapiApiKey = process.env.NEXT_PUBLIC_VAPI_API_KEY;
@@ -141,6 +142,8 @@ export default function StartInterviewPage() {
 
         if (typeof Vapi !== 'function') {
           console.error('Vapi is not a constructor. Available exports:', Object.keys(VapiModule));
+          console.error('Default export type:', typeof VapiModule.default);
+          console.error('Default export keys:', VapiModule.default ? Object.keys(VapiModule.default) : 'none');
           setIsVoiceInitialized(false);
           return;
         }
