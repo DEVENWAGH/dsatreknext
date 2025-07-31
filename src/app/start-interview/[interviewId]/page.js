@@ -108,11 +108,18 @@ export default function StartInterviewPage() {
       if (vapi || isVoiceInitialized) return;
 
       try {
-        const { default: Vapi } = await import('@vapi-ai/web');
+        const VapiModule = await import('@vapi-ai/web');
+        const Vapi = VapiModule.default || VapiModule;
         const vapiApiKey = process.env.NEXT_PUBLIC_VAPI_API_KEY;
 
         if (!vapiApiKey) {
           console.warn('VAPI API key not configured');
+          setIsVoiceInitialized(false);
+          return;
+        }
+
+        if (typeof Vapi !== 'function') {
+          console.error('Vapi is not a constructor');
           setIsVoiceInitialized(false);
           return;
         }
