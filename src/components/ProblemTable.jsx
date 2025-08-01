@@ -216,20 +216,18 @@ const ProblemTable = () => {
               const companies = problem.companies || [];
               const isLast = index === displayProblems.length - 1;
               
-              // Debug: Log problem data to check is_premium field
-              if (index < 3) {
-                console.log(`Problem ${index}:`, { id: problem.id, title: problem.title, isPremium: problem.isPremium });
-              }
+
 
               return (
                 <tr 
                   key={problem.id} 
                   className="border-b hover:bg-muted/50"
                 >
-                  <td
-                    className="p-4 font-medium cursor-pointer"
-                    onClick={() => handleProblemClick(problem.id)}
-                  >
+                  <td className="p-4 font-medium">
+                    <div 
+                      className="cursor-pointer hover:text-primary transition-colors"
+                      onClick={() => handleProblemClick(problem.id)}
+                    >
                     <div className="flex items-center gap-2">
                       {solvedProblems?.includes(problem.id) && (
                         <Check className="h-4 w-4 text-green-500" />
@@ -250,6 +248,7 @@ const ProblemTable = () => {
                           </Badge>
                         )}
                       </span>
+                    </div>
                     </div>
                   </td>
                   <td className="p-4">

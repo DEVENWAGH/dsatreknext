@@ -197,23 +197,17 @@ export const problemAPI = {
   },
 
   submit: async ({ problemId, code, language }) => {
-    console.log('Submit API call:', { problemId, language, codeLength: code?.length });
-    const response = await apiCall(`/submissions/${problemId}`, {
+    return apiCall(`/submissions/${problemId}`, {
       method: 'POST',
       body: JSON.stringify({ source_code: code, language_id: parseInt(language) }),
     });
-    console.log('Submit API response:', response);
-    return response;
   },
 
   test: async ({ problemId, code, language, testCases }) => {
-    console.log('Test API call:', { problemId, language, testCases, codeLength: code?.length });
-    const response = await apiCall(`/submissions/${problemId}`, {
+    return apiCall(`/submissions/${problemId}`, {
       method: 'POST',
       body: JSON.stringify({ source_code: code, language_id: parseInt(language), stdin: testCases }),
     });
-    console.log('Test API response:', response);
-    return response;
   },
 };
 

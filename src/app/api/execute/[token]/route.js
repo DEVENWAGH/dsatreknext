@@ -16,7 +16,6 @@ export async function GET(request, { params }) {
     }
 
     const { token } = await params;
-    console.log('Fetching results for token:', token);
 
     // Get results from Judge0
     const judge0Response = await fetch(
@@ -30,10 +29,8 @@ export async function GET(request, { params }) {
     );
 
     const result = await judge0Response.json();
-    console.log('Judge0 response for token', token, ':', judge0Response.status, result);
 
     if (!judge0Response.ok) {
-      console.error('Judge0 error:', judge0Response.status, result);
       return NextResponse.json(result, {
         status: judge0Response.status,
       });
@@ -41,7 +38,6 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Error in token route:', error);
     return NextResponse.json(
       {
         success: false,
