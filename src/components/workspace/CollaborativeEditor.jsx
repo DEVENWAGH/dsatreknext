@@ -7,7 +7,7 @@ import {
   useMyPresence,
   useOthers,
   useEventListener,
-} from '../../../liveblocks.config';
+} from '../../../liveblocks.config.js';
 import { CollaborativeCursors } from './CollaborativeCursors';
 
 export function CollaborativeEditor({
@@ -18,40 +18,60 @@ export function CollaborativeEditor({
   theme = 'vs-dark',
 }) {
   const [editorRef, setEditorRef] = useState();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [userInfo, setUserInfo] = useState(null);
   const room = useRoom();
   const [myPresence, updateMyPresence] = useMyPresence();
   const others = useOthers();
 
-  // Check authentication
+  // Check authentication using authStore
   useEffect(() => {
     const checkAuth = async () => {
       const { useAuthStore } = await import('@/store/authStore');
       const authUser = useAuthStore.getState().authUser;
-      setIsAuthenticated(!!authUser);
+      
+      if (authUser) {
+        let userName = 'User';
+        if (authUser.firstName && authUser.lastName) {
+          userName = `${authUser.firstName} ${authUser.lastName}`;
+        } else if (authUser.name) {
+          userName = authUser.name;
+        } else if (authUser.email) {
+          userName = authUser.email.split('@')[0];
+        }
+
+        const info = {
+          name: userName,
+          color: `hsl(${Math.random() * 360}, 70%, 50%)`,
+        };
+        
+        setUserInfo(info);
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+      }
     };
     checkAuth();
   }, []);
 
   // Listen for room ending events from window
   useEffect(() => {
-    const handleRoomEnded = event => {
-      const { roomId } = event.detail;
-      const searchParams = new URLSearchParams(window.location.search);
-      const currentRoomId = searchParams.get('roomId');
-
-      if (currentRoomId === roomId) {
-        // Just redirect without toast
-        setTimeout(() => {
-          window.location.href = window.location.pathname;
-        }, 1000);
-      }
+    const handleRoomEnded = () => {
+      // Immediately redirect to regular workspace
+      window.location.href = window.location.pathname;
     };
 
-    window.addEventListener('room-ended', handleRoomEnded);
+    const handleRoomLeft = () => {
+      // User left collaboration, redirect to regular workspace
+      window.location.href = window.location.pathname;
+    };
+
+    window.addEventListener('roomEnded', handleRoomEnded);
+    window.addEventListener('roomLeft', handleRoomLeft);
 
     return () => {
-      window.removeEventListener('room-ended', handleRoomEnded);
+      window.removeEventListener('roomEnded', handleRoomEnded);
+      window.removeEventListener('roomLeft', handleRoomLeft);
     };
   }, []);
 
@@ -59,13 +79,23 @@ export function CollaborativeEditor({
     if (!editorRef || !room) return;
 
     let binding;
+    let yProvider;
+    let disposed = false;
 
     const setupCollaboration = async () => {
       try {
         const { getYjsProviderForRoom } = await import('@liveblocks/yjs');
         const { MonacoBinding } = await import('y-monaco');
 
-        const yProvider = getYjsProviderForRoom(room);
+        // Check if the editor has been disposed
+        if (disposed || !editorRef.getModel()) {
+          console.log(
+            'Editor was disposed before collaboration setup completed'
+          );
+          return;
+        }
+
+        yProvider = getYjsProviderForRoom(room);
         const yDoc = yProvider.getYDoc();
         const yText = yDoc.getText('monaco');
 
@@ -86,108 +116,81 @@ export function CollaborativeEditor({
 
         // Get user info from authStore
         const getUserInfo = async () => {
-          console.log('🔍 Getting user info for collaboration...');
-
           try {
             const { useAuthStore } = await import('@/store/authStore');
             const authUser = useAuthStore.getState().authUser;
-
-            console.log('📊 AuthStore state:', {
-              authUser,
-              hasAuthUser: !!authUser,
-              firstName: authUser?.firstName,
-              lastName: authUser?.lastName,
-              name: authUser?.name,
-              email: authUser?.email,
-            });
 
             if (authUser) {
               let userName = 'User';
 
               if (authUser.firstName && authUser.lastName) {
                 userName = `${authUser.firstName} ${authUser.lastName}`;
-                console.log('✅ Using firstName + lastName:', userName);
               } else if (authUser.name) {
                 userName = authUser.name;
-                console.log('✅ Using name field:', userName);
               } else if (authUser.email) {
                 userName = authUser.email.split('@')[0];
-                console.log('✅ Using email prefix:', userName);
-              } else {
-                console.log('❌ No valid name fields found in authUser');
               }
 
-              const userInfo = {
+              return {
                 name: userName,
                 color: `hsl(${Math.random() * 360}, 70%, 50%)`,
               };
-
-              console.log('🎯 Final user info for collaboration:', userInfo);
-              return userInfo;
-            } else {
-              console.log('❌ No authUser found in store');
             }
           } catch (error) {
-            console.error('💥 Failed to get user from authStore:', error);
+            // Silent fallback
           }
 
-          console.log('⚠️ Falling back to default user');
           return {
             name: 'User',
             color: `hsl(${Math.random() * 360}, 70%, 50%)`,
           };
         };
 
-        const userInfo = await getUserInfo();
-        console.log('🚀 Setting user info in awareness:', userInfo);
+        const currentUserInfo = await getUserInfo();
 
         // Set user info in awareness for Monaco binding
-        yProvider.awareness.setLocalStateField('user', userInfo);
+        yProvider.awareness.setLocalStateField('user', currentUserInfo);
 
-        // Debug awareness changes
-        yProvider.awareness.on('change', () => {
-          const states = yProvider.awareness.getStates();
+        // Check again if model exists before creating binding
+        const model = editorRef.getModel();
+        if (!model || disposed) {
           console.log(
-            '👥 Awareness states changed:',
-            Array.from(states.entries()).map(([id, state]) => ({
-              id,
-              user: state.user,
-            }))
+            'Editor model was disposed before binding could be created'
           );
-        });
+          return;
+        }
 
-        binding = new MonacoBinding(
-          yText,
-          editorRef.getModel(),
-          new Set([editorRef]),
-          yProvider.awareness
-        );
+        try {
+          binding = new MonacoBinding(
+            yText,
+            model,
+            new Set([editorRef]),
+            yProvider.awareness
+          );
+        } catch (error) {
+          console.error('Error creating Monaco binding:', error);
+          return;
+        }
 
         // Update cursor position and user info in presence
         editorRef.onDidChangeCursorPosition(e => {
-          const presenceData = {
+          updateMyPresence({
             cursor: {
               line: e.position.lineNumber,
               column: e.position.column,
             },
-            user: userInfo,
-          };
-          console.log('📍 Updating presence:', presenceData);
-          updateMyPresence(presenceData);
+            user: currentUserInfo,
+          });
         });
 
         // Set initial presence with user info
-        const initialPresence = {
+        updateMyPresence({
           cursor: {
             line: 1,
             column: 1,
           },
-          user: userInfo,
-        };
-        console.log('🎯 Setting initial presence:', initialPresence);
-        updateMyPresence(initialPresence);
-
-        console.log('Collaboration setup complete for room:', room.id);
+          user: currentUserInfo,
+        });
       } catch (error) {
         console.error('Error setting up collaboration:', error);
       }
@@ -198,12 +201,24 @@ export function CollaborativeEditor({
     return () => {
       binding?.destroy();
     };
-  }, [editorRef, room, defaultValue]);
+  }, [editorRef, room, defaultValue, userInfo]);
 
   const handleOnMount = useCallback(
     (editor, monaco) => {
+      // Initialize event handlers array
+      editor._liveblocksEventHandlers = [];
+
+      // Store the editor instance
       setEditorRef(editor);
-      onMount?.(editor, monaco);
+
+      // Call the parent's onMount handler if provided
+      if (onMount) {
+        try {
+          onMount(editor, monaco);
+        } catch (error) {
+          console.warn('Error in parent onMount handler:', error);
+        }
+      }
     },
     [onMount]
   );

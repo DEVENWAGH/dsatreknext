@@ -1,11 +1,9 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import Split from 'react-split';
 import ProblemDescriptionPanel from './ProblemDescriptionPanel';
 import Playground from './Playground';
 import BatchManager from './BatchManager';
 import { toast } from 'sonner';
-import { useSubmitSolution, useTestSolution } from '@/hooks/useSubmissions';
-import { useUpdateProgress } from '@/hooks/useUserProgress';
 import useBatchCodeSubmission from '@/hooks/useBatchCodeSubmission';
 import useCodeSubmission from '@/hooks/useCodeSubmission';
 import useSubmissionStore from '@/store/submissionStore.js';
@@ -21,12 +19,7 @@ const Workspace = ({
   const [useBatchMode, setUseBatchMode] = useState(false);
   const [isEditorMaximized, setIsEditorMaximized] = useState(false);
 
-  // TanStack Query mutations
-  const submitMutation = useSubmitSolution();
-  const testMutation = useTestSolution();
-  const updateProgressMutation = useUpdateProgress();
-  
-  // Use both hooks - batch and regular (for backward compatibility)
+  // Use both hooks - batch and regular
   const batchHook = useBatchCodeSubmission();
   const regularHook = useCodeSubmission();
 
@@ -37,18 +30,15 @@ const Workspace = ({
     isSubmitting,
     runResults,
     submissionResult,
-    submitCode: legacySubmitCode,
-    runCode: legacyRunCode,
+    submitCode,
+    runCode,
     clearResults,
     setSubmissionResult,
   } = useBatchMode ? batchHook : regularHook;
 
   const editorRef = useRef(null);
 
-  // State for TanStack Query results
-  const [tanstackRunResults, setTanstackRunResults] = useState(null);
-
-  // Modify handleRunCode to use TanStack Query mutation
+  // Modify handleRunCode to use the hook's runCode function
   const handleRunCode = async () => {
     if (!editorRef.current) {
       console.error('Editor not ready or ref not assigned.');
@@ -56,19 +46,13 @@ const Workspace = ({
       return;
     }
     const sourceCode = editorRef.current.getValue();
-    
-    // Use TanStack Query for new implementation, fallback to legacy for batch mode
-    if (useBatchMode) {
-      legacyRunCode({ problem, selectedLanguage, sourceCode });
-    } else {
-      legacyRunCode({ problem, selectedLanguage, sourceCode });
-    }
+    runCode({ problem, selectedLanguage, sourceCode });
   };
 
   // Get markAsSubmitted function from submission store
   const markAsSubmitted = useSubmissionStore(state => state.markAsSubmitted);
 
-  // Modify handleSubmitCode to use TanStack Query mutation
+  // Modify handleSubmitCode to use the hook's submitCode function and mark problem as submitted
   const handleSubmitCode = async () => {
     if (!editorRef.current) {
       console.error('Editor not ready or ref not assigned.');
@@ -76,9 +60,9 @@ const Workspace = ({
       return;
     }
     const sourceCode = editorRef.current.getValue();
-    
-    // Use legacy hooks for both batch and regular mode
-    const result = await legacySubmitCode({ problem, selectedLanguage, sourceCode });
+    const result = await submitCode({ problem, selectedLanguage, sourceCode });
+
+    // If submission is successful, mark the problem as submitted
     if (result && result.status === 'Accepted') {
       markAsSubmitted(problem.id);
     }
@@ -98,6 +82,8 @@ const Workspace = ({
   const handleEditorMaximize = useCallback(maximized => {
     setIsEditorMaximized(maximized);
   }, []);
+
+
 
   // Workspace component will structure the main split view
   return (
@@ -178,9 +164,9 @@ const Workspace = ({
             onRun={handleRunCode} // Pass modified run handler
             onSubmission={handleSubmitCode} // Pass modified submit handler
             runResults={runResults}
-            isLoading={isLoading || testMutation.isPending || submitMutation.isPending}
-            isRunning={isRunning || testMutation.isPending}
-            isSubmitting={isSubmitting || submitMutation.isPending}
+            isLoading={isLoading}
+            isRunning={isRunning}
+            isSubmitting={isSubmitting}
             useBatchMode={useBatchMode}
             onBatchModeChange={setUseBatchMode}
             onMaximize={handleEditorMaximize}

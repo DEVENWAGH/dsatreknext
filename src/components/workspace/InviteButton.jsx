@@ -37,7 +37,10 @@ export function InviteButton({ problemId }) {
   const [showEndDialog, setShowEndDialog] = useState(false);
   const [isHost, setIsHost] = useState(false);
   const [timeLeft, setTimeLeft] = useState(null);
+
   const router = useRouter();
+
+
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -77,7 +80,7 @@ export function InviteButton({ problemId }) {
   }, []);
 
   const handleInvite = async () => {
-    // Check authentication first
+    // Check authentication using authStore
     const { useAuthStore } = await import('@/store/authStore');
     const authUser = useAuthStore.getState().authUser;
 
@@ -85,6 +88,8 @@ export function InviteButton({ problemId }) {
       toast.error('Please login to create or join collaborations');
       return;
     }
+
+    try {
 
     if (isInRoom) {
       // Copy current URL if already in room
@@ -97,28 +102,42 @@ export function InviteButton({ problemId }) {
       return;
     }
 
-    // Create new room
-    setShowJoining(true);
-    const roomIdParam = Math.random().toString(36).substring(2, 8);
+      // Create new room
+      setShowJoining(true);
+      const roomIdParam = Math.random().toString(36).substring(2, 8);
 
-    // Register room in state manager
-    const { roomStateManager } = await import('@/utils/roomState');
-    roomStateManager.createRoom(roomIdParam, authUser.id);
+      // Register room in state manager
+      const { roomStateManager } = await import('@/utils/roomState');
+      roomStateManager.createRoom(roomIdParam, authUser.id);
 
-    // Mark current user as host
-    localStorage.setItem(`room-host-${roomIdParam}`, 'true');
-    setIsHost(true);
+      // Mark current user as host
+      localStorage.setItem(`room-host-${roomIdParam}`, 'true');
+      setIsHost(true);
 
-    const newUrl = `${window.location.pathname}?roomId=${roomIdParam}`;
-    window.history.pushState({}, '', newUrl);
+      const newUrl = `${window.location.origin}${window.location.pathname}?roomId=${roomIdParam}`;
+      window.history.pushState({}, '', `${window.location.pathname}?roomId=${roomIdParam}`);
 
-    setTimeout(() => {
-      setShowJoining(false);
-      setIsInRoom(true);
-      toast.success('Room created! Share this URL to invite others.');
-      // Trigger re-render without page refresh
-      window.dispatchEvent(new CustomEvent('roomCreated', { detail: { roomId: roomIdParam } }));
-    }, 1000);
+      setTimeout(async () => {
+        setShowJoining(false);
+        setIsInRoom(true);
+        
+        // Auto-copy the collaboration link with full URL
+        try {
+          await navigator.clipboard.writeText(newUrl);
+          toast.success('Room created and link copied to clipboard!');
+        } catch (err) {
+          toast.success('Room created! Share this URL to invite others.');
+        }
+        
+        // Refresh page with smooth animation for proper sync
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
+      }, 1000);
+    } catch (error) {
+      console.error('Failed to check authentication:', error);
+      toast.error('Authentication check failed');
+    }
   };
 
   const handleEnd = async () => {
@@ -127,11 +146,14 @@ export function InviteButton({ problemId }) {
 
     if (currentRoomId) {
       const { roomStateManager } = await import('@/utils/roomState');
-      const { useAuthStore } = await import('@/store/authStore');
-      const authUser = useAuthStore.getState().authUser;
+      
+      try {
 
-      if (isHost) {
+        if (isHost) {
         // Host ends the room for everyone
+        const { useAuthStore } = await import('@/store/authStore');
+        const authUser = useAuthStore.getState().authUser;
+        
         const ended = roomStateManager.endRoom(
           currentRoomId,
           authUser?.id || 'user'
@@ -146,8 +168,10 @@ export function InviteButton({ problemId }) {
           window.history.pushState({}, '', window.location.pathname);
           setIsInRoom(false);
 
-          // No page reload needed
-          window.dispatchEvent(new CustomEvent('roomEnded'));
+          // Refresh page to return to regular workspace
+          setTimeout(() => {
+            window.location.reload();
+          }, 500);
         } else {
           toast.error('Failed to end collaboration');
           setShowEndDialog(false);
@@ -160,8 +184,14 @@ export function InviteButton({ problemId }) {
         setIsHost(false);
         toast.success('Left collaboration - you can rejoin using the link');
 
-        // No page reload needed
-        window.dispatchEvent(new CustomEvent('roomLeft'));
+        // Refresh page to return to regular workspace
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
+      }
+      } catch (error) {
+        console.error('Failed to check authentication:', error);
+        toast.error('Authentication check failed');
       }
     }
   };
@@ -171,7 +201,7 @@ export function InviteButton({ problemId }) {
       <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 dark:bg-blue-900/20 rounded-md">
         <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
         <span className="text-sm text-blue-600 dark:text-blue-400">
-          Joining room...
+          Creating collaboration...
         </span>
       </div>
     );

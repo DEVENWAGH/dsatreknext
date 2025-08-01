@@ -1,19 +1,38 @@
 import { Liveblocks } from '@liveblocks/node';
-
-export const runtime = 'nodejs';
 import { NextResponse } from 'next/server';
-import { auth } from '@/auth';
+import https from 'https';
+
+// Create custom agent for Liveblocks API calls
+const agent = new https.Agent({
+  rejectUnauthorized: false, // Only for development
+  secureProtocol: 'TLSv1_2_method'
+});
 
 const liveblocks = new Liveblocks({
   secret: process.env.LIVEBLOCKS_SECRET_KEY,
+  agent: process.env.NODE_ENV === 'development' ? agent : undefined,
 });
 
 export async function POST(request) {
   try {
-    // Get user from auth directly
-    const session = await auth();
-    const user = session?.user;
-    const isAuthenticated = !!user;
+    // Get user from session/auth
+    const sessionResponse = await fetch(
+      `${request.nextUrl.origin}/api/auth/session`,
+      {
+        headers: {
+          cookie: request.headers.get('cookie') || '',
+        },
+      }
+    );
+
+    let user = null;
+    let isAuthenticated = false;
+
+    if (sessionResponse.ok) {
+      const session = await sessionResponse.json();
+      user = session?.user;
+      isAuthenticated = !!user;
+    }
 
     // Get room from request body
     const body = await request.json();

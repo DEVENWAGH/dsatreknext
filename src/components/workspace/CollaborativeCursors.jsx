@@ -1,6 +1,6 @@
 'use client';
 
-import { useOthers } from '../../../liveblocks.config';
+import { useOthers } from '../../../liveblocks.config.js';
 import { useEffect, useState } from 'react';
 
 export function CollaborativeCursors({ editorRef }) {
@@ -15,15 +15,7 @@ export function CollaborativeCursors({ editorRef }) {
         .filter(({ presence }) => presence?.cursor)
         .map(({ connectionId, presence }) => {
           const { line, column } = presence.cursor;
-          const position = editorRef
-            .getModel()
-            ?.getPositionAt(
-              editorRef.getModel()?.getOffsetAt({ lineNumber: line, column })
-            );
-
-          if (!position) return null;
-
-          const coords = editorRef.getScrolledVisiblePosition(position);
+          const coords = editorRef.getScrolledVisiblePosition({ lineNumber: line, column });
           if (!coords) return null;
 
           return {

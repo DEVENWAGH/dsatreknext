@@ -269,180 +269,201 @@ const ProblemCodeEditor = ({
     }
   }, [starterCode, isEditorReady, editorRef]);
 
-  const handleEditorDidMount = React.useCallback((editor, monaco) => {
-    // Store monaco instance globally for theme management
-    window.monacoInstance = monaco;
+  const handleEditorDidMount = React.useCallback(
+    (editor, monaco) => {
+      // Store monaco instance globally for theme management
+      window.monacoInstance = monaco;
 
-    // Assign the editor instance to the ref
-    editorRef.current = editor;
-    setIsEditorReady(true);
+      // Assign the editor instance to the ref
+      editorRef.current = editor;
+      setIsEditorReady(true);
 
-    // Set initial value after mount
-    editorRef.current.setValue(starterCode);
+      // Set initial value after mount
+      editorRef.current.setValue(starterCode);
 
-    // Register additional language features for better formatting
-    try {
-      // Enhanced language configuration for better formatting
-      const languages = [
-        'javascript',
-        'typescript',
-        'java',
-        'python',
-        'cpp',
-        'c',
-        'csharp',
-        'go',
-        'rust',
-        'ruby',
-      ];
+      // Register additional language features for better formatting
+      try {
+        // Enhanced language configuration for better formatting
+        const languages = [
+          'javascript',
+          'typescript',
+          'java',
+          'python',
+          'cpp',
+          'c',
+          'csharp',
+          'go',
+          'rust',
+          'ruby',
+        ];
 
-      languages.forEach(lang => {
-        try {
-          monaco.languages.setLanguageConfiguration(lang, {
-            brackets: [
-              ['{', '}'],
-              ['[', ']'],
-              ['(', ')'],
-            ],
-            autoClosingPairs: [
-              { open: '{', close: '}' },
-              { open: '[', close: ']' },
-              { open: '(', close: ')' },
-              { open: '"', close: '"' },
-              { open: "'", close: "'" },
-            ],
-            surroundingPairs: [
-              { open: '{', close: '}' },
-              { open: '[', close: ']' },
-              { open: '(', close: ')' },
-              { open: '"', close: '"' },
-              { open: "'", close: "'" },
-            ],
-            indentationRules: {
-              increaseIndentPattern: /^.*\{[^}"']*$/,
-              decreaseIndentPattern: /^(.*\*\/)?\s*\}.*$/,
-            },
-          });
-        } catch (langError) {
-          console.log(
-            `Language ${lang} configuration already exists or failed:`,
-            langError.message
+        languages.forEach(lang => {
+          try {
+            monaco.languages.setLanguageConfiguration(lang, {
+              brackets: [
+                ['{', '}'],
+                ['[', ']'],
+                ['(', ')'],
+              ],
+              autoClosingPairs: [
+                { open: '{', close: '}' },
+                { open: '[', close: ']' },
+                { open: '(', close: ')' },
+                { open: '"', close: '"' },
+                { open: "'", close: "'" },
+              ],
+              surroundingPairs: [
+                { open: '{', close: '}' },
+                { open: '[', close: ']' },
+                { open: '(', close: ')' },
+                { open: '"', close: '"' },
+                { open: "'", close: "'" },
+              ],
+              indentationRules: {
+                increaseIndentPattern: /^.*\{[^}"']*$/,
+                decreaseIndentPattern: /^(.*\*\/)?\s*\}.*$/,
+              },
+            });
+          } catch (langError) {
+            console.log(
+              `Language ${lang} configuration already exists or failed:`,
+              langError.message
+            );
+          }
+        });
+      } catch (error) {
+        console.log(
+          'Language configuration setup completed with some warnings:',
+          error
+        );
+      }
+
+      if (mounted) {
+        const currentTheme = resolvedTheme === 'dark' ? 'vs-dark' : 'vs';
+        monaco.editor.setTheme(currentTheme);
+      }
+
+      // Add format code command with Shift+Alt+F shortcut
+      editorRef.current.addAction({
+        id: 'format-code',
+        label: 'Format Code',
+        keybindings: [
+          monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyF,
+        ],
+        contextMenuGroupId: '1_modification',
+        run: async () => {
+          const success = await formatCodeWithPrettier(
+            editor,
+            selectedLanguage
           );
-        }
+          if (success) {
+            setFormatStatus({
+              type: 'success',
+              message: 'Code formatted successfully!',
+            });
+          } else {
+            setFormatStatus({
+              type: 'warning',
+              message: `No formatter available for ${selectedLanguage}`,
+            });
+          }
+          setTimeout(() => setFormatStatus(null), 3000);
+        },
       });
-    } catch (error) {
-      console.log(
-        'Language configuration setup completed with some warnings:',
-        error
-      );
-    }
 
-    if (mounted) {
-      const currentTheme = resolvedTheme === 'dark' ? 'vs-dark' : 'vs';
-      monaco.editor.setTheme(currentTheme);
-    }
+      // Add context menu formatting option
+      editorRef.current.addAction({
+        id: 'format-code-context',
+        label: 'Format Document',
+        contextMenuGroupId: '1_modification',
+        contextMenuOrder: 1,
+        run: async () => {
+          const success = await formatCodeWithPrettier(
+            editor,
+            selectedLanguage
+          );
+          if (success) {
+            setFormatStatus({
+              type: 'success',
+              message: 'Code formatted successfully!',
+            });
+          } else {
+            setFormatStatus({
+              type: 'warning',
+              message: `No formatter available for ${selectedLanguage}`,
+            });
+          }
+          setTimeout(() => setFormatStatus(null), 3000);
+        },
+      });
 
-    // Add format code command with Shift+Alt+F shortcut
-    editorRef.current.addAction({
-      id: 'format-code',
-      label: 'Format Code',
-      keybindings: [
-        monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyF,
-      ],
-      contextMenuGroupId: '1_modification',
-      run: async () => {
-        const success = await formatCodeWithPrettier(editor, selectedLanguage);
-        if (success) {
-          setFormatStatus({ type: 'success', message: 'Code formatted successfully!' });
-        } else {
-          setFormatStatus({ type: 'warning', message: `No formatter available for ${selectedLanguage}` });
-        }
-        setTimeout(() => setFormatStatus(null), 3000);
-      },
-    });
+      // Add additional helpful actions
+      editorRef.current.addAction({
+        id: 'toggle-word-wrap',
+        label: 'Toggle Word Wrap',
+        keybindings: [monaco.KeyMod.Alt | monaco.KeyCode.KeyZ],
+        contextMenuGroupId: '9_cutcopypaste',
+        run: () => {
+          const currentWrap = editor.getOption(
+            monaco.editor.EditorOption.wordWrap
+          );
+          const newWrap = currentWrap === 'on' ? 'off' : 'on';
+          editor.updateOptions({ wordWrap: newWrap });
+          console.log(`Word wrap ${newWrap === 'on' ? 'enabled' : 'disabled'}`);
+        },
+      });
 
-    // Add context menu formatting option
-    editorRef.current.addAction({
-      id: 'format-code-context',
-      label: 'Format Document',
-      contextMenuGroupId: '1_modification',
-      contextMenuOrder: 1,
-      run: async () => {
-        const success = await formatCodeWithPrettier(editor, selectedLanguage);
-        if (success) {
-          setFormatStatus({ type: 'success', message: 'Code formatted successfully!' });
-        } else {
-          setFormatStatus({ type: 'warning', message: `No formatter available for ${selectedLanguage}` });
-        }
-        setTimeout(() => setFormatStatus(null), 3000);
-      },
-    });
+      // Add fold/unfold actions
+      editorRef.current.addAction({
+        id: 'fold-all',
+        label: 'Fold All',
+        keybindings: [
+          monaco.KeyMod.CtrlCmd |
+            monaco.KeyMod.Shift |
+            monaco.KeyCode.BracketLeft,
+        ],
+        contextMenuGroupId: '9_folding',
+        run: () => {
+          editor.getAction('editor.foldAll')?.run();
+        },
+      });
 
-    // Add additional helpful actions
-    editorRef.current.addAction({
-      id: 'toggle-word-wrap',
-      label: 'Toggle Word Wrap',
-      keybindings: [monaco.KeyMod.Alt | monaco.KeyCode.KeyZ],
-      contextMenuGroupId: '9_cutcopypaste',
-      run: () => {
-        const currentWrap = editor.getOption(
-          monaco.editor.EditorOption.wordWrap
-        );
-        const newWrap = currentWrap === 'on' ? 'off' : 'on';
-        editor.updateOptions({ wordWrap: newWrap });
-        console.log(`Word wrap ${newWrap === 'on' ? 'enabled' : 'disabled'}`);
-      },
-    });
+      editorRef.current.addAction({
+        id: 'unfold-all',
+        label: 'Unfold All',
+        keybindings: [
+          monaco.KeyMod.CtrlCmd |
+            monaco.KeyMod.Shift |
+            monaco.KeyCode.BracketRight,
+        ],
+        contextMenuGroupId: '9_folding',
+        run: () => {
+          editor.getAction('editor.unfoldAll')?.run();
+        },
+      });
 
-    // Add fold/unfold actions
-    editorRef.current.addAction({
-      id: 'fold-all',
-      label: 'Fold All',
-      keybindings: [
-        monaco.KeyMod.CtrlCmd |
-          monaco.KeyMod.Shift |
-          monaco.KeyCode.BracketLeft,
-      ],
-      contextMenuGroupId: '9_folding',
-      run: () => {
-        editor.getAction('editor.foldAll')?.run();
-      },
-    });
-
-    editorRef.current.addAction({
-      id: 'unfold-all',
-      label: 'Unfold All',
-      keybindings: [
-        monaco.KeyMod.CtrlCmd |
-          monaco.KeyMod.Shift |
-          monaco.KeyCode.BracketRight,
-      ],
-      contextMenuGroupId: '9_folding',
-      run: () => {
-        editor.getAction('editor.unfoldAll')?.run();
-      },
-    });
-
-    // Toggle line numbers
-    editorRef.current.addAction({
-      id: 'toggle-line-numbers',
-      label: 'Toggle Line Numbers',
-      keybindings: [monaco.KeyMod.Alt | monaco.KeyCode.KeyL],
-      contextMenuGroupId: '9_view',
-      run: () => {
-        const currentLineNumbers = editor.getOption(
-          monaco.editor.EditorOption.lineNumbers
-        );
-        const newLineNumbers =
-          currentLineNumbers === 'on'
-            ? 'off'
-            : currentLineNumbers === 'off'
-              ? 'relative'
-              : 'on';
-        editor.updateOptions({ lineNumbers: newLineNumbers });
-      },
-    });
-  }, [mounted, resolvedTheme, starterCode]);
+      // Toggle line numbers
+      editorRef.current.addAction({
+        id: 'toggle-line-numbers',
+        label: 'Toggle Line Numbers',
+        keybindings: [monaco.KeyMod.Alt | monaco.KeyCode.KeyL],
+        contextMenuGroupId: '9_view',
+        run: () => {
+          const currentLineNumbers = editor.getOption(
+            monaco.editor.EditorOption.lineNumbers
+          );
+          const newLineNumbers =
+            currentLineNumbers === 'on'
+              ? 'off'
+              : currentLineNumbers === 'off'
+                ? 'relative'
+                : 'on';
+          editor.updateOptions({ lineNumbers: newLineNumbers });
+        },
+      });
+    },
+    [mounted, resolvedTheme, starterCode]
+  );
 
   const formatCurrentCode = React.useCallback(async () => {
     if (!editorRef.current || !isEditorReady) return;

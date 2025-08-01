@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { RoomProvider, useEventListener } from '../../../liveblocks.config';
-import { useRoomData, useJoinRoom, useLeaveRoom } from '@/hooks/useCollaboration';
-import { useSession } from 'next-auth/react';
 
 function RoomEventHandler() {
   useEventListener(({ event }) => {
@@ -18,12 +16,9 @@ export function CollaborativeWrapper({ children, problemId }) {
   const [roomId, setRoomId] = useState(`workspace-${problemId}`);
   const [key, setKey] = useState(0);
   const [roomBlocked, setRoomBlocked] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
-  
-  const { data: session } = useSession();
-  const { data: roomData } = useRoomData(roomId);
-  const joinRoomMutation = useJoinRoom();
-  const leaveRoomMutation = useLeaveRoom();
+  const [authUser, setAuthUser] = useState(null);
 
   useEffect(() => {
     const updateRoom = async () => {
@@ -33,16 +28,37 @@ export function CollaborativeWrapper({ children, problemId }) {
 
         if (urlRoomId) {
           const { roomStateManager } = await import('@/utils/roomState');
-          if (session?.user) {
-            // Join room using TanStack Query mutation
-            joinRoomMutation.mutate({
-              roomId: urlRoomId,
-              problemId: problemId
-            }, {
-              onError: () => {
-                setRoomBlocked(true);
-              }
-            });
+          
+          // Get user from authStore
+          const { useAuthStore } = await import('@/store/authStore');
+          const currentAuthUser = useAuthStore.getState().authUser;
+
+          // Check if room exists in local state
+          const existingRoom = roomStateManager.getRoomState(urlRoomId);
+
+          if (!existingRoom && currentAuthUser) {
+            // Create room if it doesn't exist and user is authenticated
+            roomStateManager.createRoom(urlRoomId, currentAuthUser.id);
+          } else {
+            // Check if existing room is accessible
+            const isAccessible =
+              await roomStateManager.isRoomAccessible(urlRoomId);
+            if (!isAccessible) {
+              setRoomBlocked(true);
+              return;
+            }
+          }
+
+          if (currentAuthUser) {
+            // Register authenticated user as joining the room
+            const canJoin = await roomStateManager.joinRoom(
+              urlRoomId,
+              currentAuthUser.id
+            );
+            if (!canJoin) {
+              setRoomBlocked(true);
+              return;
+            }
           }
           // Non-authenticated users can view if room is accessible
         }
@@ -61,16 +77,20 @@ export function CollaborativeWrapper({ children, problemId }) {
     };
 
     const handleRoomEnded = event => {
-      const { roomId: endedRoomId } = event.detail;
       const searchParams = new URLSearchParams(window.location.search);
       const currentRoomId = searchParams.get('roomId');
 
-      if (currentRoomId === endedRoomId) {
-        setRoomBlocked(true);
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+      if (currentRoomId) {
+        // Immediately redirect to regular workspace
+        window.history.pushState({}, '', window.location.pathname);
+        window.location.reload();
       }
+    };
+
+    const handleRoomLeft = event => {
+      // User left collaboration, redirect to regular workspace
+      window.history.pushState({}, '', window.location.pathname);
+      window.location.reload();
     };
 
     const handleStorageChange = event => {
@@ -91,11 +111,15 @@ export function CollaborativeWrapper({ children, problemId }) {
     updateRoom();
     window.addEventListener('popstate', updateRoom);
     window.addEventListener('room-ended', handleRoomEnded);
+    window.addEventListener('roomEnded', handleRoomEnded);
+    window.addEventListener('roomLeft', handleRoomLeft);
     window.addEventListener('storage', handleStorageChange);
 
     return () => {
       window.removeEventListener('popstate', updateRoom);
       window.removeEventListener('room-ended', handleRoomEnded);
+      window.removeEventListener('roomEnded', handleRoomEnded);
+      window.removeEventListener('roomLeft', handleRoomLeft);
       window.removeEventListener('storage', handleStorageChange);
     };
   }, [roomId, problemId]);
@@ -107,7 +131,12 @@ export function CollaborativeWrapper({ children, problemId }) {
         const urlRoomId = searchParams.get('roomId');
 
         if (urlRoomId) {
-            setShowLoginPrompt(!session?.user);
+          const { useAuthStore } = await import('@/store/authStore');
+          const user = useAuthStore.getState().authUser;
+          setIsAuthenticated(!!user);
+          setShowLoginPrompt(!user);
+        } else {
+          setIsAuthenticated(true);
         }
       }
     };
@@ -119,7 +148,7 @@ export function CollaborativeWrapper({ children, problemId }) {
     window.addEventListener('focus', handleFocus);
 
     return () => window.removeEventListener('focus', handleFocus);
-  }, [session]);
+  }, []);
 
   if (roomBlocked) {
     return (

@@ -44,6 +44,7 @@ const Workspace = dynamic(
   { ssr: false }
 );
 
+
 import { usePremiumAccess } from '@/hooks/usePremiumAccess';
 import PremiumGate from '@/components/PremiumGate';
 import { checkProblemAccess, getRequiredPlan } from '@/utils/premiumUtils';

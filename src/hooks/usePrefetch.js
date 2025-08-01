@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useProblemStore } from '@/store/problemStore';
+import { usePrefetchProblem } from '@/hooks/useProblems';
 
 const isValidUUID = (str) => {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -7,7 +7,7 @@ const isValidUUID = (str) => {
 };
 
 export const usePrefetch = (currentProblemId, sortedProblems) => {
-  const { getProblem, getProblemFromCache } = useProblemStore();
+  const prefetchProblem = usePrefetchProblem();
   const prefetchedRef = useRef(new Set());
 
   useEffect(() => {
@@ -32,20 +32,16 @@ export const usePrefetch = (currentProblemId, sortedProblems) => {
     // Prefetch with delay to avoid blocking current navigation
     const prefetchTimer = setTimeout(() => {
       prefetchProblems.forEach(problem => {
-        // Only prefetch if it's a valid UUID and not already cached
-        if (isValidUUID(problem.id) && 
-            !prefetchedRef.current.has(problem.id) && 
-            !getProblemFromCache(problem.id)?.description) {
+        // Only prefetch if it's a valid UUID and not already prefetched
+        if (isValidUUID(problem.id) && !prefetchedRef.current.has(problem.id)) {
           prefetchedRef.current.add(problem.id);
-          getProblem(problem.id).catch(() => {
-            prefetchedRef.current.delete(problem.id);
-          });
+          prefetchProblem(problem.id);
         }
       });
     }, 500);
 
     return () => clearTimeout(prefetchTimer);
-  }, [currentProblemId, sortedProblems, getProblem, getProblemFromCache]);
+  }, [currentProblemId, sortedProblems, prefetchProblem]);
 
   // Clean up prefetch cache when component unmounts
   useEffect(() => {
@@ -54,14 +50,4 @@ export const usePrefetch = (currentProblemId, sortedProblems) => {
       currentRef.clear();
     };
   }, []);
-};
-
-export const usePrefetchProblems = (enabled = true) => {
-  const { getAllProblems, problems } = useProblemStore();
-
-  useEffect(() => {
-    if (enabled && problems.length === 0) {
-      getAllProblems();
-    }
-  }, [enabled, getAllProblems, problems.length]);
 };
