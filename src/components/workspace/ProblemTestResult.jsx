@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useWorkspaceStore } from '@/store/workspaceStore';
+import useCodeSubmission from '@/hooks/useCodeSubmission';
 
 export const getStatusColor = status => {
   switch (status?.toLowerCase()) {
@@ -71,14 +72,14 @@ const ProblemTestResult = ({
               <span
                 className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(
                   testCasesToDisplay.every(
-                    tc => tc.actualOutput === tc.expectedOutput
+                    tc => tc.passed
                   )
                     ? 'accepted'
                     : 'wrong_answer'
                 )}`}
               >
                 {testCasesToDisplay.every(
-                  tc => tc.actualOutput === tc.expectedOutput
+                  tc => tc.passed
                 )
                   ? 'Accepted'
                   : 'Wrong Answer'}
@@ -117,7 +118,7 @@ const ProblemTestResult = ({
                 {testCase.actualOutput && testCase.expectedOutput && (
                   <span
                     className={`w-2 h-2 rounded-full ${
-                      testCase.actualOutput === testCase.expectedOutput
+                      testCase.actualOutput.trim() === testCase.expectedOutput.trim()
                         ? 'bg-green-500'
                         : 'bg-red-500'
                     }`}
@@ -149,7 +150,7 @@ const ProblemTestResult = ({
               <h4 className="font-semibold mb-2">Your Output:</h4>
               <div
                 className={`bg-muted p-3 rounded-lg font-mono text-sm whitespace-pre-wrap ${
-                  selectedCase.passed
+                  selectedCase.actualOutput?.trim() === selectedCase.expectedOutput?.trim()
                     ? 'border-l-4 border-green-500'
                     : 'border-l-4 border-red-500'
                 }`}

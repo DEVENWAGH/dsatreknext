@@ -218,7 +218,7 @@ const ProblemTable = () => {
               
               // Debug: Log problem data to check is_premium field
               if (index < 3) {
-                console.log(`Problem ${index}:`, { id: problem.id, title: problem.title, is_premium: problem.is_premium });
+                console.log(`Problem ${index}:`, { id: problem.id, title: problem.title, isPremium: problem.isPremium });
               }
 
               return (
@@ -234,7 +234,7 @@ const ProblemTable = () => {
                       {solvedProblems?.includes(problem.id) && (
                         <Check className="h-4 w-4 text-green-500" />
                       )}
-                      {problem.is_premium && (
+                      {problem.isPremium && (
                         <Lock className="h-4 w-4 text-yellow-500" />
                       )}
                       <span className="flex items-center gap-2">
@@ -244,7 +244,7 @@ const ProblemTable = () => {
                             Demo
                           </Badge>
                         )}
-                        {problem.is_premium && (
+                        {problem.isPremium && (
                           <Badge className="bg-yellow-500/10 text-yellow-500 text-xs">
                             Premium
                           </Badge>

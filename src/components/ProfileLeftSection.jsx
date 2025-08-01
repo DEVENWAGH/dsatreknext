@@ -10,6 +10,7 @@ import ProfileStatistics from './ProfileStatistics';
 import { userAPI } from '@/api/api';
 import { toast } from 'sonner';
 import CustomAvatarFallback from '@/components/ui/avatar-fallback';
+import EditProfileDialog from './EditProfileDialog';
 
 const ProfileLeftSection = ({
   userDetails,

@@ -45,6 +45,9 @@ const Workspace = ({
 
   const editorRef = useRef(null);
 
+  // State for TanStack Query results
+  const [tanstackRunResults, setTanstackRunResults] = useState(null);
+
   // Modify handleRunCode to use TanStack Query mutation
   const handleRunCode = async () => {
     if (!editorRef.current) {
@@ -58,12 +61,7 @@ const Workspace = ({
     if (useBatchMode) {
       legacyRunCode({ problem, selectedLanguage, sourceCode });
     } else {
-      testMutation.mutate({
-        problemId: problem.id,
-        code: sourceCode,
-        language: selectedLanguage,
-        testCases: problem.testCases
-      });
+      legacyRunCode({ problem, selectedLanguage, sourceCode });
     }
   };
 
@@ -79,26 +77,10 @@ const Workspace = ({
     }
     const sourceCode = editorRef.current.getValue();
     
-    // Use TanStack Query for new implementation, fallback to legacy for batch mode
-    if (useBatchMode) {
-      const result = await legacySubmitCode({ problem, selectedLanguage, sourceCode });
-      if (result && result.status === 'Accepted') {
-        markAsSubmitted(problem.id);
-      }
-    } else {
-      submitMutation.mutate({
-        problemId: problem.id,
-        code: sourceCode,
-        language: selectedLanguage
-      }, {
-        onSuccess: (data) => {
-          if (data.status === 'accepted') {
-            markAsSubmitted(problem.id);
-            updateProgressMutation.mutate({ problemId: problem.id, status: 'solved' });
-            toast.success('Solution accepted!');
-          }
-        }
-      });
+    // Use legacy hooks for both batch and regular mode
+    const result = await legacySubmitCode({ problem, selectedLanguage, sourceCode });
+    if (result && result.status === 'Accepted') {
+      markAsSubmitted(problem.id);
     }
   };
 

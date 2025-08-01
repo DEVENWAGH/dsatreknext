@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 export const runtime = 'nodejs';
 import { db } from '@/lib/db';
 import { User } from '@/lib/schema';
+import { UserProfile } from '@/lib/schema/user-profile';
 import { eq } from 'drizzle-orm';
 
 export async function GET(request, { params }) {
@@ -23,9 +24,22 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    // Get user profile if exists
+    const userProfile = await db
+      .select()
+      .from(UserProfile)
+      .where(eq(UserProfile.userId, userId))
+      .limit(1);
+
+    // Remove sensitive information
+    const { password, ...userWithoutPassword } = user[0];
+
     return NextResponse.json({
       success: true,
-      data: user[0],
+      data: {
+        ...userWithoutPassword,
+        ...userProfile[0],
+      },
     });
   } catch (error) {
     console.error('User API error:', error);

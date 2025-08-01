@@ -4,7 +4,6 @@ export const runtime = 'nodejs';
 
 export async function GET(request, { params }) {
   try {
-    // Import auth dynamically
     const { auth } = await import('@/auth');
     const session = await auth();
 
@@ -18,6 +17,13 @@ export async function GET(request, { params }) {
     const { token } = await params;
     console.log('Fetching results for token:', token);
 
+    if (!token) {
+      return NextResponse.json(
+        { success: false, message: 'Token is required' },
+        { status: 400 }
+      );
+    }
+
     // Get results from Judge0
     const judge0Response = await fetch(
       `${process.env.JUDGE0_API_URL}/submissions/${token}?base64_encoded=false`,
@@ -30,18 +36,11 @@ export async function GET(request, { params }) {
     );
 
     const result = await judge0Response.json();
-    console.log('Judge0 response for token', token, ':', judge0Response.status, result);
-
-    if (!judge0Response.ok) {
-      console.error('Judge0 error:', judge0Response.status, result);
-      return NextResponse.json(result, {
-        status: judge0Response.status,
-      });
-    }
+    console.log('Judge0 result for token', token, ':', result);
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Error in token route:', error);
+    console.error('Error fetching Judge0 results:', error);
     return NextResponse.json(
       {
         success: false,

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { executeAPI } from '@/api/api';
 import { toast } from 'sonner';
 import { useLanguageStore } from '@/store/languageStore';
-import { useWorkspaceStore } from '@/store/workspaceStore';
 import { prepareCodeForJudge } from '@/utils/codeProcessor';
 import { fireConfettiFireworks } from '@/components/magicui/confetti';
 
@@ -13,7 +12,6 @@ const useCodeSubmission = () => {
   const [runResults, setRunResults] = useState(null);
   const [submissionResult, setSubmissionResult] = useState(null);
   const { getLanguageIdByDisplayName } = useLanguageStore();
-  const { fetchSubmissions } = useWorkspaceStore();
 
   const submitCode = async ({ problem, selectedLanguage, sourceCode }) => {
     if (!problem?.testCases || problem.testCases.length === 0) {
@@ -113,7 +111,7 @@ const useCodeSubmission = () => {
                   results.push({
                     input: stdin?.[i] || '',
                     expectedOutput: expected_outputs?.[i] || '',
-                    actualOutput: 'Compilation Error - Check your code syntax',
+                    actualOutput: result.compile_output || result.stderr || 'Compilation Error - Check your code syntax',
                     passed: false,
                     status: 'compile_error',
                     runtime: '0.000',
@@ -186,9 +184,6 @@ const useCodeSubmission = () => {
           );
 
           if (updateResponse.ok) {
-            // Refresh submissions in workspace after successful update
-            await fetchSubmissions(problem.id);
-
             // Refresh user stats if submission was accepted
             if (finalStatus === 'accepted') {
               // Trigger stats refresh by dispatching a custom event
@@ -317,12 +312,12 @@ const useCodeSubmission = () => {
                     testCaseIndex: i,
                     input: stdin[i] || '',
                     expectedOutput: expected_outputs[i] || '',
-                    actualOutput: 'Compilation Error',
+                    actualOutput: result.compile_output || result.stderr || 'Compilation Error',
                     passed: false,
                     status: 'compile_error',
                     runtime: '0.000',
                     memory: '0',
-                    stderr: '',
+                    stderr: result.stderr || '',
                     compile_output: result.compile_output || '',
                   });
                   break;

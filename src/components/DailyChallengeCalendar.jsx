@@ -175,7 +175,7 @@ const DailyChallengeCalendar = () => {
                   >
                     <img
                       alt={`DCC ${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`}
-                      src="https://assets.leetcode.com/static_assets/marketing/lg202507.png"
+                      src={`https://assets.leetcode.com/static_assets/marketing/lg${currentDate.getFullYear()}${String(currentDate.getMonth() + 1).padStart(2, '0')}.png`}
                       className="w-full h-full object-contain"
                     />
                     <svg

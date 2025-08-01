@@ -108,8 +108,6 @@ export function CollaborativeWrapper({ children, problemId }) {
 
         if (urlRoomId) {
             setShowLoginPrompt(!session?.user);
-        } else {
-          setIsAuthenticated(true);
         }
       }
     };
@@ -121,7 +119,7 @@ export function CollaborativeWrapper({ children, problemId }) {
     window.addEventListener('focus', handleFocus);
 
     return () => window.removeEventListener('focus', handleFocus);
-  }, []);
+  }, [session]);
 
   if (roomBlocked) {
     return (
