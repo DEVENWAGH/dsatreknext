@@ -4,7 +4,7 @@ export const runtime = 'nodejs';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { interviews } from '@/lib/schema/interview';
-import { eq } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { generateInterviewQuestions } from '@/services/aiService';
 
@@ -26,7 +26,8 @@ export async function GET(request) {
       .select()
       .from(interviews)
       .where(eq(interviews.userId, userId))
-      .orderBy(interviews.createdAt);
+      .orderBy(desc(interviews.createdAt))
+      .limit(6);
 
     return NextResponse.json({
       success: true,
@@ -73,6 +74,20 @@ export async function POST(request) {
         { error: 'Invalid difficulty level' },
         { status: 400 }
       );
+    }
+
+    // Cleanup: Keep only latest 5 interviews before adding new one (total will be 6)
+    const existingInterviews = await db
+      .select({ id: interviews.id })
+      .from(interviews)
+      .where(eq(interviews.userId, session.user.id))
+      .orderBy(desc(interviews.createdAt));
+
+    if (existingInterviews.length >= 6) {
+      const toDelete = existingInterviews.slice(5);
+      for (const interview of toDelete) {
+        await db.delete(interviews).where(eq(interviews.id, interview.id));
+      }
     }
 
     const generatedQuestions = await generateInterviewQuestions({

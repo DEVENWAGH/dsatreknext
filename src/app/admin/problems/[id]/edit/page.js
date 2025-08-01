@@ -148,6 +148,8 @@ export default function EditProblem() {
   });
 
   const fetchData = useCallback(async () => {
+    if (!params.id) return;
+    
     try {
       setIsLoading(true);
 
@@ -211,7 +213,7 @@ export default function EditProblem() {
     } finally {
       setIsLoading(false);
     }
-  }, [params.id, SUPPORTED_LANGUAGES, form]);
+  }, [params.id]);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -220,7 +222,7 @@ export default function EditProblem() {
       return;
     }
     fetchData();
-  }, [session, status, router, fetchData]);
+  }, [session, status, router, params.id]);
 
   const onSubmit = async data => {
     try {

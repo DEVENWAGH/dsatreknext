@@ -1,18 +1,32 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
-export const useUIStore = create((set, get) => ({
+/**
+ * UI Store - Global UI State Management
+ * Handles navigation, modals, filters, and global UI preferences
+ * TanStack Query handles server state, this manages client-side UI only
+ */
+export const useUIStore = create(
+  persist(
+    (set, get) => ({
   // Navigation state
   isSidebarOpen: false,
   menuOpen: false,
-
-  // Modal states
-  isDeleteDialogOpen: false,
-  isEditModalOpen: false,
-  isAddModalOpen: false,
-
-  // Loading states
-  isPageLoading: false,
-  isFormSubmitting: false,
+  
+  // Global modals
+  modals: {
+    delete: false,
+    edit: false,
+    add: false,
+    settings: false,
+    profile: false,
+  },
+  
+  // Global notifications
+  notifications: [],
+  
+  // Loading states (for global UI)
+  globalLoading: false,
 
   // Filter states
   searchQuery: '',
@@ -45,13 +59,34 @@ export const useUIStore = create((set, get) => ({
   toggleMenu: () => set(state => ({ menuOpen: !state.menuOpen })),
 
   // Modal actions
-  setDeleteDialogOpen: isOpen => set({ isDeleteDialogOpen: isOpen }),
-  setEditModalOpen: isOpen => set({ isEditModalOpen: isOpen }),
-  setAddModalOpen: isOpen => set({ isAddModalOpen: isOpen }),
-
-  // Loading actions
-  setPageLoading: isLoading => set({ isPageLoading: isLoading }),
-  setFormSubmitting: isSubmitting => set({ isFormSubmitting: isSubmitting }),
+  setModal: (modalName, isOpen) => 
+    set(state => ({
+      modals: { ...state.modals, [modalName]: isOpen }
+    })),
+  
+  closeAllModals: () => 
+    set(state => ({
+      modals: Object.keys(state.modals).reduce((acc, key) => {
+        acc[key] = false;
+        return acc;
+      }, {})
+    })),
+  
+  // Notification actions
+  addNotification: (notification) => 
+    set(state => ({
+      notifications: [...state.notifications, { ...notification, id: Date.now() }]
+    })),
+  
+  removeNotification: (id) => 
+    set(state => ({
+      notifications: state.notifications.filter(n => n.id !== id)
+    })),
+  
+  clearNotifications: () => set({ notifications: [] }),
+  
+  // Global loading
+  setGlobalLoading: (loading) => set({ globalLoading: loading }),
 
   // Filter actions
   setSearchQuery: query => set({ searchQuery: query, currentPage: 1 }),
@@ -124,15 +159,31 @@ export const useUIStore = create((set, get) => ({
     set({
       isSidebarOpen: false,
       menuOpen: false,
-      isDeleteDialogOpen: false,
-      isEditModalOpen: false,
-      isAddModalOpen: false,
-      isPageLoading: false,
-      isFormSubmitting: false,
+      modals: {
+        delete: false,
+        edit: false,
+        add: false,
+        settings: false,
+        profile: false,
+      },
+      notifications: [],
+      globalLoading: false,
       searchQuery: '',
       selectedDifficulty: 'all',
       selectedTags: [],
       selectedCompanies: [],
       currentPage: 1,
     }),
-}));
+    }),
+    {
+      name: 'ui-storage',
+      partialize: (state) => ({
+        selectedLanguage: state.selectedLanguage,
+        editorTheme: state.editorTheme,
+        fontSize: state.fontSize,
+        codeEditorSettings: state.codeEditorSettings,
+        selectedDifficulty: state.selectedDifficulty,
+      }),
+    }
+  )
+);

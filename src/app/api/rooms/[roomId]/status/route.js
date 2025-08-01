@@ -6,7 +6,7 @@ export const runtime = 'nodejs';
 const endedRooms = new Set();
 
 export async function GET(request, { params }) {
-  const { roomId } = params;
+  const { roomId } = await params;
 
   return NextResponse.json({
     ended: endedRooms.has(roomId),
@@ -14,7 +14,7 @@ export async function GET(request, { params }) {
 }
 
 export async function POST(request, { params }) {
-  const { roomId } = params;
+  const { roomId } = await params;
 
   // Mark room as ended
   endedRooms.add(roomId);

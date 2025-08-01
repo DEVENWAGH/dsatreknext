@@ -48,10 +48,15 @@ export async function POST(request) {
   }
 }
 
-export async function GET() {
+export async function GET(request) {
   try {
     const session = await auth();
     const userId = session?.user?.id;
+    
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const offset = (page - 1) * limit;
 
     const posts = await db
       .select({
@@ -70,7 +75,8 @@ export async function GET() {
       .leftJoin(User, eq(Community.userId, User.id))
       .where(ne(Community.topic, 'Problem Discussion'))
       .orderBy(desc(Community.createdAt))
-      .limit(50);
+      .limit(limit + 1)
+      .offset(offset);
 
     const postsWithCommentsAndVotes = await Promise.all(
       posts.map(async post => {
@@ -178,7 +184,15 @@ export async function GET() {
       return cleanPost;
     });
 
-    return NextResponse.json({ success: true, data: verifiedPosts });
+    const hasMore = verifiedPosts.length > limit;
+    const postsToReturn = hasMore ? verifiedPosts.slice(0, limit) : verifiedPosts;
+    
+    return NextResponse.json({
+      posts: postsToReturn,
+      hasMore,
+      nextPage: hasMore ? page + 1 : null,
+      currentPage: page
+    });
   } catch (error) {
     console.error('Error fetching posts:', error);
     return NextResponse.json(

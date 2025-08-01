@@ -1,41 +1,62 @@
 import { NextResponse } from 'next/server';
-
-export const runtime = 'nodejs';
-import { auth } from '@/auth';
 import { db } from '@/lib/db';
-import { Community } from '@/lib/schema';
+import { Community as posts, Comments as comments, UserProfile as users } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
 
-export async function DELETE(request, { params }) {
+export async function GET(request, { params }) {
   try {
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { postId } = await params;
 
-    const [post] = await db
-      .select()
-      .from(Community)
-      .where(eq(Community.id, postId))
+    const postData = await db
+      .select({
+        id: posts.id,
+        title: posts.title,
+        content: posts.content,
+        topic: posts.topic,
+        votes: posts.votes,
+        isAnonymous: posts.isAnonymous,
+        createdAt: posts.createdAt,
+        userId: posts.userId,
+        username: posts.username,
+      })
+      .from(posts)
+
+      .where(eq(posts.id, postId))
       .limit(1);
 
-    if (!post) {
-      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+    if (postData.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Post not found' },
+        { status: 404 }
+      );
     }
 
-    if (post.userId !== session.user.id) {
-      return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
-    }
+    const post = postData[0];
 
-    await db.delete(Community).where(eq(Community.id, postId));
+    // Get comments for the post
+    const postComments = await db
+      .select({
+        id: comments.id,
+        content: comments.content,
+        createdAt: comments.createdAt,
+        userId: comments.userId,
+        username: comments.username,
+      })
+      .from(comments)
 
-    return NextResponse.json({ success: true });
+      .where(eq(comments.postId, postId))
+      .orderBy(comments.createdAt);
+
+    post.comments = postComments;
+
+    return NextResponse.json({
+      success: true,
+      data: post,
+    });
   } catch (error) {
-    console.error('Error deleting post:', error);
+    console.error('Error fetching post:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     );
   }

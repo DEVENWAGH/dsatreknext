@@ -25,7 +25,7 @@ import {
   SelectItem,
 } from '@/components/ui/select';
 import { useLanguageStore } from '@/store/languageStore';
-import { useAuthStore } from '@/store/authStore';
+import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 
 const PreferNav = ({
@@ -49,7 +49,7 @@ const PreferNav = ({
 
   const { getLanguageDisplayName, getLanguageDisplayNameByKey } =
     useLanguageStore();
-  const { isAuthenticated } = useAuthStore();
+  const { data: session } = useSession();
 
   // Helper function to get display name for language
   const getDisplayName = language => {
@@ -169,7 +169,7 @@ const PreferNav = ({
           {/* Run Button */}
           <RunButton
             onClick={() => {
-              if (!isAuthenticated()) {
+              if (!session?.user) {
                 toast.error('You need to log in / sign up to run or submit');
                 return;
               }
@@ -184,7 +184,7 @@ const PreferNav = ({
           {/* Submit Button */}
           <SubmitButton
             onClick={() => {
-              if (!isAuthenticated()) {
+              if (!session?.user) {
                 toast.error('You need to log in / sign up to run or submit');
                 return;
               }

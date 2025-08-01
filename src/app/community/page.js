@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback, useMemo, Suspense } from 'react';
 import useVoteStore from '@/store/voteStore';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -11,7 +11,9 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import Image from 'next/image';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import { useCommunityPosts, useVotePost } from '@/hooks/useCommunity';
+import dynamic from 'next/dynamic';
 import {
   ArrowUp,
   ArrowDown,
@@ -23,70 +25,53 @@ import {
   Check,
 } from 'lucide-react';
 
+// Dynamic import for virtualized list (only load when needed)
+const VirtualizedPostList = dynamic(() => import('@/components/community/VirtualizedPostList'), {
+  loading: () => <div className="space-y-6">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-64 w-full" />)}</div>,
+  ssr: false
+});
+
 const CommunityPage = () => {
   const { data: session } = useSession();
   const router = useRouter();
-  const [posts, setPosts] = useState([]);
   const [showComments, setShowComments] = useState({});
   const [expandedPosts, setExpandedPosts] = useState({});
-  const [loading, setLoading] = useState(true);
   const [copiedCode, setCopiedCode] = useState({});
+  const [useVirtualization, setUseVirtualization] = useState(false);
 
-  useEffect(() => {
-    fetchPosts();
-  }, []);
+  const { data, error, isLoading: loading } = useCommunityPosts();
+  const votePostMutation = useVotePost();
+  
+  // Flatten paginated data
+  const posts = React.useMemo(() => {
+    if (!data?.pages) return [];
+    const allPosts = data.pages.flatMap(page => page.posts || []);
+    useVoteStore.getState().initializeVotes(allPosts);
+    return allPosts;
+  }, [data]);
 
-  // Cache the posts fetch for 5 minutes
-  const fetchPosts = useCallback(async () => {
-    try {
-      const response = await fetch('/api/community/posts', {
-        next: { revalidate: 300 }, // Cache for 5 minutes (300 seconds)
-      });
+  // Auto-enable virtualization for large lists
+  React.useEffect(() => {
+    setUseVirtualization((posts?.length || 0) > 20);
+  }, [posts?.length]);
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setPosts(data.data);
-          // Initialize vote store with posts data
-          useVoteStore.getState().initializeVotes(data.data);
-        } else {
-          console.error('API returned error:', data.error);
-          toast.error('Failed to load posts');
-        }
-      } else {
-        console.error('API response not OK:', response.status);
-        toast.error('Failed to load posts');
-      }
-    } catch (error) {
-      console.error('Error fetching posts:', error);
-      toast.error('Failed to load posts');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const votePost = async (postId, type) => {
+  const votePost = useCallback(async (postId, type) => {
     if (!session?.user) {
       toast.error('Please sign in to vote');
       return;
     }
 
-    // Find the post to update
     const post = posts.find(p => p.id === postId);
     if (!post) return;
 
-    // Store original vote data for potential rollback
     const originalVotes = post.votes || 0;
     const originalUserVote = post.userVote;
 
-    // Update vote in store (optimistic update)
+    // Optimistic update
     useVoteStore.getState().voteOnPost(postId, type);
-
-    // Show toast for immediate feedback
     toast.success(`Vote ${type === 'upvote' ? 'up' : 'down'} registered`);
 
     try {
-      // Fetch the specific post's vote endpoint
       const response = await fetch(`/api/community/posts/${postId}/vote`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -95,67 +80,48 @@ const CommunityPage = () => {
 
       if (response.ok) {
         const result = await response.json();
-
-        // Update store with server data
-        useVoteStore
-          .getState()
-          .updateVoteFromServer(postId, result.votes, result.userVote);
+        useVoteStore.getState().updateVoteFromServer(postId, result.votes, result.userVote);
       } else {
-        // Revert optimistic update on error
-        useVoteStore
-          .getState()
-          .resetVote(postId, originalVotes, originalUserVote);
-
+        useVoteStore.getState().resetVote(postId, originalVotes, originalUserVote);
         const error = await response.json();
         toast.error(error.error || 'Already voted on this post');
       }
     } catch (error) {
-      // Revert optimistic update on error
-      useVoteStore
-        .getState()
-        .resetVote(postId, originalVotes, originalUserVote);
-
+      useVoteStore.getState().resetVote(postId, originalVotes, originalUserVote);
       console.error('Error voting:', error);
       toast.error('Failed to register vote');
     }
-  };
+  }, [session?.user, posts]);
 
-  const deletePost = async postId => {
+  const deletePost = useCallback(async (postId) => {
     try {
       const response = await fetch(`/api/community/posts/${postId}`, {
         method: 'DELETE',
       });
       if (response.ok) {
-        setPosts(prev => prev.filter(post => post.id !== postId));
+        toast.success('Post deleted');
       }
     } catch (error) {
       console.error('Error deleting post:', error);
+      toast.error('Failed to delete post');
     }
-  };
+  }, []);
 
-  const deleteComment = async (commentId, postId) => {
+  const deleteComment = useCallback(async (commentId, postId) => {
     try {
       const response = await fetch(`/api/community/comments/${commentId}`, {
         method: 'DELETE',
       });
       if (response.ok) {
-        setPosts(prev =>
-          prev.map(post =>
-            post.id === postId
-              ? {
-                  ...post,
-                  comments: post.comments.filter(c => c.id !== commentId),
-                }
-              : post
-          )
-        );
+        toast.success('Comment deleted');
       }
     } catch (error) {
       console.error('Error deleting comment:', error);
+      toast.error('Failed to delete comment');
     }
-  };
+  }, []);
 
-  const formatTimeAgo = dateString => {
+  const formatTimeAgo = useCallback((dateString) => {
     const now = new Date();
     const postDate = new Date(dateString);
     const diffInMinutes = Math.floor((now - postDate) / (1000 * 60));
@@ -171,9 +137,9 @@ const CommunityPage = () => {
 
     const diffInMonths = Math.floor(diffInDays / 30);
     return `${diffInMonths}mo ago`;
-  };
+  }, []);
 
-  const renderContent = (content, isExpanded = false) => {
+  const renderContent = useCallback((content, isExpanded = false) => {
     if (typeof content === 'string') {
       return isExpanded || content.length <= 300
         ? content
@@ -183,30 +149,24 @@ const CommunityPage = () => {
     if (Array.isArray(content)) {
       const elements = [];
       let textLength = 0;
+      let hasCodeBlock = false;
 
       for (const block of content) {
-        if (block.type === 'img') {
+        if (block.type === 'code_block') {
+          hasCodeBlock = true;
+          const codeContent =
+            block.children
+              ?.map(line => line.children?.[0]?.text || '')
+              .join('\n') ||
+            block.text ||
+            '';
           elements.push(
-            <Image
+            <CodeBlock
               key={block.id}
-              src={block.url}
-              alt=""
-              className="max-w-full h-auto rounded-lg my-2"
-              width={block.width || 500}
-              height={block.height || 300}
+              code={codeContent}
+              language={block.lang || 'javascript'}
+              blockId={block.id}
             />
-          );
-        } else if (block.type === 'video') {
-          elements.push(
-            <video
-              key={block.id}
-              src={block.url}
-              controls
-              className="max-w-full h-auto rounded-lg my-2"
-              style={{ maxHeight: '400px' }}
-            >
-              Your browser does not support the video tag.
-            </video>
           );
         } else if (block.type === 'p') {
           const content =
@@ -240,7 +200,7 @@ const CommunityPage = () => {
             block.children?.map(child => child.text || '').join('') || '';
           textLength += textContent.length;
 
-          if (!isExpanded && textLength > 300) {
+          if (!isExpanded && !hasCodeBlock && textLength > 300) {
             const remainingChars = 300 - (textLength - textContent.length);
             const truncatedText =
               textContent.substring(0, remainingChars) + '...';
@@ -257,44 +217,6 @@ const CommunityPage = () => {
               {content}
             </p>
           );
-        } else if (block.type === 'code_block') {
-          const codeContent =
-            block.children
-              ?.map(line => line.children?.[0]?.text || '')
-              .join('\n') ||
-            block.text ||
-            '';
-          elements.push(
-            <CodeBlock
-              key={block.id}
-              code={codeContent}
-              language={block.lang || 'javascript'}
-              blockId={block.id}
-            />
-          );
-        } else if (block.type === 'h1') {
-          const text =
-            block.children?.map(child => {
-              if (child.type === 'a') {
-                return (
-                  <a
-                    key={child.id}
-                    href={child.url}
-                    target={child.target}
-                    className="text-blue-600 hover:underline"
-                  >
-                    {child.children?.[0]?.text || ''}
-                  </a>
-                );
-              }
-              return child.text || '';
-            }) || '';
-
-          elements.push(
-            <h3 key={block.id} className="font-bold text-lg mb-2">
-              {text}
-            </h3>
-          );
         }
       }
 
@@ -302,7 +224,7 @@ const CommunityPage = () => {
     }
 
     return '';
-  };
+  }, []);
 
   const CommentInput = ({ postId }) => {
     const [comment, setComment] = useState('');
@@ -323,13 +245,7 @@ const CommunityPage = () => {
         if (response.ok) {
           const result = await response.json();
           setComment('');
-          setPosts(prev =>
-            prev.map(post =>
-              post.id === postId
-                ? { ...post, comments: [result.data, ...post.comments] }
-                : post
-            )
-          );
+          toast.success('Comment added');
         }
       } catch (error) {
         console.error('Error adding comment:', error);
@@ -446,15 +362,7 @@ const CommunityPage = () => {
 
   const PostCard = React.memo(({ post }) => {
     return (
-      <Card
-        className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-amber-200/50 dark:border-amber-500/20 rounded-2xl shadow-xl cursor-pointer hover:shadow-2xl transition-shadow"
-        onClick={() =>
-          setExpandedPosts(prev => ({
-            ...prev,
-            [post.id]: !prev[post.id],
-          }))
-        }
-      >
+      <Card className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-amber-200/50 dark:border-amber-500/20 rounded-2xl shadow-xl">
         <div className="p-6">
           <div className="flex items-start gap-4">
             <VoteButtons postId={post.id} />
@@ -510,14 +418,16 @@ const CommunityPage = () => {
                     !expandedPosts[post.id] ? 'max-h-32' : 'max-h-none'
                   }`}
                 >
-                  {renderContent(post.content, true)}
+                  {renderContent(post.content, expandedPosts[post.id])}
                 </div>
                 {(typeof post.content === 'string'
                   ? post.content.length > 300
-                  : Array.isArray(post.content) && post.content.length > 3) && (
+                  : Array.isArray(post.content) && 
+                    (post.content.some(block => block.type === 'p' && 
+                      block.children?.map(child => child.text || '').join('').length > 300) ||
+                     post.content.length > 2)) && (
                   <button
-                    onClick={e => {
-                      e.stopPropagation();
+                    onClick={() => {
                       setExpandedPosts(prev => ({
                         ...prev,
                         [post.id]: !prev[post.id],
@@ -611,52 +521,69 @@ const CommunityPage = () => {
           )}
         </div>
 
-        <div className="space-y-6">
-          {loading ? (
-            Array.from({ length: 3 }).map((_, i) => (
-              <Card
-                key={i}
-                className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-amber-200/50 dark:border-amber-500/20 rounded-2xl shadow-xl"
-              >
-                <div className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="flex flex-col items-center gap-2">
-                      <Skeleton className="h-8 w-8 rounded-full" />
-                      <Skeleton className="h-4 w-6" />
-                      <Skeleton className="h-8 w-8 rounded-full" />
-                    </div>
-                    <div className="flex-1 space-y-3">
-                      <div className="flex items-center gap-3">
+        <ErrorBoundary>
+          <div className="space-y-6">
+            {loading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <Card
+                  key={i}
+                  className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-amber-200/50 dark:border-amber-500/20 rounded-2xl shadow-xl"
+                >
+                  <div className="p-6">
+                    <div className="flex items-start gap-4">
+                      <div className="flex flex-col items-center gap-2">
                         <Skeleton className="h-8 w-8 rounded-full" />
-                        <Skeleton className="h-4 w-20" />
-                        <Skeleton className="h-4 w-16" />
-                        <Skeleton className="h-4 w-12" />
+                        <Skeleton className="h-4 w-6" />
+                        <Skeleton className="h-8 w-8 rounded-full" />
                       </div>
-                      <Skeleton className="h-6 w-3/4" />
-                      <div className="space-y-2">
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-5/6" />
-                        <Skeleton className="h-4 w-4/5" />
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-center gap-3">
+                          <Skeleton className="h-8 w-8 rounded-full" />
+                          <Skeleton className="h-4 w-20" />
+                          <Skeleton className="h-4 w-16" />
+                          <Skeleton className="h-4 w-12" />
+                        </div>
+                        <Skeleton className="h-6 w-3/4" />
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-full" />
+                          <Skeleton className="h-4 w-5/6" />
+                          <Skeleton className="h-4 w-4/5" />
+                        </div>
+                        <Skeleton className="h-4 w-24" />
                       </div>
-                      <Skeleton className="h-4 w-24" />
                     </div>
                   </div>
-                </div>
+                </Card>
+              ))
+            ) : error ? (
+              <Card className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-red-200/50 dark:border-red-500/20 rounded-2xl shadow-xl">
+                <CardContent className="p-8 text-center">
+                  <p className="text-red-600 dark:text-red-400 mb-4">
+                    Failed to load posts: {error.message}
+                  </p>
+                  <Button onClick={() => window.location.reload()} variant="outline">
+                    Retry
+                  </Button>
+                </CardContent>
               </Card>
-            ))
-          ) : posts.length === 0 ? (
-            <Card className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-amber-200/50 dark:border-amber-500/20 rounded-2xl shadow-xl">
-              <CardContent className="p-8 text-center">
-                <MessageCircle className="w-12 h-12 text-amber-500/60 mx-auto mb-4" />
-                <p className="text-gray-600 dark:text-gray-400">
-                  No posts yet. Be the first to start the conversation!
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            posts.map(post => <PostCard key={post.id} post={post} />)
-          )}
-        </div>
+            ) : !posts || posts.length === 0 ? (
+              <Card className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-amber-200/50 dark:border-amber-500/20 rounded-2xl shadow-xl">
+                <CardContent className="p-8 text-center">
+                  <MessageCircle className="w-12 h-12 text-amber-500/60 mx-auto mb-4" />
+                  <p className="text-gray-600 dark:text-gray-400">
+                    No posts yet. Be the first to start the conversation!
+                  </p>
+                </CardContent>
+              </Card>
+            ) : useVirtualization && posts?.length ? (
+              <Suspense fallback={<div className="space-y-6">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-64 w-full" />)}</div>}>
+                <VirtualizedPostList posts={posts} PostCard={PostCard} height={600} />
+              </Suspense>
+            ) : (
+              posts?.map(post => <PostCard key={post.id} post={post} />) || []
+            )}
+          </div>
+        </ErrorBoundary>
       </div>
     </div>
   );

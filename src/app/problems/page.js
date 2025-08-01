@@ -1,16 +1,23 @@
 'use client';
 
-import { useProblemStore } from '@/store/problemStore';
-import React, { useEffect, Suspense } from 'react';
+import { useProblems } from '@/hooks/useProblems';
+import React, { useEffect, Suspense, useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FileQuestion } from 'lucide-react';
 import { PlaceholdersAndVanishInput } from '@/components/ui/placeholders-and-vanish-input';
 import { useUIStore } from '@/store/uiStore';
 import { useUserStore } from '@/store/userStore';
 import { useSession } from 'next-auth/react';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import dynamic from 'next/dynamic';
 
+// Lazy load components with better loading states
 const ProblemTable = dynamic(() => import('@/components/ProblemTable'), {
+  loading: () => <Skeleton className="h-96 w-full" />,
+  ssr: false
+});
+
+const VirtualizedProblemTable = dynamic(() => import('@/components/VirtualizedProblemTable'), {
   loading: () => <Skeleton className="h-96 w-full" />,
   ssr: false
 });
@@ -26,7 +33,7 @@ const DailyChallengeCalendar = dynamic(() => import('@/components/DailyChallenge
 });
 
 const OptimizedProblemSet = () => {
-  const { problems, getAllProblems, isLoading, error } = useProblemStore();
+  const { data: problems = [], isLoading, error } = useProblems();
   const {
     searchQuery,
     selectedDifficulty,
@@ -35,8 +42,10 @@ const OptimizedProblemSet = () => {
   } = useUIStore();
   const { loadSolvedProblems } = useUserStore();
   const { data: session } = useSession();
+  const [useVirtualization, setUseVirtualization] = React.useState(false);
 
-  const searchPlaceholders = [
+  // Memoize search placeholders
+  const searchPlaceholders = useMemo(() => [
     'Search for Two Sum...',
     'Find Binary Tree problems...',
     'Look for Dynamic Programming...',
@@ -45,14 +54,35 @@ const OptimizedProblemSet = () => {
     'Search Google problems...',
     'Look for Amazon questions...',
     'Find hash-table problems...',
-  ];
+  ], []);
+
+  // Memoize filtered problems count for performance
+  const filteredProblemsCount = useMemo(() => {
+    if (!problems?.length) return 0;
+    return problems.filter(problem => {
+      const matchesSearch = !searchQuery || 
+        problem.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (problem.tags || []).some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+      const matchesDifficulty = selectedDifficulty === 'all' || 
+        problem.difficulty.toLowerCase() === selectedDifficulty.toLowerCase();
+      return matchesSearch && matchesDifficulty;
+    }).length;
+  }, [problems, searchQuery, selectedDifficulty]);
+
+  // Auto-enable virtualization for large datasets
+  React.useEffect(() => {
+    setUseVirtualization(filteredProblemsCount > 50);
+  }, [filteredProblemsCount]);
+
+  // Data is automatically loaded by TanStack Query
 
   useEffect(() => {
-    getAllProblems();
     if (session?.user?.id) {
       loadSolvedProblems(session.user.id);
     }
-  }, [getAllProblems, loadSolvedProblems, session?.user?.id]);
+  }, [loadSolvedProblems, session?.user?.id]);
+
+
 
   if (isLoading) {
     return (
@@ -133,7 +163,7 @@ const OptimizedProblemSet = () => {
             There was an error loading the problems. Please try again.
           </p>
           <button
-            onClick={() => getAllProblems(true)}
+            onClick={() => window.location.reload()}
             className="text-sm text-primary hover:underline"
           >
             Retry
@@ -183,18 +213,30 @@ const OptimizedProblemSet = () => {
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <FileQuestion className="w-4 h-4" />
-          <span>Total {problems?.length || 0} problems available</span>
+          <span>
+            {filteredProblemsCount !== problems?.length 
+              ? `Showing ${filteredProblemsCount} of ${problems?.length || 0} problems`
+              : `Total ${problems?.length || 0} problems available`
+            }
+            {useVirtualization && ' (Virtualized)'}
+          </span>
         </div>
 
-        <Suspense fallback={
-          <div className="space-y-4">
-            {Array.from({ length: 8 }, (_, i) => (
-              <Skeleton key={i} className="h-16 w-full" />
-            ))}
-          </div>
-        }>
-          <ProblemTable />
-        </Suspense>
+        <ErrorBoundary>
+          <Suspense fallback={
+            <div className="space-y-4">
+              {Array.from({ length: 8 }, (_, i) => (
+                <Skeleton key={i} className="h-16 w-full" />
+              ))}
+            </div>
+          }>
+            {useVirtualization ? (
+              <VirtualizedProblemTable />
+            ) : (
+              <ProblemTable />
+            )}
+          </Suspense>
+        </ErrorBoundary>
       </div>
 
 

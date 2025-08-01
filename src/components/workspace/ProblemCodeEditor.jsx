@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Editor } from '@monaco-editor/react';
 import { useTheme } from '@/components/ui/theme-provider';
 import { useLanguageStore } from '@/store/languageStore';
-import { useAuthStore } from '@/store/authStore';
+import { useSession } from 'next-auth/react';
 import { CollaborativeEditor } from './CollaborativeEditor';
 
 import prettier from 'prettier/standalone';
@@ -499,7 +499,7 @@ const ProblemCodeEditor = ({
   // Determine the language for the editor
   const editorLanguage = getMonacoLanguage(selectedLanguage);
 
-  const { isAuthenticated } = useAuthStore();
+  const { data: session } = useSession();
 
   return (
     <div className="h-full flex flex-col">
@@ -534,7 +534,7 @@ const ProblemCodeEditor = ({
       </div>
 
       {/* Login Prompt */}
-      {!isAuthenticated() && (
+      {!session?.user && (
         <div className="p-3 bg-muted/50 border-t text-center text-sm text-muted-foreground">
           You need to{' '}
           <a

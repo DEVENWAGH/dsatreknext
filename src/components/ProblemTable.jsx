@@ -1,14 +1,13 @@
 'use client';
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useProblems } from '@/hooks/useProblems';
 import {
-  useProblemStore,
   useUIStore,
   useCompanyStore,
   useUserStore,
 } from '@/store';
-import { useProblemManager } from '@/hooks/useStoreManager';
 
 
 import { Badge } from '@/components/ui/badge';
@@ -24,8 +23,8 @@ import { Button } from '@/components/ui/button';
 const ProblemTable = () => {
   const router = useRouter();
 
-  // Centralized state management
-  const { problems, getAllProblems, isLoading } = useProblemStore();
+  // TanStack Query for problems data
+  const { data: problems = [], isLoading } = useProblems();
 
   const {
     searchQuery,
@@ -39,18 +38,40 @@ const ProblemTable = () => {
 
   const { getCompanyFromCache } = useCompanyStore();
   const getAllCompanies = useCompanyStore(state => state.getAllCompanies);
-  const { getProblemWithDetails } = useProblemManager();
+
   const { solvedProblems } = useUserStore();
   const [sortBy, setSortBy] = React.useState('number');
   const [sortOrder, setSortOrder] = React.useState('asc');
 
-  // Load problems on component mount
-  useEffect(() => {
-    getAllProblems();
-  }, [getAllProblems]);
+  // Problems are automatically loaded by TanStack Query
 
-  // Filter and sort problems
-  const filteredProblems = React.useMemo(() => {
+  // Memoized handlers
+  const handleSort = useCallback((field) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder(field === 'acceptance' ? 'desc' : 'asc');
+    }
+  }, [sortBy, sortOrder]);
+
+  const handleProblemClick = useCallback((problemId) => {
+    // Navigate immediately - TanStack Query will handle data fetching
+    router.push(`/workspace/${problemId}`);
+  }, [router]);
+
+  // Memoized difficulty color function
+  const getDifficultyColorMemo = useCallback((difficulty) => {
+    switch (difficulty?.toLowerCase()) {
+      case 'easy': return 'bg-green-500/10 text-green-500';
+      case 'medium': return 'bg-yellow-500/10 text-yellow-500';
+      case 'hard': return 'bg-red-500/10 text-red-500';
+      default: return 'bg-gray-500/10 text-gray-500';
+    }
+  }, []);
+
+  // Filter and sort problems with better performance
+  const filteredProblems = useMemo(() => {
     if (!problems || problems.length === 0) return [];
 
     const filtered = problems.filter(problem => {
@@ -122,24 +143,7 @@ const ProblemTable = () => {
     getAllCompanies();
   }, [getAllCompanies]);
 
-  const handleProblemClick = async problemId => {
-    // Pre-fetch problem details for better UX
-    await getProblemWithDetails(problemId);
-    router.push(`/workspace/${problemId}`);
-  };
 
-  const getDifficultyColor = difficulty => {
-    switch (difficulty?.toLowerCase()) {
-      case 'easy':
-        return 'bg-green-500/10 text-green-500';
-      case 'medium':
-        return 'bg-yellow-500/10 text-yellow-500';
-      case 'hard':
-        return 'bg-red-500/10 text-red-500';
-      default:
-        return 'bg-gray-500/10 text-gray-500';
-    }
-  };
 
   const SKELETON_ITEMS = Array.from({ length: 5 }, (_, i) => `skeleton-${i}`);
 
@@ -168,14 +172,7 @@ const ProblemTable = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => {
-                    if (sortBy === 'number') {
-                      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-                    } else {
-                      setSortBy('number');
-                      setSortOrder('asc');
-                    }
-                  }}
+                  onClick={() => handleSort('number')}
                   className="h-auto p-0 font-semibold"
                 >
                   Title
@@ -188,14 +185,7 @@ const ProblemTable = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => {
-                    if (sortBy === 'difficulty') {
-                      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-                    } else {
-                      setSortBy('difficulty');
-                      setSortOrder('asc');
-                    }
-                  }}
+                  onClick={() => handleSort('difficulty')}
                   className="h-auto p-0 font-semibold"
                 >
                   Difficulty
@@ -208,14 +198,7 @@ const ProblemTable = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => {
-                    if (sortBy === 'acceptance') {
-                      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-                    } else {
-                      setSortBy('acceptance');
-                      setSortOrder('desc'); // Default to highest acceptance first
-                    }
-                  }}
+                  onClick={() => handleSort('acceptance')}
                   className="h-auto p-0 font-semibold"
                 >
                   Acceptance
@@ -270,7 +253,7 @@ const ProblemTable = () => {
                     </div>
                   </td>
                   <td className="p-4">
-                    <Badge className={getDifficultyColor(problem.difficulty)}>
+                    <Badge className={getDifficultyColorMemo(problem.difficulty)}>
                       {problem.difficulty}
                     </Badge>
                   </td>

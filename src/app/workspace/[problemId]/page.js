@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useProblemStore } from '@/store/problemStore';
+import { useProblems, useProblem, usePrefetchProblem } from '@/hooks/useProblems';
 import { useLanguageStore } from '@/store/languageStore';
 import { useUIStore } from '@/store/uiStore';
 import { useSession } from 'next-auth/react';
@@ -41,21 +41,9 @@ import dynamic from 'next/dynamic';
 
 const Workspace = dynamic(
   () => import('@/components/workspace/Workspace'),
-  {
-    loading: () => (
-      <div className="flex h-full">
-        <div className="w-1/2 p-4 border-r">
-          <Skeleton className="h-full w-full" />
-        </div>
-        <div className="w-1/2 p-4">
-          <Skeleton className="h-full w-full" />
-        </div>
-      </div>
-    ),
-    ssr: false
-  }
+  { ssr: false }
 );
-import { usePrefetch } from '@/hooks/usePrefetch';
+
 import { usePremiumAccess } from '@/hooks/usePremiumAccess';
 import PremiumGate from '@/components/PremiumGate';
 import { checkProblemAccess, getRequiredPlan } from '@/utils/premiumUtils';
@@ -63,13 +51,9 @@ import { checkProblemAccess, getRequiredPlan } from '@/utils/premiumUtils';
 const WorkspacePage = () => {
   const { problemId } = useParams();
   const router = useRouter();
-  const {
-    getProblemFromCache,
-    getProblem,
-    isLoading,
-    problems,
-    getAllProblems,
-  } = useProblemStore();
+  const { data: problems = [], isLoading: problemsLoading } = useProblems();
+  const { data: problem, isLoading: problemLoading } = useProblem(problemId);
+  const prefetchProblem = usePrefetchProblem();
   const { getCompanyFromCache } = useCompanyStore();
   const { getLanguageById } = useLanguageStore();
   const { selectedLanguage, setSelectedLanguage } = useUIStore();
@@ -95,8 +79,7 @@ const WorkspacePage = () => {
     lineNumbers: 'on',
   });
 
-  // Get problem from cache or fetch if not available
-  const problem = getProblemFromCache(problemId);
+  const isLoading = problemsLoading || problemLoading;
 
   // Navigation functions - memoized for performance
   const sortedProblems = React.useMemo(() => {
@@ -113,32 +96,28 @@ const WorkspacePage = () => {
     [sortedProblems, problemId]
   );
 
-  // Use prefetch hook for better navigation performance
-  usePrefetch(problemId, sortedProblems);
-
   // Effect to set client-side rendering flag
   useEffect(() => {
     setIsClient(true);
   }, []);
 
+  // Prefetch adjacent problems for navigation
   useEffect(() => {
-    const loadProblemData = async () => {
-      // Load problems list first (non-blocking)
-      if (problems.length === 0) {
-        getAllProblems();
-      }
-      
-      // Always load current problem if not cached or incomplete
-      if (problemId) {
-        const cachedProblem = getProblemFromCache(problemId);
-        if (!cachedProblem || !cachedProblem.description) {
-          await getProblem(problemId);
+    if (sortedProblems.length > 0 && currentIndex >= 0) {
+      const prefetchTimer = setTimeout(() => {
+        // Prefetch previous problem
+        if (currentIndex > 0) {
+          prefetchProblem(sortedProblems[currentIndex - 1].id);
         }
-      }
-    };
-    
-    loadProblemData();
-  }, [problemId, getProblem, getAllProblems, getProblemFromCache, problems.length]);
+        // Prefetch next problem
+        if (currentIndex < sortedProblems.length - 1) {
+          prefetchProblem(sortedProblems[currentIndex + 1].id);
+        }
+      }, 500);
+      
+      return () => clearTimeout(prefetchTimer);
+    }
+  }, [currentIndex, sortedProblems, prefetchProblem]);
 
   // Set up available languages based on the problem's starter code
   const availableLanguages = React.useMemo(() => {
@@ -220,11 +199,9 @@ const WorkspacePage = () => {
 
   const navigateToProblem = useCallback((targetProblemId) => {
     // Prefetch next problem data
-    if (!getProblemFromCache(targetProblemId)) {
-      getProblem(targetProblemId);
-    }
+    prefetchProblem(targetProblemId);
     router.push(`/workspace/${targetProblemId}`);
-  }, [router, getProblem, getProblemFromCache]);
+  }, [router, prefetchProblem]);
 
   const handlePrevious = useCallback(() => {
     if (currentIndex > 0) {

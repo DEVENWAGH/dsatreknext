@@ -5,8 +5,8 @@ import { getStatusColor } from './ProblemTestResult';
 import { formatDistanceToNow, format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLanguageStore } from '@/store/languageStore';
-import { useWorkspaceStore } from '@/store/workspaceStore';
-import { useAuthStore } from '@/store/authStore';
+import { useSubmissions } from '@/hooks/useSubmissions';
+import { useSession } from 'next-auth/react';
 import {
   Table,
   TableBody,
@@ -20,23 +20,10 @@ import Image from 'next/image';
 
 const OptimizedProblemSubmission = ({ problem, onSubmissionSelect }) => {
   const { getLanguageDisplayName } = useLanguageStore();
-  const {
-    fetchSubmissions,
-    getSubmissions,
-    isSubmissionsLoading,
-    getSubmissionsError,
-  } = useWorkspaceStore();
-  const { isAuthenticated } = useAuthStore();
-
-  const submissions = getSubmissions(problem?.id);
-  const isLoading = isSubmissionsLoading(problem?.id);
-  const error = getSubmissionsError(problem?.id);
-
-  useEffect(() => {
-    if (problem?.id) {
-      fetchSubmissions(problem.id);
-    }
-  }, [problem?.id, fetchSubmissions]);
+  const { data: session } = useSession();
+  const { data: submissions = [], isLoading, error } = useSubmissions(problem?.id);
+  
+  const isAuthenticated = () => !!session?.user;
 
   const formatRuntime = timeStr => {
     if (!timeStr) return '';
@@ -106,7 +93,7 @@ const OptimizedProblemSubmission = ({ problem, onSubmissionSelect }) => {
   const otherSubmissions = submissions.filter(s => s.status !== 'accepted');
   const allSubmissions = [...acceptedSubmissions, ...otherSubmissions];
 
-  if (!isAuthenticated()) {
+  if (!session?.user) {
     return (
       <div className="p-4 text-center space-y-2">
         <div className="text-lg font-semibold">🔥 Join DSATrek to Code!</div>

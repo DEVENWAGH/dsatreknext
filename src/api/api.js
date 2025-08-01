@@ -191,6 +191,24 @@ export const problemAPI = {
   search: async searchTerm => {
     return apiCall(`/problems/search?q=${encodeURIComponent(searchTerm)}`);
   },
+
+  getSubmissions: async problemId => {
+    return apiCall(`/problems/${problemId}/submissions`);
+  },
+
+  submit: async ({ problemId, code, language }) => {
+    return apiCall(`/problems/${problemId}/submit`, {
+      method: 'POST',
+      body: JSON.stringify({ code, language }),
+    });
+  },
+
+  test: async ({ problemId, code, language, testCases }) => {
+    return apiCall(`/problems/${problemId}/test`, {
+      method: 'POST',
+      body: JSON.stringify({ code, language, testCases }),
+    });
+  },
 };
 
 // Submission API - matches submission.controller.js

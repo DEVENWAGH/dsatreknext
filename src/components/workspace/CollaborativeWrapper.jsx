@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { RoomProvider, useEventListener } from '../../../liveblocks.config';
+import { useRoomData, useJoinRoom, useLeaveRoom } from '@/hooks/useCollaboration';
+import { useSession } from 'next-auth/react';
 
 function RoomEventHandler() {
   useEventListener(({ event }) => {
@@ -16,8 +18,12 @@ export function CollaborativeWrapper({ children, problemId }) {
   const [roomId, setRoomId] = useState(`workspace-${problemId}`);
   const [key, setKey] = useState(0);
   const [roomBlocked, setRoomBlocked] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  
+  const { data: session } = useSession();
+  const { data: roomData } = useRoomData(roomId);
+  const joinRoomMutation = useJoinRoom();
+  const leaveRoomMutation = useLeaveRoom();
 
   useEffect(() => {
     const updateRoom = async () => {
@@ -27,35 +33,16 @@ export function CollaborativeWrapper({ children, problemId }) {
 
         if (urlRoomId) {
           const { roomStateManager } = await import('@/utils/roomState');
-          const { useAuthStore } = await import('@/store/authStore');
-          const authUser = useAuthStore.getState().authUser;
-
-          // Check if room exists in local state
-          const existingRoom = roomStateManager.getRoomState(urlRoomId);
-
-          if (!existingRoom && authUser) {
-            // Create room if it doesn't exist and user is authenticated
-            roomStateManager.createRoom(urlRoomId, authUser.id);
-          } else {
-            // Check if existing room is accessible
-            const isAccessible =
-              await roomStateManager.isRoomAccessible(urlRoomId);
-            if (!isAccessible) {
-              setRoomBlocked(true);
-              return;
-            }
-          }
-
-          if (authUser) {
-            // Register authenticated user as joining the room
-            const canJoin = await roomStateManager.joinRoom(
-              urlRoomId,
-              authUser.id
-            );
-            if (!canJoin) {
-              setRoomBlocked(true);
-              return;
-            }
+          if (session?.user) {
+            // Join room using TanStack Query mutation
+            joinRoomMutation.mutate({
+              roomId: urlRoomId,
+              problemId: problemId
+            }, {
+              onError: () => {
+                setRoomBlocked(true);
+              }
+            });
           }
           // Non-authenticated users can view if room is accessible
         }
@@ -120,10 +107,7 @@ export function CollaborativeWrapper({ children, problemId }) {
         const urlRoomId = searchParams.get('roomId');
 
         if (urlRoomId) {
-          const { useAuthStore } = await import('@/store/authStore');
-          const authUser = useAuthStore.getState().authUser;
-          setIsAuthenticated(!!authUser);
-          setShowLoginPrompt(!authUser);
+            setShowLoginPrompt(!session?.user);
         } else {
           setIsAuthenticated(true);
         }

@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { PlusCircle, Loader2 } from 'lucide-react';
 import InterviewForm from '@/components/InterviewForm';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useInterviewStore } from '@/store/interviewStore';
+import { useInterviews, useCreateInterview } from '@/hooks/useInterview';
 import UserInterviews from '@/components/UserInterviews';
 import { useSession } from 'next-auth/react';
 import SplineModel from '@/components/SplineModel';
@@ -22,19 +22,9 @@ const Interview = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { data: session } = useSession();
 
-  const {
-    userInterviews,
-    isLoading,
-    isCreating,
-    getUserInterviews,
-    createInterview,
-  } = useInterviewStore();
-
-  useEffect(() => {
-    if (session?.user?.id) {
-      getUserInterviews(session.user.id);
-    }
-  }, [getUserInterviews, session?.user?.id]);
+  const { data: userInterviews = [], isLoading } = useInterviews();
+  const createInterviewMutation = useCreateInterview();
+  const isCreating = createInterviewMutation.isPending;
 
   const onSubmit = async data => {
     try {
@@ -65,11 +55,15 @@ const Interview = () => {
 
       console.log('Submitting interview data:', interviewData);
 
-      const result = await createInterview(interviewData);
-      if (result) {
-        setIsDialogOpen(false);
-        toast.success('Interview created successfully!');
-      }
+      createInterviewMutation.mutate(interviewData, {
+        onSuccess: () => {
+          setIsDialogOpen(false);
+          toast.success('Interview created successfully!');
+        },
+        onError: (error) => {
+          toast.error(`Failed to create interview: ${error.message}`);
+        }
+      });
     } catch (error) {
       console.error('Error creating interview:', error);
       toast.error(`Failed to create interview: ${error.message}`);

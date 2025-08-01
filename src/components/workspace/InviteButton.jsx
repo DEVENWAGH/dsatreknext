@@ -116,7 +116,8 @@ export function InviteButton({ problemId }) {
       setShowJoining(false);
       setIsInRoom(true);
       toast.success('Room created! Share this URL to invite others.');
-      window.dispatchEvent(new PopStateEvent('popstate'));
+      // Trigger re-render without page refresh
+      window.dispatchEvent(new CustomEvent('roomCreated', { detail: { roomId: roomIdParam } }));
     }, 1000);
   };
 
@@ -145,9 +146,8 @@ export function InviteButton({ problemId }) {
           window.history.pushState({}, '', window.location.pathname);
           setIsInRoom(false);
 
-          setTimeout(() => {
-            window.location.reload();
-          }, 500);
+          // No page reload needed
+          window.dispatchEvent(new CustomEvent('roomEnded'));
         } else {
           toast.error('Failed to end collaboration');
           setShowEndDialog(false);
@@ -160,9 +160,8 @@ export function InviteButton({ problemId }) {
         setIsHost(false);
         toast.success('Left collaboration - you can rejoin using the link');
 
-        setTimeout(() => {
-          window.location.reload();
-        }, 500);
+        // No page reload needed
+        window.dispatchEvent(new CustomEvent('roomLeft'));
       }
     }
   };

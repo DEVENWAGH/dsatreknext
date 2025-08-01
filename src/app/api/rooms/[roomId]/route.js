@@ -9,7 +9,7 @@ const liveblocks = new Liveblocks({
 
 export async function DELETE(request, { params }) {
   try {
-    const { roomId } = params;
+    const { roomId } = await params;
 
     // Delete room from Liveblocks
     await liveblocks.deleteRoom(roomId);
@@ -26,7 +26,7 @@ export async function DELETE(request, { params }) {
 
 export async function GET(request, { params }) {
   try {
-    const { roomId } = params;
+    const { roomId } = await params;
 
     // Get room info from Liveblocks
     const room = await liveblocks.getRoom(roomId);
