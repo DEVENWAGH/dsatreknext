@@ -27,10 +27,19 @@ import {
 } from 'lucide-react';
 
 // Dynamic import for virtualized list (only load when needed)
-const VirtualizedPostList = dynamic(() => import('@/components/community/VirtualizedPostList'), {
-  loading: () => <div className="space-y-6">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-64 w-full" />)}</div>,
-  ssr: false
-});
+const VirtualizedPostList = dynamic(
+  () => import('@/components/community/VirtualizedPostList'),
+  {
+    loading: () => (
+      <div className="space-y-6">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Skeleton key={i} className="h-64 w-full" />
+        ))}
+      </div>
+    ),
+    ssr: false,
+  }
+);
 
 const CommunityPage = () => {
   const { data: session } = useSession();
@@ -46,23 +55,27 @@ const CommunityPage = () => {
 
   const { data, error, isLoading: loading, refetch } = useCommunityPosts();
   const votePostMutation = useVotePost();
-  
+
   // Auto-refresh for real-time updates
   React.useEffect(() => {
     const interval = setInterval(() => {
       refetch();
     }, 30000); // Refresh every 30 seconds
     setRefreshInterval(interval);
-    
+
     return () => {
       if (interval) clearInterval(interval);
     };
   }, [refetch]);
-  
+
   // Flatten paginated data
   const posts = React.useMemo(() => {
     if (!data?.pages) return [];
     const allPosts = data.pages.flatMap(page => page.posts || []);
+    console.log(
+      'Posts data for vote initialization:',
+      allPosts.map(p => ({ id: p.id, votes: p.votes, userVote: p.userVote }))
+    );
     useVoteStore.getState().initializeVotes(allPosts);
     return allPosts;
   }, [data]);
@@ -72,108 +85,126 @@ const CommunityPage = () => {
     setUseVirtualization((posts?.length || 0) > 20);
   }, [posts?.length]);
 
-  const votePost = useCallback(async (postId, type) => {
-    if (!session?.user) {
-      toast.error('Please sign in to vote');
-      return;
-    }
-
-    const post = posts.find(p => p.id === postId);
-    if (!post) return;
-
-    const originalVotes = post.votes || 0;
-    const originalUserVote = post.userVote;
-
-    // Optimistic update
-    useVoteStore.getState().voteOnPost(postId, type);
-    toast.success(`Vote ${type === 'upvote' ? 'up' : 'down'} registered`);
-
-    try {
-      const response = await fetch(`/api/community/posts/${postId}/vote`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, postId }),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        useVoteStore.getState().updateVoteFromServer(postId, result.votes, result.userVote);
-      } else {
-        useVoteStore.getState().resetVote(postId, originalVotes, originalUserVote);
-        const error = await response.json();
-        toast.error(error.error || 'Already voted on this post');
+  const votePost = useCallback(
+    async (postId, type) => {
+      if (!session?.user) {
+        toast.error('Please sign in to vote');
+        return;
       }
-    } catch (error) {
-      useVoteStore.getState().resetVote(postId, originalVotes, originalUserVote);
-      console.error('Error voting:', error);
-      toast.error('Failed to register vote');
-    }
-  }, [session?.user, posts]);
 
-  const deletePost = useCallback(async (postId) => {
-    try {
-      const response = await fetch(`/api/community/posts/${postId}`, {
-        method: 'DELETE',
-      });
-      if (response.ok) {
-        toast.success('Post deleted');
-        refetch(); // Refresh posts immediately
-      } else {
-        const error = await response.json();
-        toast.error(error.error || 'Failed to delete post');
+      const post = posts.find(p => p.id === postId);
+      if (!post) return;
+
+      const originalVotes = post.votes || 0;
+      const originalUserVote = post.userVote;
+
+      // Optimistic update
+      useVoteStore.getState().voteOnPost(postId, type);
+      toast.success(`Vote ${type === 'upvote' ? 'up' : 'down'} registered`);
+
+      try {
+        const response = await fetch(`/api/community/posts/${postId}/vote`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type, postId }),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          useVoteStore
+            .getState()
+            .updateVoteFromServer(postId, result.votes, result.userVote);
+        } else {
+          useVoteStore
+            .getState()
+            .resetVote(postId, originalVotes, originalUserVote);
+          const error = await response.json();
+          toast.error(error.error || 'Already voted on this post');
+        }
+      } catch (error) {
+        useVoteStore
+          .getState()
+          .resetVote(postId, originalVotes, originalUserVote);
+        console.error('Error voting:', error);
+        toast.error('Failed to register vote');
       }
-    } catch (error) {
-      console.error('Error deleting post:', error);
-      toast.error('Failed to delete post');
-    }
-  }, [refetch]);
+    },
+    [session?.user, posts]
+  );
 
-  const deleteComment = useCallback(async (commentId, postId) => {
-    // Optimistic update - remove comment immediately
-    setOptimisticComments(prev => ({
-      ...prev,
-      [postId]: (prev[postId] || []).filter(c => c.id !== commentId)
-    }));
-    toast.success('Comment deleted');
+  const deletePost = useCallback(
+    async postId => {
+      try {
+        const response = await fetch(`/api/community/posts/${postId}`, {
+          method: 'DELETE',
+        });
+        if (response.ok) {
+          toast.success('Post deleted');
+          refetch(); // Refresh posts immediately
+        } else {
+          const error = await response.json();
+          toast.error(error.error || 'Failed to delete post');
+        }
+      } catch (error) {
+        console.error('Error deleting post:', error);
+        toast.error('Failed to delete post');
+      }
+    },
+    [refetch]
+  );
 
-    try {
-      const response = await fetch(`/api/community/comments/${commentId}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        toast.error(error.error || 'Failed to delete comment');
+  const deleteComment = useCallback(
+    async (commentId, postId) => {
+      // Optimistic update - remove comment immediately
+      setOptimisticComments(prev => ({
+        ...prev,
+        [postId]: (prev[postId] || []).filter(c => c.id !== commentId),
+      }));
+      toast.success('Comment deleted');
+
+      try {
+        const response = await fetch(`/api/community/comments/${commentId}`, {
+          method: 'DELETE',
+        });
+        if (!response.ok) {
+          const error = await response.json();
+          toast.error(error.error || 'Failed to delete comment');
+          refetch(); // Revert on error
+        }
+      } catch (error) {
+        console.error('Error deleting comment:', error);
+        toast.error('Failed to delete comment');
         refetch(); // Revert on error
       }
-    } catch (error) {
-      console.error('Error deleting comment:', error);
-      toast.error('Failed to delete comment');
-      refetch(); // Revert on error
-    }
-  }, [refetch]);
+    },
+    [refetch]
+  );
 
-  const editComment = useCallback(async (commentId, newContent, postId) => {
-    try {
-      const response = await fetch(`/api/community/comments/${commentId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: newContent }),
-      });
-      if (response.ok) {
-        toast.success('Comment updated');
-        setEditingComment(null);
-        refetch();
-      } else {
-        const error = await response.json();
-        toast.error(error.error || 'Failed to update comment');
+  const editComment = useCallback(
+    async (commentId, newContent, postId) => {
+      try {
+        const response = await fetch(`/api/community/comments/${commentId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: newContent }),
+        });
+        if (response.ok) {
+          toast.success('Comment updated');
+          setEditingComment(null);
+          refetch();
+        } else {
+          const error = await response.json();
+          toast.error(error.error || 'Failed to update comment');
+        }
+      } catch (error) {
+        console.error('Error updating comment:', error);
+        toast.error('Failed to update comment');
       }
-    } catch (error) {
-      console.error('Error updating comment:', error);
-      toast.error('Failed to update comment');
-    }
-  }, [refetch]);
+    },
+    [refetch]
+  );
 
-  const formatTimeAgo = useCallback((dateString) => {
+  const formatTimeAgo = useCallback(dateString => {
     const now = new Date();
     const postDate = new Date(dateString);
     const diffInMinutes = Math.floor((now - postDate) / (1000 * 60));
@@ -285,7 +316,7 @@ const CommunityPage = () => {
 
     const handleSubmit = async () => {
       if (!comment.trim() || !session?.user) return;
-      
+
       // Optimistic update - add comment immediately
       const tempComment = {
         id: `temp-${Date.now()}`,
@@ -293,12 +324,12 @@ const CommunityPage = () => {
         username: session.user.name || session.user.email,
         userId: session.user.id,
         createdAt: new Date().toISOString(),
-        isOptimistic: true
+        isOptimistic: true,
       };
-      
+
       setOptimisticComments(prev => ({
         ...prev,
-        [postId]: [...(prev[postId] || []), tempComment]
+        [postId]: [...(prev[postId] || []), tempComment],
       }));
       setComment('');
       toast.success('Comment added');
@@ -317,15 +348,17 @@ const CommunityPage = () => {
           // Replace temp comment with real one
           setOptimisticComments(prev => ({
             ...prev,
-            [postId]: (prev[postId] || []).map(c => 
-              c.id === tempComment.id ? { ...result.data, isOptimistic: false } : c
-            )
+            [postId]: (prev[postId] || []).map(c =>
+              c.id === tempComment.id
+                ? { ...result.data, isOptimistic: false }
+                : c
+            ),
           }));
         } else {
           // Remove temp comment on error
           setOptimisticComments(prev => ({
             ...prev,
-            [postId]: (prev[postId] || []).filter(c => c.id !== tempComment.id)
+            [postId]: (prev[postId] || []).filter(c => c.id !== tempComment.id),
           }));
           toast.error('Failed to add comment');
         }
@@ -333,7 +366,7 @@ const CommunityPage = () => {
         console.error('Error adding comment:', error);
         setOptimisticComments(prev => ({
           ...prev,
-          [postId]: (prev[postId] || []).filter(c => c.id !== tempComment.id)
+          [postId]: (prev[postId] || []).filter(c => c.id !== tempComment.id),
         }));
         toast.error('Failed to add comment');
       }
@@ -464,7 +497,7 @@ const CommunityPage = () => {
                         : post.profilePicture || '/user.png'
                     }
                   />
-                    {post.isAnonymous ? 'A' : post.username?.charAt(0)}
+                  {post.isAnonymous ? 'A' : post.username?.charAt(0)}
                 </Avatar>
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-gray-900 dark:text-white">
@@ -487,11 +520,16 @@ const CommunityPage = () => {
                 <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
                   {post.title}
                 </h3>
-                {(session?.user?.id === post.userId || authUser?.role === 'admin') && (
+                {(session?.user?.id === post.userId ||
+                  authUser?.role === 'admin') && (
                   <button
                     onClick={() => deletePost(post.id)}
                     className="text-red-500 hover:text-red-700 p-1"
-                    title={authUser?.role === 'admin' ? 'Delete as admin' : 'Delete your post'}
+                    title={
+                      authUser?.role === 'admin'
+                        ? 'Delete as admin'
+                        : 'Delete your post'
+                    }
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -508,10 +546,14 @@ const CommunityPage = () => {
                 </div>
                 {(typeof post.content === 'string'
                   ? post.content.length > 300
-                  : Array.isArray(post.content) && 
-                    (post.content.some(block => block.type === 'p' && 
-                      block.children?.map(child => child.text || '').join('').length > 300) ||
-                     post.content.length > 2)) && (
+                  : Array.isArray(post.content) &&
+                    (post.content.some(
+                      block =>
+                        block.type === 'p' &&
+                        block.children?.map(child => child.text || '').join('')
+                          .length > 300
+                    ) ||
+                      post.content.length > 2)) && (
                   <button
                     onClick={() => {
                       setExpandedPosts(prev => ({
@@ -543,68 +585,96 @@ const CommunityPage = () => {
 
               {showComments[post.id] && (
                 <div className="mt-4 space-y-3">
-                  {[...(post.comments || []), ...(optimisticComments[post.id] || [])]
-                    .filter((comment, index, arr) => 
-                      arr.findIndex(c => c.id === comment.id) === index
+                  {[
+                    ...(post.comments || []),
+                    ...(optimisticComments[post.id] || []),
+                  ]
+                    .filter(
+                      (comment, index, arr) =>
+                        arr.findIndex(c => c.id === comment.id) === index
                     )
                     .map(comment => (
-                    <div
-                      key={comment.id}
-                      className={`bg-gray-50 dark:bg-gray-800 rounded-lg p-3 transition-opacity ${
-                        comment.isOptimistic ? 'opacity-70' : 'opacity-100'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-sm">
-                            {comment.username}
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            {formatTimeAgo(comment.createdAt)}
-                            {comment.updatedAt && comment.updatedAt !== comment.createdAt && (
-                              <span className="ml-1 text-xs text-gray-400">(edited)</span>
+                      <div
+                        key={comment.id}
+                        className={`bg-gray-50 dark:bg-gray-800 rounded-lg p-3 transition-opacity ${
+                          comment.isOptimistic ? 'opacity-70' : 'opacity-100'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-sm">
+                              {comment.username}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {formatTimeAgo(comment.createdAt)}
+                              {comment.updatedAt &&
+                                comment.updatedAt !== comment.createdAt && (
+                                  <span className="ml-1 text-xs text-gray-400">
+                                    (edited)
+                                  </span>
+                                )}
+                            </span>
+                            {comment.isOptimistic && (
+                              <span className="text-xs text-amber-500">
+                                Sending...
+                              </span>
                             )}
-                          </span>
-                          {comment.isOptimistic && (
-                            <span className="text-xs text-amber-500">Sending...</span>
+                          </div>
+                          {(session?.user?.id === comment.userId ||
+                            authUser?.role === 'admin') && (
+                            <div className="flex gap-1">
+                              {session?.user?.id === comment.userId && (
+                                <button
+                                  onClick={() => setEditingComment(comment.id)}
+                                  className="text-blue-500 hover:text-blue-700 p-1"
+                                  title="Edit comment"
+                                >
+                                  <svg
+                                    className="w-3 h-3"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                    />
+                                  </svg>
+                                </button>
+                              )}
+                              <button
+                                onClick={() =>
+                                  deleteComment(comment.id, post.id)
+                                }
+                                className="text-red-500 hover:text-red-700 p-1"
+                                title={
+                                  authUser?.role === 'admin'
+                                    ? 'Delete as admin'
+                                    : 'Delete your comment'
+                                }
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
                           )}
                         </div>
-                        {(session?.user?.id === comment.userId || authUser?.role === 'admin') && (
-                          <div className="flex gap-1">
-                            {session?.user?.id === comment.userId && (
-                              <button
-                                onClick={() => setEditingComment(comment.id)}
-                                className="text-blue-500 hover:text-blue-700 p-1"
-                                title="Edit comment"
-                              >
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
-                              </button>
-                            )}
-                            <button
-                              onClick={() => deleteComment(comment.id, post.id)}
-                              className="text-red-500 hover:text-red-700 p-1"
-                              title={authUser?.role === 'admin' ? 'Delete as admin' : 'Delete your comment'}
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                          </div>
+                        {editingComment === comment.id ? (
+                          <EditCommentForm
+                            comment={comment}
+                            onSave={newContent =>
+                              editComment(comment.id, newContent, post.id)
+                            }
+                            onCancel={() => setEditingComment(null)}
+                          />
+                        ) : (
+                          <p className="text-sm text-gray-700 dark:text-gray-300">
+                            {comment.content}
+                          </p>
                         )}
                       </div>
-                      {editingComment === comment.id ? (
-                        <EditCommentForm
-                          comment={comment}
-                          onSave={(newContent) => editComment(comment.id, newContent, post.id)}
-                          onCancel={() => setEditingComment(null)}
-                        />
-                      ) : (
-                        <p className="text-sm text-gray-700 dark:text-gray-300">
-                          {comment.content}
-                        </p>
-                      )}
-                    </div>
-                  ))}
+                    ))}
                   <CommentInput postId={post.id} />
                 </div>
               )}
@@ -619,7 +689,7 @@ const CommunityPage = () => {
 
   const EditCommentForm = ({ comment, onSave, onCancel }) => {
     const [content, setContent] = useState(comment.content);
-    
+
     const handleSave = () => {
       if (content.trim()) {
         onSave(content.trim());
@@ -630,8 +700,8 @@ const CommunityPage = () => {
       <div className="space-y-2">
         <Input
           value={content}
-          onChange={(e) => setContent(e.target.value)}
-          onKeyDown={(e) => {
+          onChange={e => setContent(e.target.value)}
+          onKeyDown={e => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
               handleSave();
@@ -717,7 +787,10 @@ const CommunityPage = () => {
                   <p className="text-red-600 dark:text-red-400 mb-4">
                     Failed to load posts: {error.message}
                   </p>
-                  <Button onClick={() => window.location.reload()} variant="outline">
+                  <Button
+                    onClick={() => window.location.reload()}
+                    variant="outline"
+                  >
                     Retry
                   </Button>
                 </CardContent>
@@ -732,8 +805,20 @@ const CommunityPage = () => {
                 </CardContent>
               </Card>
             ) : useVirtualization && posts?.length ? (
-              <Suspense fallback={<div className="space-y-6">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-64 w-full" />)}</div>}>
-                <VirtualizedPostList posts={posts} PostCard={PostCard} height={600} />
+              <Suspense
+                fallback={
+                  <div className="space-y-6">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <Skeleton key={i} className="h-64 w-full" />
+                    ))}
+                  </div>
+                }
+              >
+                <VirtualizedPostList
+                  posts={posts}
+                  PostCard={PostCard}
+                  height={600}
+                />
               </Suspense>
             ) : (
               posts?.map(post => <PostCard key={post.id} post={post} />) || []

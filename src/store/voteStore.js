@@ -21,6 +21,7 @@ const useVoteStore = create(set => ({
       userVotes[post.id] = post.userVote || null;
     });
 
+    console.log('VoteStore initialized with:', { votes, userVotes });
     set({ votes, userVotes });
   },
 

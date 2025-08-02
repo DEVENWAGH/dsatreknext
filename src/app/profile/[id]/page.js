@@ -9,25 +9,38 @@ import ProfileRightSection from '@/components/ProfileRightSection';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ProfilePage() {
-  const { userId } = useParams();
+  const { id } = useParams();
   const { data: session } = useSession();
   const [userDetails, setUserDetails] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const isOwnProfile = session?.user?.id === userId;
+  const isOwnProfile = session?.user?.username === id || session?.user?.id === id;
 
   useEffect(() => {
     const fetchUserDetails = async () => {
-      if (userId) {
+      if (id) {
         try {
-          console.log('Fetching user details for userId:', userId);
-          const response = await authAPI.getUserDetails(userId);
+          console.log('Fetching user details for id:', id);
+          // Try username first, fallback to userId for backward compatibility
+          let response;
+          if (id.includes('-')) {
+            // Looks like a UUID, try userId endpoint
+            response = await authAPI.getUserDetails(id);
+          } else {
+            // Looks like a username
+            response = await authAPI.getUserByUsername(id);
+          }
           console.log('User details response:', response);
 
           if (response.success && response.data) {
             setUserDetails(response.data);
             setError(null);
+            
+            // If we accessed via UUID but have username, redirect to username URL
+            if (id.includes('-') && response.data.username) {
+              window.history.replaceState(null, '', `/profile/${response.data.username}`);
+            }
           } else {
             console.error('User not found or invalid response:', response);
             setError('User not found');
@@ -41,19 +54,19 @@ export default function ProfilePage() {
           setIsLoading(false);
         }
       } else if (session?.user) {
-        // If no userId in params, show logged-in user's profile
+        // If no id in params, show logged-in user's profile
         console.log('Using session user data:', session.user);
         setUserDetails(session.user);
         setIsLoading(false);
       } else {
-        console.log('No userId and no session user');
+        console.log('No id and no session user');
         setError('User not found');
         setIsLoading(false);
       }
     };
 
     fetchUserDetails();
-  }, [userId, session]);
+  }, [id, session]);
 
   if (isLoading) {
     return (
@@ -127,14 +140,14 @@ export default function ProfilePage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-6">
           <div className="lg:col-span-1 space-y-6">
             <ProfileLeftSection
-              userId={userId}
+              userId={userDetails?.id}
               userDetails={userDetails}
               isOwnProfile={isOwnProfile}
             />
           </div>
           <div className="lg:col-span-3 space-y-6">
             <ProfileRightSection
-              userId={userId}
+              userId={userDetails?.id}
               userDetails={userDetails}
               isOwnProfile={isOwnProfile}
             />

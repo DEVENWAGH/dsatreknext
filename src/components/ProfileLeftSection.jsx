@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { CalendarDays, Upload } from 'lucide-react';
+import { CalendarDays, Upload, Twitter, Facebook, Linkedin, Link } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -11,6 +11,7 @@ import { userAPI } from '@/api/api';
 import { toast } from 'sonner';
 import CustomAvatarFallback from '@/components/ui/avatar-fallback';
 import EditProfileDialog from './EditProfileDialog';
+import ShareButton from '@/components/ui/share-button';
 
 const ProfileLeftSection = ({
   userDetails,
@@ -143,6 +144,40 @@ const ProfileLeftSection = ({
                   <div className="text-amber-600/80 text-sm flex items-center gap-2 mt-1">
                     <CalendarDays className="w-4 h-4 text-amber-500" />
                     <span>Joined on {joinedDate}</span>
+                  </div>
+                  
+                  <div className="mt-4">
+                    <ShareButton 
+                      links={[
+                        {
+                          icon: Twitter,
+                          onClick: () => window.open(`https://twitter.com/intent/tweet?text=Check out ${userDetails?.firstName && userDetails?.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails?.name || 'this user'}'s profile on DSATrek!&url=${window.location.href}`),
+                          label: "Share on Twitter",
+                        },
+                        {
+                          icon: Facebook,
+                          onClick: () => window.open(`https://www.facebook.com/sharer/sharer.php?u=${window.location.href}&quote=Check out ${userDetails?.firstName && userDetails?.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails?.name || 'this user'}'s profile on DSATrek!`),
+                          label: "Share on Facebook",
+                        },
+                        {
+                          icon: Linkedin,
+                          onClick: () => window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${window.location.href}&title=DSATrek Profile&summary=Check out ${userDetails?.firstName && userDetails?.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails?.name || 'this user'}'s profile on DSATrek!`),
+                          label: "Share on LinkedIn",
+                        },
+                        {
+                          icon: Link,
+                          onClick: () => {
+                            navigator.clipboard.writeText(window.location.href);
+                            toast.success('Profile link copied to clipboard!');
+                          },
+                          label: "Copy link",
+                        },
+                      ]}
+                      className="text-sm font-medium"
+                    >
+                      <Link size={15} />
+                      Share
+                    </ShareButton>
                   </div>
                 </motion.div>
               </div>

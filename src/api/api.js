@@ -115,6 +115,11 @@ export const authAPI = {
     return apiCall(`/users/${userId}`);
   },
 
+  // Get user by username
+  getUserByUsername: async username => {
+    return apiCall(`/users/username/${username}`);
+  },
+
   // Add missing getUserStatistics method
   getUserStatistics: async userId => {
     return apiCall(`/users/${userId}/statistics`);

@@ -52,7 +52,7 @@ export async function GET(request) {
   try {
     const session = await auth();
     const userId = session?.user?.id;
-    
+
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
@@ -74,7 +74,7 @@ export async function GET(request) {
       .from(Community)
       .leftJoin(User, eq(Community.userId, User.id))
       .where(ne(Community.topic, 'Problem Discussion'))
-      .orderBy(desc(Community.createdAt))
+      .orderBy(desc(Community.createdAt)) // Will sort by votes after processing
       .limit(limit + 1)
       .offset(offset);
 
@@ -84,7 +84,14 @@ export async function GET(request) {
         const postId = post.id; // Store post ID in local variable
         try {
           const comments = await db
-            .select()
+            .select({
+              id: Comments.id,
+              postId: Comments.postId,
+              userId: Comments.userId,
+              username: Comments.username,
+              content: Comments.content,
+              createdAt: Comments.createdAt,
+            })
             .from(Comments)
             .where(eq(Comments.postId, postId)) // Use local postId variable
             .orderBy(desc(Comments.createdAt));
@@ -180,18 +187,26 @@ export async function GET(request) {
       }
 
       // Remove verification field before sending to client
-      const { ...cleanPost } = post;
+      const { _postIdVerification, ...cleanPost } = post;
       return cleanPost;
     });
 
-    const hasMore = verifiedPosts.length > limit;
-    const postsToReturn = hasMore ? verifiedPosts.slice(0, limit) : verifiedPosts;
-    
+    // Sort posts by votes (highest first), then by creation date
+    const sortedPosts = verifiedPosts.sort((a, b) => {
+      if (b.votes !== a.votes) {
+        return b.votes - a.votes; // Higher votes first
+      }
+      return new Date(b.createdAt) - new Date(a.createdAt); // Newer first if votes are equal
+    });
+
+    const hasMore = sortedPosts.length > limit;
+    const postsToReturn = hasMore ? sortedPosts.slice(0, limit) : sortedPosts;
+
     return NextResponse.json({
       posts: postsToReturn,
       hasMore,
       nextPage: hasMore ? page + 1 : null,
-      currentPage: page
+      currentPage: page,
     });
   } catch (error) {
     console.error('Error fetching posts:', error);
