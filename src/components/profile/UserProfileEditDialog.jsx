@@ -48,9 +48,24 @@ const UserProfileEditDialog = ({ user, onUpdate }) => {
             <label className="text-sm font-medium">Username</label>
             <Input
               value={formData.username}
-              onChange={e => handleInputChange('username', e.target.value)}
+              onChange={e => {
+                const value = e.target.value
+                  .toLowerCase()
+                  .replace(/[^a-z0-9_-]/g, '');
+                handleInputChange('username', value);
+              }}
               placeholder="Enter your username"
+              pattern="^[a-z0-9_-]+$"
+              minLength={3}
+              maxLength={30}
             />
+            <p className="text-xs text-gray-500 mt-1">
+              This will be used in your profile URL: /profile/
+              {formData.username || 'username'}
+              <br />
+              Only lowercase letters, numbers, underscores, and hyphens allowed.
+              3-30 characters.
+            </p>
           </div>
           <div>
             <label className="text-sm font-medium">Name</label>

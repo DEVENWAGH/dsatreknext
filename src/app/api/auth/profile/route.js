@@ -68,11 +68,28 @@ export async function PATCH(request) {
       firstName,
       lastName,
       email,
+      username,
       bio,
       githubUrl,
       linkedinUrl,
       portfolioUrl,
     } = body;
+
+    // Check if username is taken (if username is provided and different)
+    if (username) {
+      const existingUser = await db
+        .select()
+        .from(User)
+        .where(eq(User.username, username))
+        .limit(1);
+
+      if (existingUser.length > 0 && existingUser[0].id !== session.user.id) {
+        return NextResponse.json(
+          { success: false, message: 'Username is already taken' },
+          { status: 400 }
+        );
+      }
+    }
 
     // Update user basic info
     const updatedUser = await db
@@ -81,6 +98,7 @@ export async function PATCH(request) {
         firstName,
         lastName,
         email,
+        ...(username && { username }),
         updatedAt: new Date(),
       })
       .where(eq(User.id, session.user.id))

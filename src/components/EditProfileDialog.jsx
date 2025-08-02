@@ -26,6 +26,7 @@ const EditProfileDialog = ({ userDetails, onProfileUpdate }) => {
     firstName: userDetails?.firstName || '',
     lastName: userDetails?.lastName || '',
     email: userDetails?.email || '',
+    username: userDetails?.username || '',
     bio: userDetails?.bio || '',
     githubUrl: userDetails?.githubUrl || '',
     linkedinUrl: userDetails?.linkedinUrl || '',
@@ -50,6 +51,7 @@ const EditProfileDialog = ({ userDetails, onProfileUpdate }) => {
         await update({
           ...formData,
           name: `${formData.firstName} ${formData.lastName}`.trim(),
+          username: formData.username,
         });
 
         // Call parent callback
@@ -126,6 +128,20 @@ const EditProfileDialog = ({ userDetails, onProfileUpdate }) => {
               onChange={e => handleInputChange('email', e.target.value)}
               placeholder="Enter your email"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="username">Username</Label>
+            <Input
+              id="username"
+              value={formData.username}
+              onChange={e => handleInputChange('username', e.target.value)}
+              placeholder="Enter your username"
+            />
+            <p className="text-xs text-gray-500">
+              This will be used in your profile URL: /profile/
+              {formData.username || 'username'}
+            </p>
           </div>
 
           <div className="space-y-2">

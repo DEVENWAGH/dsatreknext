@@ -65,9 +65,26 @@ export async function PATCH(request, { params }) {
 
     // Update user basic info
     if (updateData.username) {
+      // Check if username is already taken
+      const existingUser = await db
+        .select()
+        .from(User)
+        .where(eq(User.username, updateData.username))
+        .limit(1);
+
+      if (existingUser.length > 0 && existingUser[0].id !== userId) {
+        return NextResponse.json(
+          { error: 'Username is already taken' },
+          { status: 400 }
+        );
+      }
+
       await db
         .update(User)
-        .set({ username: updateData.username })
+        .set({
+          username: updateData.username,
+          updatedAt: new Date(),
+        })
         .where(eq(User.id, userId));
     }
 
@@ -85,7 +102,7 @@ export async function PATCH(request, { params }) {
       experience: JSON.stringify(updateData.experience || []),
       education: JSON.stringify(updateData.education || []),
       skills: JSON.stringify(updateData.skills || []),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     // Check if profile exists
@@ -105,13 +122,13 @@ export async function PATCH(request, { params }) {
       // Create new profile
       await db.insert(UserProfile).values({
         ...profileData,
-        createdAt: new Date()
+        createdAt: new Date(),
       });
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Profile updated successfully'
+      message: 'Profile updated successfully',
     });
   } catch (error) {
     console.error('Profile update error:', error);

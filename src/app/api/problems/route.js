@@ -9,6 +9,7 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const fields = searchParams.get('fields');
+    const showAll = searchParams.get('showAll') === 'true';
 
     // Select fields based on request
     let query = db.select();
@@ -23,14 +24,22 @@ export async function GET(request) {
         if (field === 'tags') selectFields.tags = Problem.tags;
         if (field === 'companies') selectFields.companies = Problem.companies;
         if (field === 'is_premium') selectFields.is_premium = Problem.isPremium;
-        // Remove totalSubmissions and acceptedSubmissions from field selection as they're calculated
+        if (field === 'is_active') selectFields.is_active = Problem.isActive;
       });
       query = db.select(selectFields);
     }
 
-    const problems = await query
-      .from(Problem)
-      .orderBy(sql`CAST(SUBSTRING(${Problem.title} FROM '[0-9]+') AS INTEGER)`);
+    let problems;
+    if (showAll) {
+      problems = await query
+        .from(Problem)
+        .orderBy(sql`CAST(SUBSTRING(${Problem.title} FROM '[0-9]+') AS INTEGER)`);
+    } else {
+      problems = await query
+        .from(Problem)
+        .where(eq(Problem.isActive, true))
+        .orderBy(sql`CAST(SUBSTRING(${Problem.title} FROM '[0-9]+') AS INTEGER)`);
+    }
 
     // Get submission statistics for each problem
     const problemsWithStats = await Promise.all(
@@ -103,7 +112,6 @@ export async function POST(request) {
       topCode,
       bottomCode,
       solution,
-      referenceSolution,
       testCases,
       hints,
       isPremium,
@@ -152,7 +160,7 @@ export async function POST(request) {
         starterCode: starterCode || {},
         topCode: topCode || {},
         bottomCode: bottomCode || {},
-        solution: referenceSolution || solution || {},
+        solution: solution || {},
         testCases: testCases || [],
         hints: hints || [],
         companies: companies || [],

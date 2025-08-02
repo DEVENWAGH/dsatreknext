@@ -75,23 +75,38 @@ export async function PUT(request, { params }) {
       );
     }
 
-    // Update the problem
+    // Get current problem first
+    const currentProblem = await db
+      .select()
+      .from(Problem)
+      .where(eq(Problem.id, problemId))
+      .limit(1);
+
+    if (!currentProblem || currentProblem.length === 0) {
+      return NextResponse.json(
+        { success: false, message: 'Problem not found' },
+        { status: 404 }
+      );
+    }
+
+    // Update the problem with merged data
     const updatedProblem = await db
       .update(Problem)
       .set({
-        title: data.title,
-        description: data.description,
-        editorial: data.editorial,
-        difficulty: data.difficulty,
-        tags: data.tags,
-        companies: data.companies,
-        starterCode: data.starterCode,
-        topCode: data.topCode,
-        bottomCode: data.bottomCode,
-        solution: data.referenceSolution,
-        testCases: data.testCases,
-        hints: data.hints,
-        isPremium: data.isPremium,
+        title: data.title ?? currentProblem[0].title,
+        description: data.description ?? currentProblem[0].description,
+        editorial: data.editorial ?? currentProblem[0].editorial,
+        difficulty: data.difficulty ?? currentProblem[0].difficulty,
+        tags: data.tags ?? currentProblem[0].tags,
+        companies: data.companies ?? currentProblem[0].companies,
+        starterCode: data.starterCode ?? currentProblem[0].starterCode,
+        topCode: data.topCode ?? currentProblem[0].topCode,
+        bottomCode: data.bottomCode ?? currentProblem[0].bottomCode,
+        solution: data.referenceSolution ?? data.solution ?? currentProblem[0].solution,
+        testCases: data.testCases ?? currentProblem[0].testCases,
+        hints: data.hints ?? currentProblem[0].hints,
+        isPremium: data.isPremium ?? currentProblem[0].isPremium,
+        isActive: data.isActive ?? currentProblem[0].isActive,
         updatedAt: new Date(),
       })
       .where(eq(Problem.id, problemId))

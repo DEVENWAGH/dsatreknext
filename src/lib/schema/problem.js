@@ -25,6 +25,7 @@ export const Problem = pgTable(
     hints: jsonb('hints'),
     companies: jsonb('companies').default([]),
     isPremium: boolean('is_premium').default(false),
+    isActive: boolean('is_active').default(true),
     createdAt: timestamp('created_at').defaultNow(),
     updatedAt: timestamp('updated_at').defaultNow(),
   },

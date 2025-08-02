@@ -79,7 +79,7 @@ export default function AdminProblems() {
   const fetchProblems = async () => {
     try {
       setIsLoading(true);
-      const response = await problemAPI.getAll();
+      const response = await problemAPI.getAll({ showAll: true });
       if (response.success && response.data?.problems) {
         setProblems(response.data.problems);
       }
@@ -98,18 +98,44 @@ export default function AdminProblems() {
       setIsDeleting(true);
       const response = await problemAPI.delete(deleteDialog.problem.id);
 
-      if (response.data?.success) {
+      if (response.success) {
         toast.success('Problem deleted successfully');
-        setProblems(problems.filter(p => p.id !== deleteDialog.problem.id));
+        // Update state immediately for real-time UI update
+        setProblems(prev => prev.filter(p => p.id !== deleteDialog.problem.id));
         setDeleteDialog({ open: false, problem: null });
       } else {
-        toast.error(response.data?.message || 'Failed to delete problem');
+        toast.error(response.message || 'Failed to delete problem');
       }
     } catch (error) {
       console.error('Error deleting problem:', error);
       toast.error('Failed to delete problem');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleToggleActive = async (problemId, currentStatus) => {
+    try {
+      const response = await fetch(`/api/problems/${problemId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ isActive: !currentStatus }),
+      });
+      const result = await response.json();
+      
+      if (result.success) {
+        toast.success(`Problem ${!currentStatus ? 'enabled' : 'disabled'} successfully`);
+        setProblems(prev => prev.map(p => 
+          p.id === problemId ? { ...p, isActive: !currentStatus } : p
+        ));
+      } else {
+        toast.error('Failed to update problem status');
+      }
+    } catch (error) {
+      console.error('Error updating problem status:', error);
+      toast.error('Failed to update problem status');
     }
   };
 
@@ -280,6 +306,7 @@ export default function AdminProblems() {
                     </div>
                   </TableHead>
                   <TableHead>Difficulty</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Tags</TableHead>
                   <TableHead>Submissions</TableHead>
                   <TableHead>Acceptance Rate</TableHead>
@@ -323,6 +350,15 @@ export default function AdminProblems() {
                         >
                           {problem.difficulty}
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant={problem.isActive !== false ? "default" : "secondary"}
+                          size="sm"
+                          onClick={() => handleToggleActive(problem.id, problem.isActive !== false)}
+                        >
+                          {problem.isActive !== false ? 'Active' : 'Disabled'}
+                        </Button>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">

@@ -298,7 +298,11 @@ const Navigation = () => {
                           alt={user.name}
                           width={32}
                           height={32}
-                          className="object-cover w-8 h-8 border-2 rounded-full shadow-sm border-border cursor-pointer"
+                          className={`object-cover w-8 h-8 border-2 rounded-full shadow-sm cursor-pointer ${
+                            subscription?.planId === 'premium' || subscription?.planId === 'pro'
+                              ? 'border-yellow-500'
+                              : 'border-border'
+                          }`}
                           quality={100}
                           unoptimized
                         />
@@ -306,7 +310,11 @@ const Navigation = () => {
                         <AvatarFallback
                           name={user.name}
                           size={32}
-                          className="border-2 border-border shadow-sm cursor-pointer"
+                          className={`border-2 shadow-sm cursor-pointer ${
+                            subscription?.planId === 'premium' || subscription?.planId === 'pro'
+                              ? 'border-yellow-500'
+                              : 'border-border'
+                          }`}
                         />
                       )}
                       {user.role === 'admin' && (
@@ -329,7 +337,11 @@ const Navigation = () => {
                               alt={user.name}
                               width={48}
                               height={48}
-                              className="object-cover w-12 h-12 border-2 rounded-full border-border"
+                              className={`object-cover w-12 h-12 border-2 rounded-full ${
+                                subscription?.planId === 'premium' || subscription?.planId === 'pro'
+                                  ? 'border-yellow-500'
+                                  : 'border-border'
+                              }`}
                               quality={100}
                               unoptimized
                             />
@@ -337,7 +349,11 @@ const Navigation = () => {
                             <AvatarFallback
                               name={user.name}
                               size={48}
-                              className="border-2 border-border"
+                              className={`border-2 ${
+                                subscription?.planId === 'premium' || subscription?.planId === 'pro'
+                                  ? 'border-yellow-500'
+                                  : 'border-border'
+                              }`}
                             />
                           )}
                           {user.role === 'admin' && (
@@ -553,7 +569,11 @@ const Navigation = () => {
                           alt={user.name}
                           width={40}
                           height={40}
-                          className="object-cover w-10 h-10 border-2 rounded-full border-border"
+                          className={`object-cover w-10 h-10 border-2 rounded-full ${
+                            subscription?.planId === 'premium' || subscription?.planId === 'pro'
+                              ? 'border-yellow-500'
+                              : 'border-border'
+                          }`}
                           quality={100}
                           unoptimized
                         />
@@ -561,7 +581,11 @@ const Navigation = () => {
                         <AvatarFallback
                           name={user.name}
                           size={40}
-                          className="border-2 border-border"
+                          className={`border-2 ${
+                            subscription?.planId === 'premium' || subscription?.planId === 'pro'
+                              ? 'border-yellow-500'
+                              : 'border-border'
+                          }`}
                         />
                       )}
                       {user.role === 'admin' && (
