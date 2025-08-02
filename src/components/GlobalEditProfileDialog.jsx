@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import CustomAvatarFallback from '@/components/ui/avatar-fallback';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -40,6 +41,7 @@ const GlobalEditProfileDialog = () => {
     education: [{ institution: '', degree: '', startDate: '', endDate: '' }],
     skills: []
   });
+  const [userAvatar, setUserAvatar] = useState(null);
 
   useEffect(() => {
     const handleOpenEdit = () => {
@@ -58,21 +60,24 @@ const GlobalEditProfileDialog = () => {
       const response = await fetch(`/api/users/${session.user.id}`);
       if (response.ok) {
         const userData = await response.json();
+        console.log('User data:', userData); // Debug log
         if (userData.success) {
           const user = userData.data;
+          console.log('Username from API:', user.username); // Debug username
+          setUserAvatar(user.profilePicture);
           setFormData({
-            username: user.username || '',
+            username: user.username || session?.user?.username || '',
             gender: user.gender || '',
             location: user.location || '',
             birthday: user.birthday || '',
             summary: user.summary || '',
-            website: user.website || '',
+            website: user.websiteUrl || user.website || '',
             github: user.github || '',
             linkedin: user.linkedin || '',
-            twitter: user.twitter || '',
-            experience: user.experience || [{ company: '', position: '', startDate: '', endDate: '', current: false }],
-            education: user.education || [{ institution: '', degree: '', startDate: '', endDate: '' }],
-            skills: user.skills || []
+            twitter: user.twitterUrl || user.twitter || '',
+            experience: user.experience ? (typeof user.experience === 'string' ? JSON.parse(user.experience) : user.experience) : [{ company: '', position: '', startDate: '', endDate: '', current: false }],
+            education: user.education ? (typeof user.education === 'string' ? JSON.parse(user.education) : user.education) : [{ institution: '', degree: '', startDate: '', endDate: '' }],
+            skills: user.skills ? (typeof user.skills === 'string' ? JSON.parse(user.skills) : user.skills) : []
           });
         }
       }
@@ -185,8 +190,8 @@ const GlobalEditProfileDialog = () => {
                   onSelect={(date) => handleInputChange('birthday', date ? format(date, 'yyyy-MM-dd') : '')}
                   initialFocus
                   captionLayout="dropdown-buttons"
-                  fromYear={1960}
-                  toYear={2030}
+                  fromYear={1950}
+                  toYear={new Date().getFullYear()}
                 />
               </PopoverContent>
             </Popover>
@@ -387,15 +392,23 @@ const GlobalEditProfileDialog = () => {
         {sections.map((section, index) => (
           <DialogStackContent key={index}>
             <DialogStackHeader className="mt-2 flex flex-row items-center gap-2">
-              <Avatar>
-                <AvatarImage
-                  src={session?.user?.image || '/user.png'}
-                  alt={session?.user?.name}
+              {userAvatar || session?.user?.image ? (
+                <Avatar>
+                  <AvatarImage
+                    src={userAvatar || session?.user?.image}
+                    alt={session?.user?.name || session?.user?.username}
+                  />
+                  <AvatarFallback className="bg-gradient-to-br from-amber-400 to-amber-600 text-white">
+                    {(session?.user?.name || session?.user?.username)?.charAt(0) || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+              ) : (
+                <CustomAvatarFallback
+                  name={session?.user?.name || session?.user?.username}
+                  size={48}
+                  className="border-2 border-border"
                 />
-                <AvatarFallback className="bg-gradient-to-br from-amber-400 to-amber-600 text-white">
-                  {session?.user?.name?.charAt(0) || 'U'}
-                </AvatarFallback>
-              </Avatar>
+              )}
               <div>
                 <h1 className="text-2xl font-semibold leading-none tracking-tight">
                   {section.title}

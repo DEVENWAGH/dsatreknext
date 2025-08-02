@@ -28,6 +28,7 @@ export const authConfig = {
         isSignup: { label: 'Is Signup', type: 'hidden' },
       },
       async authorize(credentials) {
+        console.log('Auth function called with:', { email: credentials.email, isSignup: credentials.isSignup });
         try {
           const { email, password, firstName, lastName, username, isSignup } =
             credentials;
@@ -110,10 +111,15 @@ export const authConfig = {
               .limit(1);
 
             if (!userResult.length) {
-              throw new Error('Invalid email or password');
+              throw new Error('No account found with this email address');
             }
 
             const existingUser = userResult[0];
+            console.log('User data:', {
+              email: existingUser.email,
+              isVerified: existingUser.isVerified,
+              isVerifiedType: typeof existingUser.isVerified
+            });
 
             // Check password
             const isPasswordValid = await bcrypt.compare(
@@ -122,8 +128,26 @@ export const authConfig = {
             );
 
             if (!isPasswordValid) {
-              throw new Error('Invalid email or password');
+              throw new Error('Incorrect password');
             }
+
+            // Check if user is verified - return user data with verification status
+            if (existingUser.isVerified !== true) {
+              console.log('User needs verification, returning unverified user');
+              return {
+                id: existingUser.id,
+                name: `${existingUser.firstName} ${existingUser.lastName}`,
+                email: existingUser.email,
+                role: existingUser.role,
+                username: existingUser.username,
+                firstName: existingUser.firstName,
+                lastName: existingUser.lastName,
+                isVerified: false,
+                needsVerification: true,
+              };
+            }
+
+            console.log('User is verified, proceeding with normal login');
 
             return {
               id: existingUser.id,
@@ -133,10 +157,12 @@ export const authConfig = {
               username: existingUser.username,
               firstName: existingUser.firstName,
               lastName: existingUser.lastName,
+              isVerified: true,
             };
           }
         } catch (error) {
-          throw error;
+          console.error('Auth error:', error);
+          return null;
         }
       },
     }),
@@ -168,13 +194,21 @@ export const authConfig = {
                 password: '',
                 profilePicture: user.image,
                 role: 'user',
+                isVerified: true, // OAuth users are automatically verified
               })
               .returning();
           }
         } catch (error) {
+          console.error('OAuth user creation error:', error);
           return false;
         }
       }
+      
+      // Allow all credential logins to proceed
+      if (account?.provider === 'credentials') {
+        return true;
+      }
+      
       return true;
     },
     async jwt({ token, user }) {
@@ -183,6 +217,8 @@ export const authConfig = {
         token.username = user.username;
         token.firstName = user.firstName;
         token.lastName = user.lastName;
+        token.isVerified = user.isVerified;
+        token.needsVerification = user.needsVerification;
       }
 
       if (token.email && !token.role) {
@@ -199,6 +235,8 @@ export const authConfig = {
           token.firstName = userData.firstName;
           token.lastName = userData.lastName;
           token.profilePicture = userData.profilePicture;
+          token.isVerified = userData.isVerified === true;
+          token.needsVerification = userData.isVerified !== true;
         }
       }
       return token;
@@ -212,11 +250,15 @@ export const authConfig = {
         session.user.lastName = token.lastName;
         session.user.profilePicture =
           token.profilePicture || session.user.image;
+        session.user.isVerified = token.isVerified;
+        session.user.needsVerification = token.needsVerification;
       }
       return session;
     },
-    async redirect({ baseUrl }) {
-      // Always redirect to home page after successful sign in
+    async redirect({ url, baseUrl }) {
+      // Handle redirects properly
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
+      if (new URL(url).origin === baseUrl) return url;
       return baseUrl;
     },
   },

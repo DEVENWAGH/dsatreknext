@@ -1,6 +1,6 @@
 {
-  "id": "1ba05f0c-329f-4819-aed2-cb667192ca73",
-  "prevId": "3b850e6c-39fd-48f5-ad31-1b2347882ed5",
+  "id": "b32014fb-e0e2-4bd1-bf7d-94bdaa021f07",
+  "prevId": "1ba05f0c-329f-4819-aed2-cb667192ca73",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -913,7 +913,7 @@
           "name": "is_verified",
           "type": "boolean",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": false
         },
         "profile_picture": {

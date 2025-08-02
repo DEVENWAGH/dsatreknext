@@ -10,10 +10,11 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Eye, EyeOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { signIn, getCsrfToken } from 'next-auth/react';
+import { signIn, getCsrfToken, getSession, useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import SplineModel from '@/components/SplineModel';
+import LoginVerification from '@/components/LoginVerification';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
@@ -26,6 +27,7 @@ export default function Login() {
   const {
     register,
     handleSubmit,
+    getValues,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(formSchema),
@@ -38,12 +40,21 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [csrfToken, setCsrfToken] = useState(null);
+  const [showVerification, setShowVerification] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState('');
+  const { data: session } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    // Get CSRF token on component mount
     getCsrfToken().then(setCsrfToken);
   }, []);
+
+  useEffect(() => {
+    if (session?.user?.needsVerification) {
+      setVerificationEmail(session.user.email);
+      setShowVerification(true);
+    }
+  }, [session]);
 
   const onSubmit = async values => {
     setIsLoggingIn(true);
@@ -56,32 +67,37 @@ export default function Login() {
         csrfToken,
       });
 
+      console.log('Login result:', result);
+      
       if (result?.error) {
-        // Handle specific error cases
-        if (
-          result.error === 'CredentialsSignin' ||
-          result.error.includes('Invalid email or password')
-        ) {
-          toast.error('Invalid email or password');
-        } else {
-          toast.error(result.error || 'Login failed');
-        }
+        console.log('Login failed:', result.error);
+        toast.error('Invalid email or password');
         return;
       }
-
-      toast.success('Login successful!');
-      // Redirect to callbackUrl if present, else home
-      const params = new URLSearchParams(window.location.search);
-      const callbackUrl = params.get('callbackUrl');
-      if (callbackUrl) {
-        window.location.href = callbackUrl;
-      } else {
-        router.push('/');
-        router.refresh(); // Refresh to update auth state
+      
+      if (result?.ok) {
+        const session = await getSession();
+        console.log('Session after login:', session?.user);
+        
+        if (session?.user?.needsVerification) {
+          console.log('User needs verification, showing OTP screen');
+          setVerificationEmail(values.email);
+          setShowVerification(true);
+        } else {
+          console.log('User is verified, proceeding with redirect');
+          toast.success('Login successful!');
+          const params = new URLSearchParams(window.location.search);
+          const callbackUrl = params.get('callbackUrl');
+          if (callbackUrl) {
+            window.location.href = callbackUrl;
+          } else {
+            router.push('/');
+            router.refresh();
+          }
+        }
       }
     } catch (error) {
-      console.error('Login error:', error);
-      toast.error('Invalid credentials');
+      toast.error('Login failed');
     } finally {
       setIsLoggingIn(false);
     }
@@ -103,6 +119,42 @@ export default function Login() {
     // Navigate to forgot password page when implemented
     router.push('/auth/forgot-password');
   };
+
+  const handleVerificationComplete = async () => {
+    setShowVerification(false);
+    toast.success('Email verified successfully!');
+    // Redirect to home page
+    const params = new URLSearchParams(window.location.search);
+    const callbackUrl = params.get('callbackUrl');
+    if (callbackUrl) {
+      window.location.href = callbackUrl;
+    } else {
+      router.push('/');
+      router.refresh();
+    }
+  };
+
+  const handleBackToLogin = () => {
+    setShowVerification(false);
+    setVerificationEmail('');
+  };
+
+  if (showVerification) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="max-w-6xl w-full flex items-center justify-between gap-8">
+          <LoginVerification
+            email={verificationEmail}
+            onVerified={handleVerificationComplete}
+            onBack={handleBackToLogin}
+          />
+          <div className="hidden lg:flex flex-1 justify-center items-center">
+            <SplineModel />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">

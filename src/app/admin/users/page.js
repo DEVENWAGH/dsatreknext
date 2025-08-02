@@ -120,7 +120,7 @@ export default function AdminUsers() {
               <thead>
                 <tr className="border-b border-border">
                   <th className="text-left p-4">Name</th>
-                  <th className="text-left p-4">Email</th>
+                  <th className="text-left p-4">Username</th>
                   <th className="text-left p-4">Role</th>
                   <th className="text-left p-4">Joined</th>
                   <th className="text-left p-4">Actions</th>
@@ -163,7 +163,7 @@ export default function AdminUsers() {
                         className="border-b border-border last:border-b-0"
                       >
                         <td className="p-4 font-medium">{fullName}</td>
-                        <td className="p-4">{user.email}</td>
+                        <td className="p-4">{user.username || 'N/A'}</td>
                         <td className="p-4">
                           <span
                             className={`px-2 py-1 rounded text-xs ${
@@ -223,7 +223,7 @@ export default function AdminUsers() {
               <button
                 onClick={() => loadUsers(currentPage - 1)}
                 disabled={currentPage === 1 || isLoading}
-                className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+                className="px-3 py-1 bg-primary text-primary-foreground rounded disabled:opacity-50 hover:bg-primary/90"
               >
                 Previous
               </button>
@@ -233,7 +233,7 @@ export default function AdminUsers() {
               <button
                 onClick={() => loadUsers(currentPage + 1)}
                 disabled={currentPage === totalPages || isLoading}
-                className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+                className="px-3 py-1 bg-primary text-primary-foreground rounded disabled:opacity-50 hover:bg-primary/90"
               >
                 Next
               </button>

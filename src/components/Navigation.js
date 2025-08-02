@@ -13,6 +13,7 @@ import {
 import { ModeToggle } from '@/components/ui/mode-toggle';
 import { useSession, signOut } from 'next-auth/react';
 import { useSubscriptionStore } from '@/store/subscriptionStore';
+import { useAuthStore } from '@/store/authStore';
 import { userAPI } from '@/api/api';
 import {
   Trophy,
@@ -52,6 +53,7 @@ const Navigation = () => {
   const router = useRouter();
   const { data: session } = useSession();
   const { subscription, getUserSubscription } = useSubscriptionStore();
+  const { logout: authStoreLogout } = useAuthStore();
   const logoSrc = useLogo();
 
   // Get user data from session
@@ -176,10 +178,7 @@ const Navigation = () => {
 
   const handleLogout = async () => {
     try {
-      await signOut({
-        callbackUrl: '/',
-        redirect: true,
-      });
+      await authStoreLogout();
     } catch (error) {
       console.error('Logout error:', error);
     }

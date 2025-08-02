@@ -64,10 +64,10 @@ export async function PATCH(request, { params }) {
     }
 
     // Update user basic info
-    if (updateData.name) {
+    if (updateData.username) {
       await db
         .update(User)
-        .set({ name: updateData.name })
+        .set({ username: updateData.username })
         .where(eq(User.id, userId));
     }
 

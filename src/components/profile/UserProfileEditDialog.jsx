@@ -18,6 +18,7 @@ import {
 
 const UserProfileEditDialog = ({ user, onUpdate }) => {
   const [formData, setFormData] = useState({
+    username: user?.username || '',
     name: user?.name || '',
     gender: user?.gender || '',
     location: user?.location || '',
@@ -43,6 +44,14 @@ const UserProfileEditDialog = ({ user, onUpdate }) => {
       description: 'Update your personal information',
       content: (
         <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium">Username</label>
+            <Input
+              value={formData.username}
+              onChange={e => handleInputChange('username', e.target.value)}
+              placeholder="Enter your username"
+            />
+          </div>
           <div>
             <label className="text-sm font-medium">Name</label>
             <Input

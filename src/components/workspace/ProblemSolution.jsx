@@ -17,6 +17,7 @@ const getMonacoLanguage = language => {
     GO: 'go',
     RUST: 'rust',
     KOTLIN: 'kotlin',
+    RUBY: 'ruby',
   };
   return languageMap[language] || 'plaintext';
 };

@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { SmoothScroll } from '@/components/ui/smooth-scroll';
 import {
   Copy,
   Clock,
@@ -145,7 +146,7 @@ const SubmissionDetailsModal = ({ submission, open, onOpenChange }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+      <DialogContent className="w-[95vw] max-w-[95vw] max-h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Code className="w-5 h-5" />
@@ -153,9 +154,9 @@ const SubmissionDetailsModal = ({ submission, open, onOpenChange }) => {
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden">
-          <ScrollArea className="h-full">
-            <div className="space-y-6">
+        <div className="flex-1 overflow-hidden w-full">
+          <SmoothScroll className="h-full w-full">
+            <div className="space-y-6 w-full">
               {/* Submission Info */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="space-y-2">
@@ -252,11 +253,13 @@ const SubmissionDetailsModal = ({ submission, open, onOpenChange }) => {
                 </div>
 
                 <div className="relative">
-                  <pre className="bg-muted/50 rounded-lg p-4 text-sm overflow-x-auto border">
-                    <code className="language-javascript">
-                      {submission.code}
-                    </code>
-                  </pre>
+                  <SmoothScroll className="h-auto max-h-96 w-full border rounded-lg overflow-y-auto overflow-x-hidden">
+                    <pre className="bg-muted/50 p-4 text-sm whitespace-pre-wrap break-words">
+                      <code className={`language-${submission.language?.toLowerCase() || 'javascript'} whitespace-pre-wrap break-words`}>
+                        {submission.code}
+                      </code>
+                    </pre>
+                  </SmoothScroll>
                 </div>
               </div>
 
@@ -318,7 +321,7 @@ const SubmissionDetailsModal = ({ submission, open, onOpenChange }) => {
                 </div>
               )}
             </div>
-          </ScrollArea>
+          </SmoothScroll>
         </div>
       </DialogContent>
     </Dialog>

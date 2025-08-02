@@ -53,6 +53,7 @@ const ProblemDescriptionPanel = ({
   const [selectedSubmission, setSelectedSubmission] = useState(null);
   const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
   const [selectedNotesTab, setSelectedNotesTab] = useState('notes');
+  const [showAcceptedPanel, setShowAcceptedPanel] = useState(false);
   const hintsRef = useRef(null);
   const { isAuthenticated, isPremium, checkUserSubscription } = useAuthStore();
 
@@ -94,6 +95,7 @@ const ProblemDescriptionPanel = ({
       submissionResult.testCaseResult &&
       submissionResult.testCaseResult.length > 0
     ) {
+      setShowAcceptedPanel(true);
       setSelectedTab('submission-result');
     }
   }, [submissionResult]);
@@ -143,6 +145,7 @@ const ProblemDescriptionPanel = ({
 
   // Function to close the submission result tab
   const handleCloseSubmissionResultTab = () => {
+    setShowAcceptedPanel(false);
     setSelectedTab('description');
     if (onClearSubmissionResult) onClearSubmissionResult();
   };
@@ -384,7 +387,7 @@ const ProblemDescriptionPanel = ({
         );
       case 'submission-result':
         return (
-          submissionResult && (
+          showAcceptedPanel && submissionResult && (
             <SmoothScroll className="p-4 h-full custom-scrollbar">
               <ProblemSubmissionResult
                 submissionResult={submissionResult}
@@ -521,8 +524,8 @@ const ProblemDescriptionPanel = ({
           Notes
         </button>
 
-        {/* Conditionally render Submission Result tab if submissionResult prop is present */}
-        {submissionResult && (
+        {/* Conditionally render Submission Result tab if showAcceptedPanel is true */}
+        {showAcceptedPanel && (
           <button
             className={`pb-2 text-sm font-medium flex items-center gap-1 ${
               selectedTab === 'submission-result'
@@ -532,7 +535,7 @@ const ProblemDescriptionPanel = ({
             onClick={() => setSelectedTab('submission-result')}
           >
             <CheckCircle2 className="w-4 h-4" />
-            {submissionResult.status === 'accepted'
+            {submissionResult?.status === 'accepted'
               ? 'Accepted'
               : 'Submission Result'}
             <span

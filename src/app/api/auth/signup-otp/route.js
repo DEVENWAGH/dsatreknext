@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 import { db } from '@/lib/db';
-import { User, PasswordReset } from '@/lib/schema';
+import { User, OTP } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
@@ -91,11 +91,12 @@ export async function POST(request) {
       })
       .returning();
 
-    // Store OTP in password_resets table
-    await db.insert(PasswordReset).values({
+    // Store OTP in otps table
+    await db.insert(OTP).values({
       userId: tempUser.id,
       email,
       otp,
+      type: 'email_verification',
       expiresAt: otpExpiry,
     });
 

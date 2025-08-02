@@ -17,7 +17,7 @@ export const User = pgTable(
     firstName: text('first_name'),
     lastName: text('last_name'),
     role: text('role').default('user'),
-    isVerified: boolean('is_verified').default(false),
+    isVerified: boolean('is_verified').notNull().default(false),
     profilePicture: text('profile_picture'),
     isSubscribed: text('is_subscribed').default('false'),
     subscriptionPlan: text('subscription_plan'),

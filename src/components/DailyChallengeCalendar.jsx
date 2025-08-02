@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Calendar, Trophy, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import DailyChallengeTimer from './DailyChallengeTimer';
 
 const DailyChallengeCalendar = () => {
@@ -11,7 +12,9 @@ const DailyChallengeCalendar = () => {
   const [challenges, setChallenges] = useState({});
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+  const [solvedProblems, setSolvedProblems] = useState(new Set());
   const router = useRouter();
+  const { data: session } = useSession();
 
   const monthNames = [
     'January',
@@ -64,9 +67,24 @@ const DailyChallengeCalendar = () => {
     }
   };
 
+  const fetchSolvedProblems = async () => {
+    if (!session?.user?.id) return;
+    try {
+      const response = await fetch(`/api/submissions/solved?userId=${session.user.id}`);
+      const data = await response.json();
+      if (data.success) {
+        const solvedIds = new Set(data.data.map(submission => submission.problemId));
+        setSolvedProblems(solvedIds);
+      }
+    } catch (error) {
+      console.error('Failed to fetch solved problems:', error);
+    }
+  };
+
   useEffect(() => {
     fetchChallenges();
-  }, [currentDate]);
+    fetchSolvedProblems();
+  }, [currentDate, session]);
 
   const navigateMonth = direction => {
     setCurrentDate(prev => {
@@ -87,6 +105,11 @@ const DailyChallengeCalendar = () => {
 
   const hasChallenge = day => {
     return challenges[day];
+  };
+
+  const isChallengeCompleted = day => {
+    const challenge = challenges[day];
+    return challenge?.problem?.id && solvedProblems.has(challenge.problem.id);
   };
 
   const handleDayClick = day => {
@@ -264,7 +287,7 @@ const DailyChallengeCalendar = () => {
                             >
                               <path
                                 d="M30 2.73205C31.8564 1.66025 34.1436 1.66025 36 2.73205L61.1769 17.2679C63.0333 18.3397 64.1769 20.3205 64.1769 22.4641V51.5359C64.1769 53.6795 63.0333 55.6603 61.1769 56.7321L36 71.2679C34.1436 72.3397 31.8564 72.3397 30 71.2679L4.82309 56.7321C2.96668 55.6603 1.82309 53.6795 1.82309 51.5359V22.4641C1.82309 20.3205 2.96668 18.3397 4.82309 17.2679L30 2.73205Z"
-                                fill="none"
+                                fill={isChallengeCompleted(day) ? '#22c55e' : 'none'}
                                 className="rounded-[2px]"
                               ></path>
                               <path
@@ -272,7 +295,7 @@ const DailyChallengeCalendar = () => {
                                 fill="none"
                                 stroke="currentColor"
                                 strokeWidth="3.5"
-                                className="text-gray-400 dark:text-gray-600"
+                                className={isChallengeCompleted(day) ? 'text-green-500' : 'text-gray-400 dark:text-gray-600'}
                               ></path>
                             </svg>
                           </div>

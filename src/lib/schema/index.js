@@ -3,7 +3,7 @@ export { accounts, sessions, verificationTokens } from './auth.js';
 export { Company } from './company.js';
 export { User } from './user.js';
 export { UserProfile } from './user-profile.js';
-export { PasswordReset } from './password-reset.js';
+export { OTP, PasswordReset } from './password-reset.js';
 export { Problem } from './problem.js';
 export { Submission } from './submission.js';
 export { interviews } from './interview.js';

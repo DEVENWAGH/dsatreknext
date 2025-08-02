@@ -1,6 +1,6 @@
 {
-  "id": "1ba05f0c-329f-4819-aed2-cb667192ca73",
-  "prevId": "3b850e6c-39fd-48f5-ad31-1b2347882ed5",
+  "id": "0e0c45a5-ce45-4c89-8b97-b48c83adfdf2",
+  "prevId": "b32014fb-e0e2-4bd1-bf7d-94bdaa021f07",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -501,8 +501,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.password_resets": {
-      "name": "password_resets",
+    "public.otps": {
+      "name": "otps",
       "schema": "",
       "columns": {
         "id": {
@@ -530,6 +530,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
         "expires_at": {
           "name": "expires_at",
           "type": "timestamp",
@@ -552,8 +558,8 @@
         }
       },
       "indexes": {
-        "password_reset_email_idx": {
-          "name": "password_reset_email_idx",
+        "otp_email_idx": {
+          "name": "otp_email_idx",
           "columns": [
             {
               "expression": "email",
@@ -567,8 +573,8 @@
           "method": "btree",
           "with": {}
         },
-        "password_reset_otp_idx": {
-          "name": "password_reset_otp_idx",
+        "otp_code_idx": {
+          "name": "otp_code_idx",
           "columns": [
             {
               "expression": "otp",
@@ -581,12 +587,27 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "otp_type_idx": {
+          "name": "otp_type_idx",
+          "columns": [
+            {
+              "expression": "type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
-        "password_resets_user_id_users_id_fk": {
-          "name": "password_resets_user_id_users_id_fk",
-          "tableFrom": "password_resets",
+        "otps_user_id_users_id_fk": {
+          "name": "otps_user_id_users_id_fk",
+          "tableFrom": "otps",
           "tableTo": "users",
           "columnsFrom": [
             "user_id"
@@ -913,7 +934,7 @@
           "name": "is_verified",
           "type": "boolean",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": false
         },
         "profile_picture": {

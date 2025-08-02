@@ -24,6 +24,7 @@ export async function POST(request) {
         and(
           eq(OTP.email, email),
           eq(OTP.otp, otp),
+          eq(OTP.type, 'email_verification'),
           eq(OTP.isUsed, 'false'),
           gt(OTP.expiresAt, new Date())
         )
@@ -37,24 +38,24 @@ export async function POST(request) {
       );
     }
 
-    // Mark user as verified if this is for signup
-    await db
-      .update(User)
-      .set({ isVerified: true })
-      .where(eq(User.email, email));
-
     // Mark OTP as used
     await db
       .update(OTP)
       .set({ isUsed: 'true' })
       .where(eq(OTP.id, resetRecord[0].id));
 
+    // Mark user as verified
+    await db
+      .update(User)
+      .set({ isVerified: true })
+      .where(eq(User.email, email));
+
     return NextResponse.json({
       success: true,
-      message: 'OTP verified successfully',
+      message: 'Email verified successfully. You can now login.',
     });
   } catch (error) {
-    console.error('Verify OTP error:', error);
+    console.error('Verify login OTP error:', error);
     return NextResponse.json(
       { success: false, message: 'Internal server error' },
       { status: 500 }
