@@ -28,8 +28,10 @@ export async function GET(request, { params }) {
         createdAt: posts.createdAt,
         userId: posts.userId,
         username: posts.username,
+        profilePicture: User.profilePicture,
       })
       .from(posts)
+      .leftJoin(User, eq(posts.userId, User.id))
       .where(eq(posts.id, postId))
       .limit(1);
 
@@ -58,6 +60,7 @@ export async function GET(request, { params }) {
       createdAt: post.createdAt,
       userId: post.userId,
       username: post.username,
+      profilePicture: post.profilePicture,
       content: null, // Will be set below
     };
 
