@@ -41,7 +41,7 @@ const MobileTabs = () => {
         </label>
 
         <input
-          checked={pathname === '/community'}
+          checked={pathname.startsWith('/community')}
           id="radio-community"
           name="navigation"
           type="radio"

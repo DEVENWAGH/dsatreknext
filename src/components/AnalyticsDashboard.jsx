@@ -289,7 +289,7 @@ const AnalyticsDashboard = ({ userId }) => {
                 )}
 
                 <div className="space-y-2">
-                  {stats.solvedByLanguage &&
+                  {stats.solvedByLanguage && typeof stats.solvedByLanguage === 'object' && stats.solvedByLanguage !== null &&
                     Object.entries(stats.solvedByLanguage)
                       .sort(([, a], [, b]) => b - a)
                       .slice(0, 5)

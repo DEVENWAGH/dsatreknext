@@ -199,6 +199,8 @@ const UserAnalytics = ({ userId }) => {
 
       {/* Language Breakdown */}
       {stats.solvedByLanguage &&
+        typeof stats.solvedByLanguage === 'object' &&
+        stats.solvedByLanguage !== null &&
         Object.keys(stats.solvedByLanguage).length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}

@@ -40,7 +40,6 @@ const OptimizedCommentInput = React.memo(({ postId, onCommentAdded }) => {
         const result = await response.json();
         // Replace optimistic comment with real one
         onCommentAdded?.(result.data, optimisticComment.id);
-        toast.success('Comment added');
       } else {
         // Remove optimistic comment on error
         onCommentAdded?.(null, optimisticComment.id);
@@ -50,7 +49,6 @@ const OptimizedCommentInput = React.memo(({ postId, onCommentAdded }) => {
       // Remove optimistic comment on error
       onCommentAdded?.(null, optimisticComment.id);
       console.error('Error adding comment:', error);
-      toast.error('Failed to add comment');
     } finally {
       setIsSubmitting(false);
     }

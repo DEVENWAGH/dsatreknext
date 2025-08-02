@@ -247,7 +247,7 @@ const ProfileStatistics = ({ userId }) => {
         {/* Languages */}
         <div className="text-center flex flex-col items-center space-y-2">
           <p className="text-xs text-muted-foreground">Solved by Language</p>
-          {Object.keys(solvedByLanguage).length > 0 ? (
+          {solvedByLanguage && typeof solvedByLanguage === 'object' && solvedByLanguage !== null && Object.keys(solvedByLanguage).length > 0 ? (
             <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
               {Object.entries(solvedByLanguage)
                 .sort(([, a], [, b]) => b - a)

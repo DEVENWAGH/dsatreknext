@@ -123,12 +123,50 @@ export async function GET(request, { params }) {
       solvedByLanguage[lang] = problemSet.size;
     });
 
+    // Calculate user rank based on total solved problems
+    const allUsersWithSolved = await db
+      .select({
+        userId: Submission.userId,
+        problemId: Submission.problemId,
+      })
+      .from(Submission)
+      .where(eq(Submission.status, 'accepted'));
+
+    // Group by user and count unique problems solved
+    const userSolvedCount = new Map();
+    allUsersWithSolved.forEach(sub => {
+      if (!userSolvedCount.has(sub.userId)) {
+        userSolvedCount.set(sub.userId, new Set());
+      }
+      userSolvedCount.get(sub.userId).add(sub.problemId);
+    });
+
+    // Convert to array with solved counts and sort
+    const userRankings = Array.from(userSolvedCount.entries())
+      .map(([uid, problemSet]) => ({
+        userId: uid,
+        solvedCount: problemSet.size,
+      }))
+      .sort((a, b) => b.solvedCount - a.solvedCount);
+
+    // Find current user's rank
+    const userRank = userRankings.findIndex(u => u.userId === userId) + 1;
+
+    // Determine level based on solved problems
+    let level = 'Beginner';
+    if (totalSolved >= 100) level = 'Expert';
+    else if (totalSolved >= 50) level = 'Advanced';
+    else if (totalSolved >= 20) level = 'Intermediate';
+
     const stats = {
       totalSubmissions,
       totalSolved,
       acceptanceRate,
       solvedByDifficulty,
       solvedByLanguage,
+      rank: userRank || 0,
+      level,
+      totalProblems: 1500, // You can make this dynamic by counting total problems
     };
 
     return NextResponse.json({

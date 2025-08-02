@@ -45,7 +45,7 @@ const DesktopTabs = () => {
         </label>
 
         <input
-          checked={pathname === '/community'}
+          checked={pathname.startsWith('/community')}
           id="desktop-community"
           name="desktop-nav"
           type="radio"

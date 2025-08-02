@@ -1,9 +1,30 @@
 import { NextResponse } from 'next/server';
-
-export const runtime = 'nodejs';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { Comments } from '@/lib/schema';
+import { desc, eq } from 'drizzle-orm';
+
+export const runtime = 'nodejs';
+
+export async function GET(request, { params }) {
+  try {
+    const { postId } = await params;
+    
+    const comments = await db
+      .select()
+      .from(Comments)
+      .where(eq(Comments.postId, postId))
+      .orderBy(desc(Comments.createdAt));
+
+    return NextResponse.json({ success: true, data: comments });
+  } catch (error) {
+    console.error('Error fetching comments:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
 
 export async function POST(request, { params }) {
   try {

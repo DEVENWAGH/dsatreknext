@@ -1,12 +1,17 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { Community as posts, Comments as comments, User } from '@/lib/schema';
+import { Community as posts, Comments as comments, User, Votes } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
 import { auth } from '@/auth';
 
 export async function GET(request, { params }) {
   try {
     const { postId } = await params;
+    console.log('Fetching post with ID:', postId);
+    
+    const session = await auth();
+    const userId = session?.user?.id;
+    console.log('User ID:', userId);
 
     const postData = await db
       .select({
@@ -14,16 +19,16 @@ export async function GET(request, { params }) {
         title: posts.title,
         content: posts.content,
         topic: posts.topic,
-        votes: posts.votes,
         isAnonymous: posts.isAnonymous,
         createdAt: posts.createdAt,
         userId: posts.userId,
         username: posts.username,
       })
       .from(posts)
-
       .where(eq(posts.id, postId))
       .limit(1);
+    
+    console.log('Post data fetched:', postData.length > 0 ? 'Found' : 'Not found');
 
     if (postData.length === 0) {
       return NextResponse.json(
@@ -33,29 +38,60 @@ export async function GET(request, { params }) {
     }
 
     const post = postData[0];
+    console.log('Post content type:', typeof post.content);
+    console.log('Post content value:', post.content);
 
-    // Get comments for the post
-    const postComments = await db
-      .select({
-        id: comments.id,
-        content: comments.content,
-        createdAt: comments.createdAt,
-        userId: comments.userId,
-        username: comments.username,
-      })
-      .from(comments)
+    // Create a safe copy of the post to avoid any reference issues
+    const safePost = {
+      id: post.id,
+      title: post.title,
+      topic: post.topic,
+      isAnonymous: post.isAnonymous,
+      createdAt: post.createdAt,
+      userId: post.userId,
+      username: post.username,
+      content: null // Will be set below
+    };
 
-      .where(eq(comments.postId, postId))
-      .orderBy(comments.createdAt);
+    // Safely handle content
+    try {
+      if (post.content === null || post.content === undefined) {
+        safePost.content = null;
+      } else if (typeof post.content === 'string') {
+        try {
+          safePost.content = JSON.parse(post.content);
+        } catch {
+          safePost.content = post.content;
+        }
+      } else if (typeof post.content === 'object') {
+        // Deep clone to avoid reference issues
+        safePost.content = JSON.parse(JSON.stringify(post.content));
+      } else {
+        safePost.content = String(post.content);
+      }
+    } catch (error) {
+      console.error('Error processing content:', error);
+      safePost.content = null;
+    }
+    
+    console.log('Safe post content after processing:', typeof safePost.content);
 
-    post.comments = postComments;
+    // Set default values to avoid undefined issues
+    safePost.comments = [];
+    safePost.votes = 0;
+    safePost.userVote = null;
+    
+    console.log('About to return post data');
+    console.log('Safe post object keys:', Object.keys(safePost));
+    console.log('Safe post content final:', safePost.content);
 
     return NextResponse.json({
       success: true,
-      data: post,
+      data: safePost,
     });
   } catch (error) {
     console.error('Error fetching post:', error);
+    console.error('Error stack:', error.stack);
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

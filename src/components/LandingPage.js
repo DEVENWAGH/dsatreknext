@@ -503,6 +503,18 @@ const LandingPage = () => {
                     </AnimatedStarButton>
                   </div>
                 </div>
+                {/* Coding Workspace Icon */}
+                <div className="absolute right-[2vw] top-1/2 -translate-y-1/2 w-[30vw] h-[30vw] hover:w-[35vw] hover:h-[35vw] xl:w-[25vw] xl:h-[25vw] xl:hover:w-[30vw] xl:hover:h-[30vw] transition-all duration-300 hidden lg:flex items-center justify-center z-50">
+                  <Image
+                    src="/workspace.svg"
+                    alt="Coding Workspace"
+                    width={400}
+                    height={400}
+                    className="w-full h-full"
+                    priority
+                    unoptimized
+                  />
+                </div>
               </ScrollStackItem>
 
               <ScrollStackItem itemClassName="bg-gradient-to-br from-emerald-900 via-emerald-700 to-teal-800">
@@ -519,7 +531,7 @@ const LandingPage = () => {
                   </p>
                   <div className="mt-6">
                     <AnimatedStarButton
-                      onClick={() => router.push('/dashboard')}
+                      onClick={() => router.push(authUser ? `/profile/${authUser.id}` : '/auth/login')}
                       bgColor="bg-emerald-300"
                       textColor="text-emerald-900"
                       borderColor="border-emerald-300"
@@ -564,7 +576,7 @@ const LandingPage = () => {
                   </p>
                   <div className="mt-6">
                     <AnimatedStarButton
-                      onClick={() => router.push('/sheets')}
+                      onClick={() => router.push('/community')}
                       bgColor="bg-orange-300"
                       textColor="text-orange-900"
                       borderColor="border-orange-300"
@@ -698,12 +710,12 @@ const LandingPage = () => {
               <div className="absolute inset-y-0 right-0 z-10 w-32 pointer-events-none md:w-40 bg-gradient-to-l from-background via-background/80 to-transparent"></div>
             </div>
             {/* MorphingText in bottom-left - Fix positioning */}
-            <motion.div 
+            <motion.div
               className="absolute z-20 hidden w-full px-4 left-1/2 bottom-0 transform -translate-x-1/2 lg:block max-w-7xl"
               initial={{ opacity: 0, scale: 0.3, z: -100 }}
               whileInView={{ opacity: 1, scale: 1, z: 0 }}
-              transition={{ duration: 1.2, ease: "easeOut" }}
-              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 1.2, ease: 'easeOut' }}
+              viewport={{ once: true, margin: '-100px' }}
             >
               <MorphingText
                 texts={morphWords}
