@@ -22,6 +22,8 @@ import {
   LogOut,
   Crown,
   Award,
+  Edit,
+  Trash2,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -31,6 +33,7 @@ import { useLogo } from '@/hooks/useLogo';
 import MobileTabs from '@/components/ui/mobile-tabs';
 import DesktopTabs from '@/components/ui/desktop-tabs';
 import AvatarFallback from '@/components/ui/avatar-fallback';
+import { DeleteAccountDialog } from '@/components/ui/delete-account-dialog';
 import styled from 'styled-components';
 
 const Navigation = () => {
@@ -45,6 +48,7 @@ const Navigation = () => {
   });
   const [planLabel, setPlanLabel] = useState('SUBSCRIBE');
   const [userAvatar, setUserAvatar] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const router = useRouter();
   const { data: session } = useSession();
   const { subscription, getUserSubscription } = useSubscriptionStore();
@@ -174,10 +178,8 @@ const Navigation = () => {
     try {
       await signOut({
         callbackUrl: '/',
-        redirect: false,
+        redirect: true,
       });
-      router.push('/');
-      router.refresh();
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -412,7 +414,27 @@ const Navigation = () => {
                           <User className="w-4 h-4" />
                           My Profile
                         </Button>
+                        <Button
+                          variant="ghost"
+                          className="justify-start w-full gap-2"
+                          onClick={() => {
+                            // Open edit profile dialog
+                            const event = new CustomEvent('openEditProfile');
+                            window.dispatchEvent(event);
+                          }}
+                        >
+                          <Edit className="w-4 h-4" />
+                          Edit Profile
+                        </Button>
                         <div className="my-2 border-t border-border"></div>
+                        <Button
+                          variant="ghost"
+                          className="justify-start w-full gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+                          onClick={() => setDeleteDialogOpen(true)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Delete Account
+                        </Button>
                         <Button
                           variant="ghost"
                           className="justify-start w-full gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
@@ -590,6 +612,29 @@ const Navigation = () => {
                     </Button>
                     <Button
                       variant="ghost"
+                      className="justify-start w-full gap-2"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        const event = new CustomEvent('openEditProfile');
+                        window.dispatchEvent(event);
+                      }}
+                    >
+                      <Edit className="w-4 h-4" />
+                      Edit Profile
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="justify-start w-full gap-2 text-red-600"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setDeleteDialogOpen(true);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete Account
+                    </Button>
+                    <Button
+                      variant="ghost"
                       className="justify-start w-full gap-2 text-red-600"
                       onClick={() => {
                         setMenuOpen(false);
@@ -610,6 +655,12 @@ const Navigation = () => {
       <div className="relative">
         <ScrollProgress className="absolute bottom-0 left-0 right-0" />
       </div>
+
+      {/* Delete Account Dialog */}
+      <DeleteAccountDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+      />
     </nav>
   );
 };

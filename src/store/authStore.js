@@ -185,7 +185,7 @@ export const useAuthStore = create(
 
           await signOut({
             callbackUrl: '/',
-            redirect: false,
+            redirect: true,
           });
 
           set({
@@ -195,8 +195,6 @@ export const useAuthStore = create(
           });
 
           toast.success('Logout successful');
-          // Redirect to home page
-          window.location.href = '/';
         } catch (error) {
           console.error('Logout error:', error);
           toast.error('Logout failed');

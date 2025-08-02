@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm';
 
 export async function GET(request, { params }) {
   try {
-    const { username } = params;
+    const { username } = await params;
 
     if (!username) {
       return NextResponse.json(

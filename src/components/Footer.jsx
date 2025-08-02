@@ -17,6 +17,7 @@ import {
 import Link from 'next/link';
 import { useLogo } from '@/hooks/useLogo';
 import { SocialDock } from '@/components/SocialDock';
+import { FeedbackForm } from '@/components/ui/feedback-form';
 import Image from 'next/image';
 
 const Footer = () => {
@@ -86,8 +87,23 @@ const Footer = () => {
                 your progress to success.
               </p>
 
+
+            </motion.div>
+
+            {/* Contact & Product Hunt */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              viewport={{ once: true }}
+            >
+              <h4 className="flex items-center gap-2 mb-6 text-lg font-semibold text-foreground">
+                <Sparkles className="w-5 h-5 text-primary" />
+                Contact
+              </h4>
+              
               {/* Product Hunt Badge */}
-              <div className="hidden md:block mb-6">
+              <div className="mb-6">
                 <a
                   href="https://www.producthunt.com/products/dsatrek?launch=dsatrek"
                   target="_blank"
@@ -104,7 +120,7 @@ const Footer = () => {
               </div>
 
               {/* Contact Information */}
-              <div className="mb-6 space-y-3">
+              <div className="space-y-3">
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
                   <Mail className="w-4 h-4 text-primary" />
                   <span>wagh@dsatrek.com</span>
@@ -120,11 +136,30 @@ const Footer = () => {
               </div>
             </motion.div>
 
+            {/* Feedback */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              viewport={{ once: true }}
+            >
+              <h4 className="flex items-center gap-2 mb-4 text-lg font-semibold text-foreground">
+                <Mail className="w-5 h-5 text-primary" />
+                Feedback
+              </h4>
+              <div className="mb-4">
+                <FeedbackForm />
+              </div>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Help us improve by sharing your thoughts and suggestions.
+              </p>
+            </motion.div>
+
             {/* Quick Links */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
               viewport={{ once: true }}
             >
               <h4 className="flex items-center gap-2 mb-6 text-lg font-semibold text-foreground">
@@ -137,7 +172,7 @@ const Footer = () => {
                     key={link.name}
                     initial={{ opacity: 0, x: -20 }}
                     whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
+                    transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
                     viewport={{ once: true }}
                   >
                     <Link
@@ -154,33 +189,6 @@ const Footer = () => {
                   </motion.li>
                 ))}
               </ul>
-            </motion.div>
-
-            {/* Newsletter */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              viewport={{ once: true }}
-            >
-              <h4 className="flex items-center gap-2 mb-6 text-lg font-semibold text-foreground">
-                <Mail className="w-5 h-5 text-primary" />
-                Newsletter
-              </h4>
-              <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
-                Stay updated with the latest coding challenges and tips.
-              </p>
-              <div className="space-y-3">
-                <Input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="bg-background/50 border-border"
-                />
-                <Button className="w-full transition-all duration-200 shadow-md bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 hover:shadow-lg">
-                  <Send className="w-4 h-4 mr-2" />
-                  Subscribe
-                </Button>
-              </div>
             </motion.div>
           </div>
         </div>

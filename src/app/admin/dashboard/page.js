@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   Plus,
   Building,
+  MessageSquare,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
@@ -179,6 +180,12 @@ export default function AdminDashboard() {
               <Link href="/admin/companies">
                 <Building className="w-4 h-4 mr-2" />
                 Manage Companies
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/admin/feedback">
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Manage Feedback
               </Link>
             </Button>
           </div>

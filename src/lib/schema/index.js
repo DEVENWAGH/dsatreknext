@@ -11,3 +11,4 @@ export { Community } from './community.js';
 export { Comments } from './comments.js';
 export { Votes } from './votes.js';
 export { DailyChallenge } from './daily-challenge.js';
+export { Feedback } from './feedback.js';

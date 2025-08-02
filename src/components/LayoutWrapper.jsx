@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Navigation from '@/components/Navigation';
 import Navbar from '@/app/visualizer/components/Navbar';
+import GlobalEditProfileDialog from '@/components/GlobalEditProfileDialog';
 
 export default function LayoutWrapper({ children }) {
   const pathname = usePathname();
@@ -32,6 +33,7 @@ export default function LayoutWrapper({ children }) {
       {!hideNavigation && <Navigation />}
       {isVisualizerPage && <Navbar />}
       <main className={isVisualizerPage ? 'pt-20' : ''}>{children}</main>
+      <GlobalEditProfileDialog />
     </div>
   );
 }
