@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useCommunityPosts, useVotePost } from '@/hooks/useCommunity';
+import { useAuthStore } from '@/store/authStore';
 import dynamic from 'next/dynamic';
 import {
   ArrowUp,
@@ -33,14 +34,30 @@ const VirtualizedPostList = dynamic(() => import('@/components/community/Virtual
 
 const CommunityPage = () => {
   const { data: session } = useSession();
+  const { authUser } = useAuthStore();
   const router = useRouter();
   const [showComments, setShowComments] = useState({});
   const [expandedPosts, setExpandedPosts] = useState({});
   const [copiedCode, setCopiedCode] = useState({});
   const [useVirtualization, setUseVirtualization] = useState(false);
+  const [refreshInterval, setRefreshInterval] = useState(null);
+  const [optimisticComments, setOptimisticComments] = useState({});
+  const [editingComment, setEditingComment] = useState(null);
 
-  const { data, error, isLoading: loading } = useCommunityPosts();
+  const { data, error, isLoading: loading, refetch } = useCommunityPosts();
   const votePostMutation = useVotePost();
+  
+  // Auto-refresh for real-time updates
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      refetch();
+    }, 30000); // Refresh every 30 seconds
+    setRefreshInterval(interval);
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [refetch]);
   
   // Flatten paginated data
   const posts = React.useMemo(() => {
@@ -100,26 +117,61 @@ const CommunityPage = () => {
       });
       if (response.ok) {
         toast.success('Post deleted');
+        refetch(); // Refresh posts immediately
+      } else {
+        const error = await response.json();
+        toast.error(error.error || 'Failed to delete post');
       }
     } catch (error) {
       console.error('Error deleting post:', error);
       toast.error('Failed to delete post');
     }
-  }, []);
+  }, [refetch]);
 
   const deleteComment = useCallback(async (commentId, postId) => {
+    // Optimistic update - remove comment immediately
+    setOptimisticComments(prev => ({
+      ...prev,
+      [postId]: (prev[postId] || []).filter(c => c.id !== commentId)
+    }));
+    toast.success('Comment deleted');
+
     try {
       const response = await fetch(`/api/community/comments/${commentId}`, {
         method: 'DELETE',
       });
-      if (response.ok) {
-        toast.success('Comment deleted');
+      if (!response.ok) {
+        const error = await response.json();
+        toast.error(error.error || 'Failed to delete comment');
+        refetch(); // Revert on error
       }
     } catch (error) {
       console.error('Error deleting comment:', error);
       toast.error('Failed to delete comment');
+      refetch(); // Revert on error
     }
-  }, []);
+  }, [refetch]);
+
+  const editComment = useCallback(async (commentId, newContent, postId) => {
+    try {
+      const response = await fetch(`/api/community/comments/${commentId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: newContent }),
+      });
+      if (response.ok) {
+        toast.success('Comment updated');
+        setEditingComment(null);
+        refetch();
+      } else {
+        const error = await response.json();
+        toast.error(error.error || 'Failed to update comment');
+      }
+    } catch (error) {
+      console.error('Error updating comment:', error);
+      toast.error('Failed to update comment');
+    }
+  }, [refetch]);
 
   const formatTimeAgo = useCallback((dateString) => {
     const now = new Date();
@@ -233,22 +285,57 @@ const CommunityPage = () => {
 
     const handleSubmit = async () => {
       if (!comment.trim() || !session?.user) return;
+      
+      // Optimistic update - add comment immediately
+      const tempComment = {
+        id: `temp-${Date.now()}`,
+        content: comment,
+        username: session.user.name || session.user.email,
+        userId: session.user.id,
+        createdAt: new Date().toISOString(),
+        isOptimistic: true
+      };
+      
+      setOptimisticComments(prev => ({
+        ...prev,
+        [postId]: [...(prev[postId] || []), tempComment]
+      }));
+      setComment('');
+      toast.success('Comment added');
+
       try {
         const response = await fetch(
           `/api/community/posts/${postId}/comments`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ content: comment }),
+            body: JSON.stringify({ content: tempComment.content }),
           }
         );
         if (response.ok) {
           const result = await response.json();
-          setComment('');
-          toast.success('Comment added');
+          // Replace temp comment with real one
+          setOptimisticComments(prev => ({
+            ...prev,
+            [postId]: (prev[postId] || []).map(c => 
+              c.id === tempComment.id ? { ...result.data, isOptimistic: false } : c
+            )
+          }));
+        } else {
+          // Remove temp comment on error
+          setOptimisticComments(prev => ({
+            ...prev,
+            [postId]: (prev[postId] || []).filter(c => c.id !== tempComment.id)
+          }));
+          toast.error('Failed to add comment');
         }
       } catch (error) {
         console.error('Error adding comment:', error);
+        setOptimisticComments(prev => ({
+          ...prev,
+          [postId]: (prev[postId] || []).filter(c => c.id !== tempComment.id)
+        }));
+        toast.error('Failed to add comment');
       }
     };
 
@@ -377,9 +464,7 @@ const CommunityPage = () => {
                         : post.profilePicture || '/user.png'
                     }
                   />
-                  <AvatarFallback className="bg-gradient-to-br from-amber-400 to-amber-600 text-white">
                     {post.isAnonymous ? 'A' : post.username?.charAt(0)}
-                  </AvatarFallback>
                 </Avatar>
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-gray-900 dark:text-white">
@@ -402,10 +487,11 @@ const CommunityPage = () => {
                 <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
                   {post.title}
                 </h3>
-                {session?.user?.id === post.userId && (
+                {(session?.user?.id === post.userId || authUser?.role === 'admin') && (
                   <button
                     onClick={() => deletePost(post.id)}
                     className="text-red-500 hover:text-red-700 p-1"
+                    title={authUser?.role === 'admin' ? 'Delete as admin' : 'Delete your post'}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -457,10 +543,16 @@ const CommunityPage = () => {
 
               {showComments[post.id] && (
                 <div className="mt-4 space-y-3">
-                  {post.comments?.map(comment => (
+                  {[...(post.comments || []), ...(optimisticComments[post.id] || [])]
+                    .filter((comment, index, arr) => 
+                      arr.findIndex(c => c.id === comment.id) === index
+                    )
+                    .map(comment => (
                     <div
                       key={comment.id}
-                      className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3"
+                      className={`bg-gray-50 dark:bg-gray-800 rounded-lg p-3 transition-opacity ${
+                        comment.isOptimistic ? 'opacity-70' : 'opacity-100'
+                      }`}
                     >
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
@@ -469,20 +561,48 @@ const CommunityPage = () => {
                           </span>
                           <span className="text-xs text-gray-500">
                             {formatTimeAgo(comment.createdAt)}
+                            {comment.updatedAt && comment.updatedAt !== comment.createdAt && (
+                              <span className="ml-1 text-xs text-gray-400">(edited)</span>
+                            )}
                           </span>
+                          {comment.isOptimistic && (
+                            <span className="text-xs text-amber-500">Sending...</span>
+                          )}
                         </div>
-                        {session?.user?.id === comment.userId && (
-                          <button
-                            onClick={() => deleteComment(comment.id, post.id)}
-                            className="text-red-500 hover:text-red-700 p-1"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
+                        {(session?.user?.id === comment.userId || authUser?.role === 'admin') && (
+                          <div className="flex gap-1">
+                            {session?.user?.id === comment.userId && (
+                              <button
+                                onClick={() => setEditingComment(comment.id)}
+                                className="text-blue-500 hover:text-blue-700 p-1"
+                                title="Edit comment"
+                              >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                              </button>
+                            )}
+                            <button
+                              onClick={() => deleteComment(comment.id, post.id)}
+                              className="text-red-500 hover:text-red-700 p-1"
+                              title={authUser?.role === 'admin' ? 'Delete as admin' : 'Delete your comment'}
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
                         )}
                       </div>
-                      <p className="text-sm text-gray-700 dark:text-gray-300">
-                        {comment.content}
-                      </p>
+                      {editingComment === comment.id ? (
+                        <EditCommentForm
+                          comment={comment}
+                          onSave={(newContent) => editComment(comment.id, newContent, post.id)}
+                          onCancel={() => setEditingComment(null)}
+                        />
+                      ) : (
+                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                          {comment.content}
+                        </p>
+                      )}
                     </div>
                   ))}
                   <CommentInput postId={post.id} />
@@ -496,6 +616,42 @@ const CommunityPage = () => {
   });
 
   PostCard.displayName = 'PostCard';
+
+  const EditCommentForm = ({ comment, onSave, onCancel }) => {
+    const [content, setContent] = useState(comment.content);
+    
+    const handleSave = () => {
+      if (content.trim()) {
+        onSave(content.trim());
+      }
+    };
+
+    return (
+      <div className="space-y-2">
+        <Input
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleSave();
+            } else if (e.key === 'Escape') {
+              onCancel();
+            }
+          }}
+          className="text-sm"
+        />
+        <div className="flex gap-2">
+          <Button size="sm" onClick={handleSave} disabled={!content.trim()}>
+            Save
+          </Button>
+          <Button size="sm" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-amber-100 dark:from-gray-900 dark:via-black dark:to-gray-800">

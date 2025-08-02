@@ -93,76 +93,13 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  try {
-    const url = new URL(request.url);
-    const userId =
-      url.searchParams.get('userId') || request.headers.get('x-user-id');
-
-    if (!userId) {
-      return NextResponse.json({ error: 'User ID required' }, { status: 400 });
-    }
-
-    const body = await request.json();
-    const { planId, planName } = body;
-
-    if (!planId) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Plan ID is required',
-        },
-        { status: 400 }
-      );
-    }
-
-    // Calculate subscription expiry based on plan
-    let subscriptionExpiresAt = null;
-    let finalPlanName = planName || 'Freemium';
-
-    if (planId === 'premium_monthly') {
-      finalPlanName = 'Premium Monthly';
-      subscriptionExpiresAt = new Date();
-      subscriptionExpiresAt.setMonth(subscriptionExpiresAt.getMonth() + 1);
-    } else if (planId === 'premium_yearly') {
-      finalPlanName = 'Premium Yearly';
-      subscriptionExpiresAt = new Date();
-      subscriptionExpiresAt.setFullYear(
-        subscriptionExpiresAt.getFullYear() + 1
-      );
-    }
-
-    // Update user subscription in database
-    await db
-      .update(User)
-      .set({
-        isSubscribed: planId !== 'freemium',
-        subscriptionPlan: planId,
-        subscriptionExpiresAt: subscriptionExpiresAt,
-        updatedAt: new Date(),
-      })
-      .where(eq(User.id, userId));
-
-    const subscription = {
-      planId: planId,
-      planName: finalPlanName,
-      status: planId !== 'freemium' ? 'active' : 'inactive',
-      expiresAt: subscriptionExpiresAt?.toISOString() || null,
-      isSubscribed: planId !== 'freemium',
-    };
-
-    return NextResponse.json({
-      success: true,
-      data: subscription,
-      message: 'Subscription updated successfully',
-    });
-  } catch (error) {
-    console.error('Create subscription error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Internal server error',
-      },
-      { status: 500 }
-    );
-  }
+  // SECURITY: This endpoint is disabled to prevent unauthorized subscription updates
+  // Subscriptions can only be activated through verified payments via /payments/verify
+  return NextResponse.json(
+    {
+      success: false,
+      error: 'Direct subscription updates are not allowed. Please use the payment verification endpoint.',
+    },
+    { status: 403 }
+  );
 }

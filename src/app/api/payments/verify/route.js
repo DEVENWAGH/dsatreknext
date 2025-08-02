@@ -47,6 +47,12 @@ export async function POST(request) {
       .digest('hex');
 
     if (generated_signature !== razorpay_signature) {
+      console.error('Payment signature verification failed:', {
+        orderId: razorpay_order_id,
+        paymentId: razorpay_payment_id,
+        userId: session.user.id,
+        timestamp: new Date().toISOString()
+      });
       return NextResponse.json(
         {
           success: false,
@@ -56,20 +62,42 @@ export async function POST(request) {
       );
     }
 
+    // Additional security: Verify planId is valid for paid plans
+    const validPaidPlans = ['pro', 'premium', 'premium_monthly', 'premium_yearly'];
+    if (!validPaidPlans.includes(planId)) {
+      console.error('Invalid plan ID for payment verification:', {
+        planId,
+        userId: session.user.id,
+        timestamp: new Date().toISOString()
+      });
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Invalid subscription plan',
+        },
+        { status: 400 }
+      );
+    }
+
     // Calculate subscription expiry based on plan
+    const now = new Date();
     let subscriptionExpiresAt = null;
     let planName = 'Freemium';
 
     if (planId === 'premium_monthly') {
       planName = 'Premium Monthly';
-      subscriptionExpiresAt = new Date();
+      subscriptionExpiresAt = new Date(now);
       subscriptionExpiresAt.setMonth(subscriptionExpiresAt.getMonth() + 1);
     } else if (planId === 'premium_yearly') {
       planName = 'Premium Yearly';
-      subscriptionExpiresAt = new Date();
+      subscriptionExpiresAt = new Date(now);
       subscriptionExpiresAt.setFullYear(
         subscriptionExpiresAt.getFullYear() + 1
       );
+    } else if (planId === 'pro') {
+      planName = 'Pro';
+      subscriptionExpiresAt = new Date(now);
+      subscriptionExpiresAt.setMonth(subscriptionExpiresAt.getMonth() + 1);
     }
 
     // Update user subscription in database
@@ -79,7 +107,7 @@ export async function POST(request) {
         isSubscribed: true,
         subscriptionPlan: planId,
         subscriptionExpiresAt: subscriptionExpiresAt,
-        updatedAt: new Date(),
+        updatedAt: now,
       })
       .where(eq(User.id, session.user.id))
       .returning();
@@ -89,8 +117,19 @@ export async function POST(request) {
       planName: planName,
       status: 'active',
       expiresAt: subscriptionExpiresAt?.toISOString() || null,
-      createdAt: new Date().toISOString(),
+      createdAt: now.toISOString(),
     };
+
+    // Log successful subscription activation for audit trail
+    console.log('Subscription activated successfully:', {
+      userId: session.user.id,
+      planId,
+      planName,
+      orderId: razorpay_order_id,
+      paymentId: razorpay_payment_id,
+      expiresAt: subscriptionExpiresAt?.toISOString(),
+      timestamp: now.toISOString()
+    });
 
     return NextResponse.json({
       success: true,
@@ -105,8 +144,7 @@ export async function POST(request) {
     return NextResponse.json(
       {
         success: false,
-        message: 'Payment verification failed',
-        error: error.message,
+        message: 'Payment verification failed. Please contact support if amount was deducted.',
       },
       { status: 500 }
     );

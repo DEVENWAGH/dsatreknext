@@ -71,8 +71,7 @@ export async function POST(request) {
     return NextResponse.json(
       {
         success: false,
-        message: 'Failed to create order',
-        error: error.message,
+        message: 'Failed to create order. Please try again.',
       },
       { status: 500 }
     );

@@ -9,6 +9,7 @@ export const Comments = pgTable(
     username: text('username').notNull(),
     content: text('content').notNull(),
     createdAt: timestamp('created_at').defaultNow(),
+    updatedAt: timestamp('updated_at').defaultNow(),
   },
   t => [
     index('comments_post_idx').on(t.postId),

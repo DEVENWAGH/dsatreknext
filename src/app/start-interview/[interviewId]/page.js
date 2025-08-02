@@ -42,6 +42,8 @@ export default function StartInterviewPage() {
   const [progress] = useState(0);
   const [interviewStartTime, setInterviewStartTime] = useState(null);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [remainingTime, setRemainingTime] = useState(0);
+  const [totalDuration, setTotalDuration] = useState(0);
   const [volumeLevel] = useState(0);
   const [currentQuestionText] = useState('');
   const [isAISpeaking, setIsAISpeaking] = useState(false);
@@ -89,18 +91,67 @@ export default function StartInterviewPage() {
     [responses, updateInterviewStatus, interviewId, elapsedTime, router]
   );
 
-  // Timer effect for elapsed time
+  // Parse duration to seconds
+  const parseDurationToSeconds = (duration) => {
+    if (!duration) return 900; // Default 15 minutes
+    const match = duration.match(/(\d+)\s*(minute|min|hour|hr)s?/i);
+    if (match) {
+      const value = parseInt(match[1]);
+      const unit = match[2].toLowerCase();
+      if (unit.startsWith('hour') || unit.startsWith('hr')) {
+        return value * 3600;
+      }
+      return value * 60;
+    }
+    return 900; // Default 15 minutes
+  };
+
+  // Set total duration when interview loads
+  useEffect(() => {
+    if (interview?.duration) {
+      const duration = parseDurationToSeconds(interview.duration);
+      setTotalDuration(duration);
+      setRemainingTime(duration);
+    }
+  }, [interview]);
+
+  // Timer effect for elapsed time and auto-end
   useEffect(() => {
     let interval;
     if (isInterviewActive && interviewStartTime) {
       interval = setInterval(() => {
         const now = new Date();
         const elapsed = Math.floor((now - interviewStartTime) / 1000);
+        const remaining = Math.max(0, totalDuration - elapsed);
+        
         setElapsedTime(elapsed);
+        setRemainingTime(remaining);
+        
+        // Auto-end interview when time is up
+        if (remaining <= 0 && vapi && isConnected) {
+          toast.success('Interview completed! Time is up.');
+          // Send final message before ending
+          try {
+            vapi.send({
+              type: 'add-message',
+              message: {
+                role: 'assistant',
+                content: 'Thank you for your time today. Your interview duration has been completed. This concludes our interview session. Have a great day!'
+              }
+            });
+            // Wait a moment for the message to be spoken
+            setTimeout(() => {
+              vapi.stop();
+            }, 3000);
+          } catch (error) {
+            vapi.stop();
+          }
+          handleInterviewEnd();
+        }
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isInterviewActive, interviewStartTime]);
+  }, [isInterviewActive, interviewStartTime, totalDuration, vapi, isConnected, handleInterviewEnd]);
 
   // Initialize Vapi
   useEffect(() => {
@@ -153,9 +204,11 @@ export default function StartInterviewPage() {
         setIsVoiceInitialized(true);
 
         vapiInstance.on('call-start', () => {
+          console.log('✅ Call started - setting up timer');
           setIsConnected(true);
           setIsInterviewActive(true);
           setInterviewStartTime(new Date());
+          toast.success('Interview started!');
         });
 
         vapiInstance.on('call-end', () => {
@@ -163,6 +216,9 @@ export default function StartInterviewPage() {
           setIsAISpeaking(false);
           setIsInterviewActive(false);
           setElapsedTime(0);
+          setRemainingTime(totalDuration);
+          // End interview with voice note
+          handleInterviewEnd();
         });
 
         vapiInstance.on('speech-start', () => {
@@ -273,70 +329,27 @@ export default function StartInterviewPage() {
 
       const assistantOptions = {
         name: 'AI Interviewer',
-        firstMessage: `Hi there! I'm AI Interviewer, I'm excited to conduct your interview for the ${jobPosition} position. Are you ready to begin?`,
+        firstMessage: `Hi! I'm your AI interviewer for the ${jobPosition} position. Are you ready to begin?`,
         model: {
           provider: 'openai',
-          model: 'gpt-4',
+          model: 'gpt-3.5-turbo',
           temperature: 0.7,
           messages: [
             {
               role: 'system',
-              content: `You are AI Interviewer, a professional and friendly AI interviewer conducting interviews for a ${jobPosition} position.
-                        Your personality is warm, encouraging, and professional. You speak with confidence and clarity.
-                        Your job is to ask candidates the provided interview questions and assess their responses thoughtfully.
-                        Begin the conversation with enthusiasm and create a comfortable environment for the candidate.
-                        Ask one question at a time and listen carefully to their responses before proceeding.
-                        Keep your questions clear, concise, and well-articulated. Below are the questions to ask systematically:
-                        Questions: ${questionList}
-                        
-                        Interview Details:
-                        - Position: ${jobPosition}
-                        - Type: ${interviewType}
-                        - Difficulty: ${difficulty}
-                        - Duration: ${duration}
-                        
-                        IMPORTANT GUIDELINES:
-                        - NEVER end the call prematurely
-                        - Continue the conversation naturally until all questions are asked
-                        - If you encounter any technical issues, continue the interview
-                        - Do not use phrases that might trigger call termination
-                        - Keep the interview flowing smoothly without interruption
-                        - Focus on creating a positive interview experience
-                        
-                        If the candidate struggles, offer hints or rephrase the question without giving away the answer.
-                        Provide brief, encouraging feedback after each answer.
-                        Keep the conversation natural and engaging.
-                        After all questions, wrap up the interview smoothly by summarizing their performance.
-                        End on a positive note by saying "Thank you for your time today. This concludes our interview."
-                        
-                        Key Guidelines for AI Interviewer:
-                        - Maintain a warm, professional, and encouraging demeanor
-                        - Speak clearly with a confident voice
-                        - Keep responses conversational yet structured
-                        - Show genuine interest in the candidate's answers
-                        - Provide constructive and motivating feedback
-                        - Adapt your tone based on the candidate's comfort level
-                        - Focus on both technical competency and cultural fit
-                        - Celebrate good answers and gently guide when needed
-                        - Ask thoughtful follow-up questions to dive deeper
-                        - End with genuine appreciation for their time and effort`,
+              content: `You are conducting an interview for ${jobPosition}. Ask these questions one by one: ${questionList}. Keep responses brief and professional.`,
             },
           ],
         },
         voice: {
           provider: '11labs',
-          voiceId: 'pNInz6obpgDQGcFmaJgB', // Adam - Natural male voice suitable for Indian English
+          voiceId: 'pNInz6obpgDQGcFmaJgB', // Adam - Natural male voice
         },
         transcriber: {
           provider: 'deepgram',
           model: 'nova-2',
           language: 'en-IN',
         },
-        endCallPhrases: [
-          // Remove potentially problematic phrases that might trigger early termination
-          'interview completed successfully',
-          'thank you and goodbye',
-        ],
       };
 
       console.log('📋 Starting Vapi call with assistant options:', {
@@ -345,8 +358,22 @@ export default function StartInterviewPage() {
         hasQuestions: questionList.length > 0,
       });
 
-      await vapi.start(assistantOptions);
-      console.log('✅ Voice interview call started successfully');
+      // Start timer immediately on button click
+      const startTime = new Date();
+      setIsInterviewActive(true);
+      setIsConnected(true);
+      setInterviewStartTime(startTime);
+      console.log('⏰ Timer started at:', startTime);
+      toast.success('Interview started! Timer is running.');
+
+      try {
+        await vapi.start(assistantOptions);
+        console.log('✅ Voice interview call started successfully');
+      } catch (vapiError) {
+        console.warn('Vapi failed but continuing with timer:', vapiError);
+        // Keep the interview active even if Vapi fails
+        toast.warning('Voice service unavailable, but interview timer is running');
+      }
     } catch (error) {
       console.error('❌ Failed to start voice interview:', error);
       toast.error(
@@ -358,8 +385,8 @@ export default function StartInterviewPage() {
 
   // Handle stopping interview
   const handleStopInterview = () => {
-    if (voiceInterviewService.isActive()) {
-      voiceInterviewService.stop();
+    if (vapi && isConnected) {
+      vapi.stop();
     }
     setIsInterviewActive(false);
     setIsConnected(false);
@@ -387,6 +414,49 @@ export default function StartInterviewPage() {
       router.push(`/interview-details/${interviewId}`);
     }
   };
+
+  // Format time display
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Handle page exit - simple and reliable
+  useEffect(() => {
+    const handlePageExit = () => {
+      if (isInterviewActive) {
+        console.log('🛑 Page exit detected - stopping interview');
+        if (vapi) {
+          try {
+            vapi.stop();
+          } catch (e) {}
+        }
+        setIsInterviewActive(false);
+        setIsConnected(false);
+      }
+    };
+
+    // Multiple event listeners for different exit scenarios
+    window.addEventListener('beforeunload', handlePageExit);
+    window.addEventListener('pagehide', handlePageExit);
+    
+    // Visibility change (tab switch)
+    const handleVisibilityChange = () => {
+      if (document.hidden && isInterviewActive) {
+        console.log('🛑 Tab hidden - stopping interview');
+        handlePageExit();
+        toast.info('Interview ended - tab was switched');
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', handlePageExit);
+      window.removeEventListener('pagehide', handlePageExit);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isInterviewActive, vapi]);
 
   // Loading state
   if (loading) {
@@ -484,6 +554,24 @@ export default function StartInterviewPage() {
               </div>
             )}
 
+            {/* Always show timer when interview is active */}
+            {isInterviewActive && (
+              <div className="absolute top-2 right-2 z-50">
+                <Badge 
+                  variant={remainingTime <= 60 ? 'destructive' : remainingTime <= 300 ? 'default' : 'secondary'}
+                  className={`flex items-center gap-1 px-3 py-1 text-lg font-mono transition-all duration-300 ${
+                    remainingTime <= 60 ? 'animate-pulse' : ''
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12,6 12,12 16,14"/>
+                  </svg>
+                  {formatTime(remainingTime)}
+                </Badge>
+              </div>
+            )}
+
             {isInterviewActive && (
               <>
                 <div className="absolute top-2 left-2">
@@ -507,6 +595,15 @@ export default function StartInterviewPage() {
                       : 'Listening...'}
                   </Badge>
                 </div>
+
+                {/* Time Warning */}
+                {remainingTime <= 60 && remainingTime > 0 && (
+                  <div className="absolute top-14 right-2">
+                    <Badge variant="destructive" className="text-xs animate-bounce">
+                      ⚠️ 1 minute left!
+                    </Badge>
+                  </div>
+                )}
 
                 <div className="text-center space-y-4">
                   <div className="flex flex-col items-center gap-3">
@@ -602,6 +699,13 @@ export default function StartInterviewPage() {
                   <div className="font-medium">
                     Duration: {interview.duration}
                   </div>
+                  {isInterviewActive && (
+                    <div className={`mt-1 text-xs ${
+                      remainingTime <= 60 ? 'text-red-500 font-semibold' : 'text-muted-foreground'
+                    }`}>
+                      Remaining: {formatTime(remainingTime)}
+                    </div>
+                  )}
                 </div>
                 <div className="p-2 rounded-lg bg-muted">
                   <div className="font-medium">

@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, index } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, boolean, index } from 'drizzle-orm/pg-core';
 
 export const User = pgTable(
   'users',
@@ -10,7 +10,7 @@ export const User = pgTable(
     firstName: text('first_name'),
     lastName: text('last_name'),
     role: text('role').default('user'),
-    isVerified: text('is_verified').default('false'),
+    isVerified: boolean('is_verified').default(false),
     profilePicture: text('profile_picture'),
     isSubscribed: text('is_subscribed').default('false'),
     subscriptionPlan: text('subscription_plan'),

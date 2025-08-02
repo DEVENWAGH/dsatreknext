@@ -130,6 +130,21 @@ export const authAPI = {
     return apiCall('/auth/check');
   },
 
+  // OTP-based signup
+  sendSignupOTP: async userData => {
+    return apiCall('/auth/signup-otp', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
+  },
+
+  verifySignupOTP: async ({ email, otp }) => {
+    return apiCall('/auth/verify-signup', {
+      method: 'POST',
+      body: JSON.stringify({ email, otp }),
+    });
+  },
+
   // Add missing total method for admin stats
   total: async () => {
     return apiCall('/admin/total');

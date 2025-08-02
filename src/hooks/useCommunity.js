@@ -14,7 +14,8 @@ export const useCommunityPosts = (filters = {}) => {
       return response.json();
     },
     getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.nextPage : undefined,
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 30 * 1000, // 30 seconds for real-time feel
+    refetchInterval: 30 * 1000, // Auto-refetch every 30 seconds
   });
 };
 
