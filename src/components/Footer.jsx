@@ -19,6 +19,7 @@ import { useLogo } from '@/hooks/useLogo';
 import { SocialDock } from '@/components/SocialDock';
 import { FeedbackForm } from '@/components/ui/feedback-form';
 import Image from 'next/image';
+import ThemeToggleButton from '@/components/ui/theme-toggle-button';
 
 const Footer = () => {
   const logoSrc = useLogo();
@@ -45,6 +46,13 @@ const Footer = () => {
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  };
+
+  const handleMapClick = () => {
+    const address = 'New Panvel East, Maharashtra, India 410206';
+    const encodedAddress = encodeURIComponent(address);
+    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+    window.open(googleMapsUrl, '_blank');
   };
 
   return (
@@ -86,8 +94,6 @@ const Footer = () => {
                 Practice problems, take AI-powered mock interviews, and track
                 your progress to success.
               </p>
-
-
             </motion.div>
 
             {/* Contact & Product Hunt */}
@@ -101,7 +107,7 @@ const Footer = () => {
                 <Sparkles className="w-5 h-5 text-primary" />
                 Contact
               </h4>
-              
+
               {/* Product Hunt Badge */}
               <div className="mb-6">
                 <a
@@ -123,15 +129,30 @@ const Footer = () => {
               <div className="space-y-3">
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
                   <Mail className="w-4 h-4 text-primary" />
-                  <span>wagh@dsatrek.com</span>
+                  <a
+                    href="mailto:wagh1.2.3.002@gmail.com"
+                    className="hover:text-foreground transition-colors duration-200 hover:underline"
+                  >
+                    wagh1.2.3.002@gmail.com
+                  </a>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
                   <Phone className="w-4 h-4 text-primary" />
-                  <span>+91 9326126931</span>
+                  <a
+                    href="tel:+919326126931"
+                    className="hover:text-foreground transition-colors duration-200 hover:underline"
+                  >
+                    +91 9326126931
+                  </a>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
                   <MapPin className="w-4 h-4 text-primary" />
-                  <span>New Panvel East, Maharashtra, India 410206</span>
+                  <button
+                    onClick={handleMapClick}
+                    className="hover:text-foreground transition-colors duration-200 hover:underline cursor-pointer text-left"
+                  >
+                    New Panvel East, Maharashtra, India 410206
+                  </button>
                 </div>
               </div>
             </motion.div>

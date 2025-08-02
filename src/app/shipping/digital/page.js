@@ -118,9 +118,7 @@ const DigitalShippingPolicy = () => {
                     >
                       wagh@dsatrek.com
                     </a>{' '}
-                    <strong className="text-foreground">
-                      within 24 hours
-                    </strong>
+                    <strong className="text-foreground">within 24 hours</strong>
                     , and our team will investigate and assist you.
                   </span>
                 </li>

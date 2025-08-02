@@ -299,7 +299,8 @@ const Navigation = () => {
                           width={32}
                           height={32}
                           className={`object-cover w-8 h-8 border-2 rounded-full shadow-sm cursor-pointer ${
-                            subscription?.planId === 'premium' || subscription?.planId === 'pro'
+                            subscription?.planId === 'premium' ||
+                            subscription?.planId === 'pro'
                               ? 'border-yellow-500'
                               : 'border-border'
                           }`}
@@ -311,7 +312,8 @@ const Navigation = () => {
                           name={user.name}
                           size={32}
                           className={`border-2 shadow-sm cursor-pointer ${
-                            subscription?.planId === 'premium' || subscription?.planId === 'pro'
+                            subscription?.planId === 'premium' ||
+                            subscription?.planId === 'pro'
                               ? 'border-yellow-500'
                               : 'border-border'
                           }`}
@@ -338,7 +340,8 @@ const Navigation = () => {
                               width={48}
                               height={48}
                               className={`object-cover w-12 h-12 border-2 rounded-full ${
-                                subscription?.planId === 'premium' || subscription?.planId === 'pro'
+                                subscription?.planId === 'premium' ||
+                                subscription?.planId === 'pro'
                                   ? 'border-yellow-500'
                                   : 'border-border'
                               }`}
@@ -350,7 +353,8 @@ const Navigation = () => {
                               name={user.name}
                               size={48}
                               className={`border-2 ${
-                                subscription?.planId === 'premium' || subscription?.planId === 'pro'
+                                subscription?.planId === 'premium' ||
+                                subscription?.planId === 'pro'
                                   ? 'border-yellow-500'
                                   : 'border-border'
                               }`}
@@ -570,7 +574,8 @@ const Navigation = () => {
                           width={40}
                           height={40}
                           className={`object-cover w-10 h-10 border-2 rounded-full ${
-                            subscription?.planId === 'premium' || subscription?.planId === 'pro'
+                            subscription?.planId === 'premium' ||
+                            subscription?.planId === 'pro'
                               ? 'border-yellow-500'
                               : 'border-border'
                           }`}
@@ -582,7 +587,8 @@ const Navigation = () => {
                           name={user.name}
                           size={40}
                           className={`border-2 ${
-                            subscription?.planId === 'premium' || subscription?.planId === 'pro'
+                            subscription?.planId === 'premium' ||
+                            subscription?.planId === 'pro'
                               ? 'border-yellow-500'
                               : 'border-border'
                           }`}
