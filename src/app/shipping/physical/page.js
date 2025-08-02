@@ -298,7 +298,7 @@ const PhysicalShippingPolicy = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button asChild>
-                <a href="mailto:wagh1.2.3.002@gmail.com">
+                <a href="mailto:wagh@dsatrek.com">
                   <Mail className="w-4 h-4 mr-2" />
                   Contact Support
                 </a>

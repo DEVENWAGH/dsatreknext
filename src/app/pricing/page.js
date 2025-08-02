@@ -22,9 +22,12 @@ import {
   Shield,
   CreditCard,
   Loader2,
+  Truck,
+  Package,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import Link from 'next/link';
 
 const PricingPage = () => {
   const router = useRouter();
@@ -606,17 +609,17 @@ const PricingPage = () => {
               <h3 className="text-2xl font-bold mb-4 text-white">
                 Why Choose DSATrek?
               </h3>
-              <div className="grid md:grid-cols-3 gap-6 text-left">
+              <div className="grid md:grid-cols-3 gap-6 text-left mb-8">
                 <div className="flex items-start gap-3">
                   <div className="p-2 rounded-full bg-emerald-500/10 border border-emerald-500/20">
                     <Check className="w-4 h-4 text-emerald-400" />
                   </div>
                   <div>
                     <h4 className="font-semibold mb-1 text-white">
-                      Lifetime Access
+                      Instant Digital Delivery
                     </h4>
                     <p className="text-sm text-slate-400">
-                      One-time payment, no recurring fees ever.
+                      All services activated immediately upon payment.
                     </p>
                   </div>
                 </div>
@@ -645,6 +648,52 @@ const PricingPage = () => {
                       Bank-grade security with Razorpay integration.
                     </p>
                   </div>
+                </div>
+              </div>
+
+              {/* Shipping & Delivery Information */}
+              <div className="border-t border-amber-500/20 pt-6">
+                <h4 className="text-lg font-semibold mb-4 text-white flex items-center justify-center gap-2">
+                  <Package className="w-5 h-5 text-amber-400" />
+                  Delivery & Shipping Information
+                </h4>
+                <p className="text-sm text-slate-400 mb-4">
+                  Learn more about our service delivery and shipping policies
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="text-amber-400 border-amber-500/30 hover:bg-amber-500/10"
+                  >
+                    <Link href="/shipping/digital">
+                      <Package className="w-4 h-4 mr-2" />
+                      Digital Services Policy
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="text-amber-400 border-amber-500/30 hover:bg-amber-500/10"
+                  >
+                    <Link href="/shipping/physical">
+                      <Truck className="w-4 h-4 mr-2" />
+                      Physical Products Policy
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="text-amber-400 border-amber-500/30 hover:bg-amber-500/10"
+                  >
+                    <Link href="/shipping">
+                      <Shield className="w-4 h-4 mr-2" />
+                      All Shipping Policies
+                    </Link>
+                  </Button>
                 </div>
               </div>
             </CardContent>

@@ -113,12 +113,15 @@ const DigitalShippingPolicy = () => {
                     In case of any delays or technical issues, users can contact
                     our support team at{' '}
                     <a
-                      href="mailto:wagh1.2.3.002@gmail.com"
+                      href="mailto:wagh@dsatrek.com"
                       className="text-primary hover:underline font-medium"
                     >
-                      wagh1.2.3.002@gmail.com
+                      wagh@dsatrek.com
                     </a>{' '}
-                    for immediate assistance.
+                    <strong className="text-foreground">
+                      within 24 hours
+                    </strong>
+                    , and our team will investigate and assist you.
                   </span>
                 </li>
               </ul>
@@ -233,10 +236,10 @@ const DigitalShippingPolicy = () => {
                       during payment, or encountered unauthorized transactions,
                       please reach out to{' '}
                       <a
-                        href="mailto:wagh1.2.3.002@gmail.com"
+                        href="mailto:wagh@dsatrek.com"
                         className="text-primary hover:underline font-medium"
                       >
-                        wagh1.2.3.002@gmail.com
+                        wagh@dsatrek.com
                       </a>{' '}
                       <strong className="text-foreground">
                         within 24 hours
@@ -270,7 +273,7 @@ const DigitalShippingPolicy = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button asChild>
-                <a href="mailto:wagh1.2.3.002@gmail.com">
+                <a href="mailto:wagh@dsatrek.com">
                   <Mail className="w-4 h-4 mr-2" />
                   Contact Support
                 </a>
