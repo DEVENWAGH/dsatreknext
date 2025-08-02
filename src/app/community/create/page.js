@@ -69,6 +69,29 @@ const CreatePostPage = () => {
       });
 
       if (response.ok) {
+        const result = await response.json();
+        console.log('Post created, dispatching event:', result.data);
+        
+        // Create complete post object with user info
+        const postWithUserInfo = {
+          ...result.data,
+          username: isAnonymous ? 'Anonymous' : session.user.name,
+          profilePicture: isAnonymous ? '/user.png' : (userProfile?.profilePicture || session.user.image),
+          isAnonymous,
+          topic: selectedTopic,
+          votes: 0,
+          userVote: null,
+          comments: []
+        };
+        
+        // Dispatch event with complete post data
+        window.dispatchEvent(new CustomEvent('newPostCreated', {
+          detail: { post: postWithUserInfo }
+        }));
+        
+        // Store in sessionStorage as fallback
+        sessionStorage.setItem('newPost', JSON.stringify(postWithUserInfo));
+        
         router.push('/community');
       }
     } catch (error) {

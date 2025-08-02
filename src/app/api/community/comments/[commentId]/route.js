@@ -60,7 +60,17 @@ export async function PATCH(request, { params }) {
     const { commentId } = await params;
     const { content } = await request.json();
 
-    if (!content?.trim()) {
+    if (!content) {
+      return NextResponse.json(
+        { error: 'Content is required' },
+        { status: 400 }
+      );
+    }
+
+    // Handle both string and rich content
+    const processedContent = typeof content === 'string' ? content.trim() : content;
+    
+    if (typeof content === 'string' && !content.trim()) {
       return NextResponse.json(
         { error: 'Content is required' },
         { status: 400 }
@@ -85,7 +95,7 @@ export async function PATCH(request, { params }) {
     const [updatedComment] = await db
       .update(Comments)
       .set({
-        content: content.trim(),
+        content: processedContent,
         updatedAt: new Date(),
       })
       .where(eq(Comments.id, commentId))

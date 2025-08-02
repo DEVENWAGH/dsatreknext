@@ -48,6 +48,7 @@ const CommunityPage = () => {
   const [copiedCode, setCopiedCode] = useState({});
   const [useVirtualization, setUseVirtualization] = useState(false);
   const [refreshInterval, setRefreshInterval] = useState(null);
+  const [userNewPosts, setUserNewPosts] = useState([]);
 
   const { data, error, isLoading: loading, refetch } = useCommunityPosts();
   const votePostMutation = useVotePost();
@@ -64,17 +65,67 @@ const CommunityPage = () => {
     };
   }, [refetch]);
 
-  // Flatten paginated data
+  // Listen for new posts and check sessionStorage fallback
+  React.useEffect(() => {
+    const handleNewPost = (event) => {
+      console.log('New post event received:', event.detail);
+      if (event.detail?.post) {
+        setUserNewPosts(prev => {
+          const newPosts = [event.detail.post, ...prev];
+          console.log('Updated user new posts:', newPosts);
+          return newPosts;
+        });
+        toast.success('Post created successfully!');
+      }
+    };
+    
+    // Check for new post in sessionStorage (fallback)
+    const checkNewPost = () => {
+      const newPost = sessionStorage.getItem('newPost');
+      if (newPost) {
+        try {
+          const post = JSON.parse(newPost);
+          console.log('Found new post in sessionStorage:', post);
+          setUserNewPosts(prev => [post, ...prev]);
+          sessionStorage.removeItem('newPost');
+          toast.success('Post created successfully!');
+        } catch (error) {
+          console.error('Error parsing new post:', error);
+        }
+      }
+    };
+    
+    window.addEventListener('newPostCreated', handleNewPost);
+    checkNewPost();
+    
+    return () => window.removeEventListener('newPostCreated', handleNewPost);
+  }, []);
+
+  // Flatten paginated data and show user's posts first
   const posts = React.useMemo(() => {
-    if (!data?.pages) return [];
+    if (!data?.pages) return userNewPosts;
     const allPosts = data.pages.flatMap(page => page.posts || []);
     console.log(
       'Posts data for vote initialization:',
       allPosts.map(p => ({ id: p.id, votes: p.votes, userVote: p.userVote }))
     );
-    useVoteStore.getState().initializeVotes(allPosts);
-    return allPosts;
-  }, [data]);
+    
+    // Combine and deduplicate posts
+    const existingIds = new Set(allPosts.map(p => p.id));
+    const uniqueNewPosts = userNewPosts.filter(p => !existingIds.has(p.id));
+    const combinedPosts = [...uniqueNewPosts, ...allPosts];
+    
+    // Separate user's posts and others
+    const userPosts = combinedPosts.filter(p => p.userId === session?.user?.id);
+    const otherPosts = combinedPosts.filter(p => p.userId !== session?.user?.id);
+    
+    // Sort user posts by creation date (newest first), others keep original order
+    userPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    
+    const finalPosts = [...userPosts, ...otherPosts];
+    useVoteStore.getState().initializeVotes(finalPosts);
+    return finalPosts;
+  }, [data, userNewPosts, session?.user?.id]);
 
   // Auto-enable virtualization for large lists
   React.useEffect(() => {
@@ -130,20 +181,25 @@ const CommunityPage = () => {
 
   const deletePost = useCallback(
     async postId => {
+      // Optimistic update - remove post immediately
+      setUserNewPosts(prev => prev.filter(p => p.id !== postId));
+      toast.success('Post deleted');
+      
       try {
         const response = await fetch(`/api/community/posts/${postId}`, {
           method: 'DELETE',
         });
         if (response.ok) {
-          toast.success('Post deleted');
-          refetch(); // Refresh posts immediately
+          refetch(); // Refresh to sync with server
         } else {
           const error = await response.json();
           toast.error(error.error || 'Failed to delete post');
+          refetch(); // Revert on error
         }
       } catch (error) {
         console.error('Error deleting post:', error);
         toast.error('Failed to delete post');
+        refetch(); // Revert on error
       }
     },
     [refetch]

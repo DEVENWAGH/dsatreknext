@@ -36,7 +36,14 @@ export async function POST(request, { params }) {
     const { postId } = await params;
     const { content } = await request.json();
 
-    if (!content?.trim()) {
+    if (!content) {
+      return NextResponse.json({ error: 'Content required' }, { status: 400 });
+    }
+
+    // Handle both string and rich content
+    const processedContent = typeof content === 'string' ? content.trim() : content;
+    
+    if (typeof content === 'string' && !content.trim()) {
       return NextResponse.json({ error: 'Content required' }, { status: 400 });
     }
 
@@ -46,7 +53,7 @@ export async function POST(request, { params }) {
         postId: postId,
         userId: session.user.id,
         username: session.user.name,
-        content: content.trim(),
+        content: processedContent,
       })
       .returning();
 

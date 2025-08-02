@@ -16,6 +16,9 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import OptimizedCommentInput from '@/components/community/OptimizedCommentInput';
+import RichCommentInput from '@/components/community/RichCommentInput';
+import SimpleCommentInput from '@/components/community/SimpleCommentInput';
+import CommentItem from '@/components/community/CommentItem';
 import { useComments } from '@/hooks/useComments';
 import { useCommunityPost } from '@/hooks/useCommunity';
 
@@ -28,12 +31,19 @@ const PostDetailPage = () => {
     isLoading: postLoading,
     error: postError,
   } = useCommunityPost(postId);
-  const { data: commentsData, isLoading: commentsLoading } =
+  const { data: commentsData, isLoading: commentsLoading, mutate: mutateComments } =
     useComments(postId);
   const [optimisticComments, setOptimisticComments] = React.useState([]);
 
   const post = postData?.data;
   const allComments = [...(commentsData?.data || []), ...optimisticComments];
+  
+  // Debug logging
+  React.useEffect(() => {
+    console.log('Comments data:', commentsData);
+    console.log('Optimistic comments:', optimisticComments);
+    console.log('All comments:', allComments);
+  }, [commentsData, optimisticComments, allComments]);
 
   const renderContent = content => {
     if (!content) return 'Content not available';
@@ -45,6 +55,30 @@ const PostDetailPage = () => {
             <p key={block.id || index} className="mb-2">
               {block.children?.map(child => child?.text || '').join('') || ''}
             </p>
+          );
+        }
+        if (block?.type === 'img' && block?.url) {
+          return (
+            <img
+              key={block.id || index}
+              src={block.url}
+              alt={block.name || 'Image'}
+              className="max-w-full h-auto rounded-lg my-2"
+              loading="lazy"
+            />
+          );
+        }
+        if (block?.type === 'video' && block?.url) {
+          return (
+            <video
+              key={block.id || index}
+              src={block.url}
+              controls
+              className="max-w-full h-auto rounded-lg my-2"
+              preload="metadata"
+            >
+              Your browser does not support the video tag.
+            </video>
           );
         }
         return null;
@@ -76,6 +110,18 @@ const PostDetailPage = () => {
       // Add optimistic comment
       setOptimisticComments(prev => [...prev, newComment]);
     }
+  };
+
+  const handleCommentUpdated = (updatedComment) => {
+    setOptimisticComments(prev => 
+      prev.map(c => c.id === updatedComment.id ? updatedComment : c)
+    );
+    mutateComments();
+  };
+
+  const handleCommentDeleted = (commentId) => {
+    setOptimisticComments(prev => prev.filter(c => c.id !== commentId));
+    mutateComments();
   };
 
   const votePost = async type => {
@@ -190,12 +236,12 @@ const PostDetailPage = () => {
                 <div className="border-t pt-6">
                   <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
                     <MessageCircle className="w-5 h-5" />
-                    Comments ({commentsData?.data?.length || 0})
+                    Comments ({(commentsData?.data?.length || 0) + optimisticComments.length})
                   </h3>
 
                   {session?.user && (
                     <div className="mb-6">
-                      <OptimizedCommentInput
+                      <SimpleCommentInput
                         postId={postId}
                         onCommentAdded={handleCommentAdded}
                       />
@@ -209,32 +255,12 @@ const PostDetailPage = () => {
                       </div>
                     ) : allComments.length > 0 ? (
                       allComments.map(comment => (
-                        <div
+                        <CommentItem
                           key={comment.id}
-                          className={`bg-gray-50 dark:bg-gray-800 rounded-lg p-4 ${comment.isOptimistic ? 'opacity-80 border-l-2 border-amber-500' : ''}`}
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium text-sm">
-                                {comment.username}
-                              </span>
-                              <span className="text-xs text-gray-500">
-                                {new Date(
-                                  comment.createdAt
-                                ).toLocaleDateString()}
-                                {comment.updatedAt &&
-                                  comment.updatedAt !== comment.createdAt && (
-                                    <span className="ml-1 text-xs text-gray-400">
-                                      (edited)
-                                    </span>
-                                  )}
-                              </span>
-                            </div>
-                          </div>
-                          <p className="text-sm text-gray-700 dark:text-gray-300">
-                            {comment.content}
-                          </p>
-                        </div>
+                          comment={comment}
+                          onCommentUpdated={handleCommentUpdated}
+                          onCommentDeleted={handleCommentDeleted}
+                        />
                       ))
                     ) : (
                       <div className="text-center py-8 text-gray-500">

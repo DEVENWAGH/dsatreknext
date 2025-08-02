@@ -2,7 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 
 export const useComments = postId => {
-  return useQuery({
+  const queryClient = useQueryClient();
+  const query = useQuery({
     queryKey: ['comments', postId],
     queryFn: async () => {
       const response = await fetch(`/api/community/posts/${postId}/comments`);
@@ -13,6 +14,12 @@ export const useComments = postId => {
     staleTime: 10 * 1000, // 10 seconds for real-time feel
     refetchInterval: 15 * 1000, // Auto-refetch every 15 seconds
   });
+
+  const mutate = () => {
+    queryClient.invalidateQueries(['comments', postId]);
+  };
+
+  return { ...query, mutate };
 };
 
 export const useAddComment = () => {
