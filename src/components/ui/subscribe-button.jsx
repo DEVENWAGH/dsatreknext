@@ -22,7 +22,7 @@ const StyledWrapper = styled.div`
   .Btn {
     width: 100px;
     height: 32px;
-    
+
     @media (min-width: 1280px) {
       width: 140px;
       height: 40px;

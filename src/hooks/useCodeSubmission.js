@@ -111,7 +111,10 @@ const useCodeSubmission = () => {
                   results.push({
                     input: stdin?.[i] || '',
                     expectedOutput: expected_outputs?.[i] || '',
-                    actualOutput: result.compile_output || result.stderr || 'Compilation Error - Check your code syntax',
+                    actualOutput:
+                      result.compile_output ||
+                      result.stderr ||
+                      'Compilation Error - Check your code syntax',
                     passed: false,
                     status: 'compile_error',
                     runtime: '0.000',
@@ -312,7 +315,10 @@ const useCodeSubmission = () => {
                     testCaseIndex: i,
                     input: stdin[i] || '',
                     expectedOutput: expected_outputs[i] || '',
-                    actualOutput: result.compile_output || result.stderr || 'Compilation Error',
+                    actualOutput:
+                      result.compile_output ||
+                      result.stderr ||
+                      'Compilation Error',
                     passed: false,
                     status: 'compile_error',
                     runtime: '0.000',

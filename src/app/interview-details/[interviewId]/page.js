@@ -355,7 +355,8 @@ export default function InterviewDetailsPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {typeof interview.feedback === 'object' && interview.feedback !== null ? (
+                {typeof interview.feedback === 'object' &&
+                interview.feedback !== null ? (
                   Object.entries(interview.feedback).map(([key, value]) => (
                     <div key={key}>
                       <h4 className="font-medium capitalize mb-2">
@@ -365,7 +366,9 @@ export default function InterviewDetailsPage() {
                     </div>
                   ))
                 ) : (
-                  <p className="text-muted-foreground">{interview.feedback || 'No feedback available'}</p>
+                  <p className="text-muted-foreground">
+                    {interview.feedback || 'No feedback available'}
+                  </p>
                 )}
               </div>
             </CardContent>

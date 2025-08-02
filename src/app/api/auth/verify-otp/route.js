@@ -17,7 +17,8 @@ export async function POST(request) {
     }
 
     // Check OTP from password_resets table
-    const resetRecord = await db.select()
+    const resetRecord = await db
+      .select()
       .from(PasswordReset)
       .where(
         and(
@@ -40,7 +41,6 @@ export async function POST(request) {
       success: true,
       message: 'OTP verified successfully',
     });
-
   } catch (error) {
     console.error('Verify OTP error:', error);
     return NextResponse.json(

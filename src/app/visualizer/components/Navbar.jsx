@@ -112,9 +112,9 @@ const Navbar = () => {
             </div>
 
             <ModeToggle />
-            
+
             <StyledWrapper>
-              <a 
+              <a
                 className="codepen-button"
                 onClick={() => setShowMobileSidebar(true)}
                 style={{ cursor: 'pointer' }}
@@ -170,7 +170,7 @@ const StyledWrapper = styled.div`
   }
 
   .codepen-button::before {
-    content: "";
+    content: '';
     position: absolute;
     top: 0;
     left: 0;

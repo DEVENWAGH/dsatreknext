@@ -3,7 +3,7 @@ import { useSession } from 'next-auth/react';
 
 export const useInterviews = () => {
   const { data: session } = useSession();
-  
+
   return useQuery({
     queryKey: ['interviews', session?.user?.id],
     queryFn: async () => {
@@ -17,7 +17,7 @@ export const useInterviews = () => {
   });
 };
 
-export const useInterview = (interviewId) => {
+export const useInterview = interviewId => {
   return useQuery({
     queryKey: ['interview', interviewId],
     queryFn: async () => {
@@ -30,7 +30,7 @@ export const useInterview = (interviewId) => {
   });
 };
 
-export const useInterviewAnalytics = (interviewId) => {
+export const useInterviewAnalytics = interviewId => {
   return useQuery({
     queryKey: ['interview-analytics', interviewId],
     queryFn: async () => {
@@ -46,9 +46,9 @@ export const useInterviewAnalytics = (interviewId) => {
 export const useCreateInterview = () => {
   const queryClient = useQueryClient();
   const { data: session } = useSession();
-  
+
   return useMutation({
-    mutationFn: async (interviewData) => {
+    mutationFn: async interviewData => {
       const response = await fetch('/api/interviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -65,7 +65,7 @@ export const useCreateInterview = () => {
 
 export const useUpdateInterview = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async ({ interviewId, data }) => {
       const response = await fetch(`/api/interviews/${interviewId}`, {
@@ -78,7 +78,10 @@ export const useUpdateInterview = () => {
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries(['interview', variables.interviewId]);
-      queryClient.invalidateQueries(['interview-analytics', variables.interviewId]);
+      queryClient.invalidateQueries([
+        'interview-analytics',
+        variables.interviewId,
+      ]);
     },
   });
 };

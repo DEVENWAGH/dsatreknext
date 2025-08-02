@@ -58,7 +58,10 @@ export default function Login() {
 
       if (result?.error) {
         // Handle specific error cases
-        if (result.error === 'CredentialsSignin' || result.error.includes('Invalid email or password')) {
+        if (
+          result.error === 'CredentialsSignin' ||
+          result.error.includes('Invalid email or password')
+        ) {
           toast.error('Invalid email or password');
         } else {
           toast.error(result.error || 'Login failed');

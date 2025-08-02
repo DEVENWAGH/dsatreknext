@@ -26,7 +26,11 @@ export async function DELETE(request, { params }) {
     }
 
     // Check if user is admin or comment owner
-    const [user] = await db.select().from(User).where(eq(User.id, session.user.id)).limit(1);
+    const [user] = await db
+      .select()
+      .from(User)
+      .where(eq(User.id, session.user.id))
+      .limit(1);
     const isAdmin = user?.role === 'admin';
     const isOwner = comment.userId === session.user.id;
 
@@ -57,7 +61,10 @@ export async function PATCH(request, { params }) {
     const { content } = await request.json();
 
     if (!content?.trim()) {
-      return NextResponse.json({ error: 'Content is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Content is required' },
+        { status: 400 }
+      );
     }
 
     const [comment] = await db
@@ -77,16 +84,16 @@ export async function PATCH(request, { params }) {
 
     const [updatedComment] = await db
       .update(Comments)
-      .set({ 
+      .set({
         content: content.trim(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       })
       .where(eq(Comments.id, commentId))
       .returning();
 
-    return NextResponse.json({ 
-      success: true, 
-      data: updatedComment 
+    return NextResponse.json({
+      success: true,
+      data: updatedComment,
     });
   } catch (error) {
     console.error('Error updating comment:', error);

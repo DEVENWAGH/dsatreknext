@@ -98,7 +98,8 @@ export async function POST(request) {
   return NextResponse.json(
     {
       success: false,
-      error: 'Direct subscription updates are not allowed. Please use the payment verification endpoint.',
+      error:
+        'Direct subscription updates are not allowed. Please use the payment verification endpoint.',
     },
     { status: 403 }
   );

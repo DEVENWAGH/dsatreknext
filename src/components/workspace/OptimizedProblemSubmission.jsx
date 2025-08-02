@@ -21,8 +21,12 @@ import Image from 'next/image';
 const OptimizedProblemSubmission = ({ problem, onSubmissionSelect }) => {
   const { getLanguageDisplayName } = useLanguageStore();
   const { data: session } = useSession();
-  const { data: submissions = [], isLoading, error } = useSubmissions(problem?.id);
-  
+  const {
+    data: submissions = [],
+    isLoading,
+    error,
+  } = useSubmissions(problem?.id);
+
   const isAuthenticated = () => !!session?.user;
 
   const formatRuntime = timeStr => {

@@ -15,7 +15,10 @@ export function CollaborativeCursors({ editorRef }) {
         .filter(({ presence }) => presence?.cursor)
         .map(({ connectionId, presence }) => {
           const { line, column } = presence.cursor;
-          const coords = editorRef.getScrolledVisiblePosition({ lineNumber: line, column });
+          const coords = editorRef.getScrolledVisiblePosition({
+            lineNumber: line,
+            column,
+          });
           if (!coords) return null;
 
           return {

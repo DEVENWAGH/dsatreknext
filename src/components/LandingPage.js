@@ -531,7 +531,11 @@ const LandingPage = () => {
                   </p>
                   <div className="mt-6">
                     <AnimatedStarButton
-                      onClick={() => router.push(authUser ? `/profile/${authUser.id}` : '/auth/login')}
+                      onClick={() =>
+                        router.push(
+                          authUser ? `/profile/${authUser.id}` : '/auth/login'
+                        )
+                      }
                       bgColor="bg-emerald-300"
                       textColor="text-emerald-900"
                       borderColor="border-emerald-300"

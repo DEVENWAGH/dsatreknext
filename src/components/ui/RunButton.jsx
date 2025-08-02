@@ -3,11 +3,20 @@
 import React from 'react';
 import styled from 'styled-components';
 
-const RunButton = ({ onClick, disabled = false, children = 'RUN', isLoading = false }) => {
+const RunButton = ({
+  onClick,
+  disabled = false,
+  children = 'RUN',
+  isLoading = false,
+}) => {
   return (
     <StyledWrapper>
       <div className="btn-conteiner">
-        <button className={`btn-content ${isLoading ? 'loading' : ''}`} onClick={onClick} disabled={disabled}>
+        <button
+          className={`btn-content ${isLoading ? 'loading' : ''}`}
+          onClick={onClick}
+          disabled={disabled}
+        >
           <span className="btn-title">{children}</span>
           <span className="icon-arrow">
             <svg

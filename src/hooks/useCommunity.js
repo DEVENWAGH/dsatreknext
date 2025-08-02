@@ -1,4 +1,9 @@
-import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  useInfiniteQuery,
+} from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 
 export const useCommunityPosts = (filters = {}) => {
@@ -13,13 +18,14 @@ export const useCommunityPosts = (filters = {}) => {
       if (!response.ok) throw new Error('Failed to fetch posts');
       return response.json();
     },
-    getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.nextPage : undefined,
+    getNextPageParam: lastPage =>
+      lastPage.hasMore ? lastPage.nextPage : undefined,
     staleTime: 30 * 1000, // 30 seconds for real-time feel
     refetchInterval: 30 * 1000, // Auto-refetch every 30 seconds
   });
 };
 
-export const useCommunityPost = (postId) => {
+export const useCommunityPost = postId => {
   return useQuery({
     queryKey: ['community-post', postId],
     queryFn: async () => {
@@ -34,9 +40,9 @@ export const useCommunityPost = (postId) => {
 
 export const useCreatePost = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async (postData) => {
+    mutationFn: async postData => {
       const response = await fetch('/api/community/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -53,7 +59,7 @@ export const useCreatePost = () => {
 
 export const useVotePost = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async ({ postId, voteType }) => {
       const response = await fetch(`/api/community/posts/${postId}/vote`, {
@@ -68,7 +74,7 @@ export const useVotePost = () => {
       // Optimistic update
       await queryClient.cancelQueries(['community-post', postId]);
       const previousPost = queryClient.getQueryData(['community-post', postId]);
-      
+
       if (previousPost) {
         queryClient.setQueryData(['community-post', postId], {
           ...previousPost,
@@ -76,12 +82,15 @@ export const useVotePost = () => {
           userVote: voteType,
         });
       }
-      
+
       return { previousPost };
     },
     onError: (err, variables, context) => {
       if (context?.previousPost) {
-        queryClient.setQueryData(['community-post', variables.postId], context.previousPost);
+        queryClient.setQueryData(
+          ['community-post', variables.postId],
+          context.previousPost
+        );
       }
     },
     onSettled: (data, error, variables) => {

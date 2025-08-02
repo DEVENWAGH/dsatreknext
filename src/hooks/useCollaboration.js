@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 
-export const useRoomData = (roomId) => {
+export const useRoomData = roomId => {
   return useQuery({
     queryKey: ['room', roomId],
     queryFn: async () => {
@@ -15,7 +15,7 @@ export const useRoomData = (roomId) => {
   });
 };
 
-export const useRoomParticipants = (roomId) => {
+export const useRoomParticipants = roomId => {
   return useQuery({
     queryKey: ['room-participants', roomId],
     queryFn: async () => {
@@ -31,7 +31,7 @@ export const useRoomParticipants = (roomId) => {
 
 export const useJoinRoom = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async ({ roomId, problemId }) => {
       const response = await fetch(`/api/rooms/${roomId}/join`, {
@@ -51,9 +51,9 @@ export const useJoinRoom = () => {
 
 export const useLeaveRoom = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async (roomId) => {
+    mutationFn: async roomId => {
       const response = await fetch(`/api/rooms/${roomId}/leave`, {
         method: 'POST',
       });

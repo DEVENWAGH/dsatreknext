@@ -477,13 +477,13 @@ const CommunityPage = () => {
   };
 
   const PostCard = React.memo(({ post }) => {
-    const handleCardClick = (e) => {
+    const handleCardClick = e => {
       if (e.target.closest('button')) return;
       router.push(`/community/${post.id}`);
     };
 
     return (
-      <Card 
+      <Card
         className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-amber-200/50 dark:border-amber-500/20 rounded-2xl shadow-xl cursor-pointer hover:shadow-2xl transition-all duration-200 h-64"
         onClick={handleCardClick}
       >
@@ -529,7 +529,7 @@ const CommunityPage = () => {
                 {(session?.user?.id === post.userId ||
                   authUser?.role === 'admin') && (
                   <button
-                    onClick={(e) => {
+                    onClick={e => {
                       e.stopPropagation();
                       deletePost(post.id);
                     }}
@@ -547,18 +547,17 @@ const CommunityPage = () => {
 
               <div className="prose prose-sm max-w-none text-gray-700 dark:text-gray-300 flex-1 overflow-hidden">
                 <div className="line-clamp-3">
-                  {typeof post.content === 'string' 
-                    ? post.content.length > 150 
-                      ? post.content.substring(0, 150) + '...' 
+                  {typeof post.content === 'string'
+                    ? post.content.length > 150
+                      ? post.content.substring(0, 150) + '...'
                       : post.content
-                    : 'Click to view full content'
-                  }
+                    : 'Click to view full content'}
                 </div>
               </div>
 
               <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
                 <button
-                  onClick={(e) => {
+                  onClick={e => {
                     e.stopPropagation();
                     router.push(`/community/${post.id}`);
                   }}
@@ -567,7 +566,9 @@ const CommunityPage = () => {
                   <MessageCircle className="w-4 h-4" />
                   {post.comments?.length || 0}
                 </button>
-                <span className="text-xs text-gray-400">Click to view post</span>
+                <span className="text-xs text-gray-400">
+                  Click to view post
+                </span>
               </div>
             </div>
           </div>

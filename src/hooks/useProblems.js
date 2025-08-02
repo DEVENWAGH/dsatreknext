@@ -9,13 +9,15 @@ export const useProblems = () => {
         // Fetch problems and companies in parallel
         const [problemsResponse, companiesResponse] = await Promise.all([
           problemAPI.getAll(),
-          fetch('/api/companies').then(res => res.json()).catch(() => ({ success: false, data: [] }))
+          fetch('/api/companies')
+            .then(res => res.json())
+            .catch(() => ({ success: false, data: [] })),
         ]);
-        
+
         console.log('Problems API Response:', problemsResponse);
-        
+
         let problems = [];
-        
+
         // Handle different response structures
         if (problemsResponse.success && problemsResponse.data?.problems) {
           problems = problemsResponse.data.problems;
@@ -30,15 +32,15 @@ export const useProblems = () => {
         } else if (Array.isArray(problemsResponse)) {
           problems = problemsResponse;
         }
-        
+
         // Ensure problems is an array
         if (!Array.isArray(problems)) {
           console.warn('Problems is not an array:', problems);
           problems = [];
         }
-        
+
         console.log('Parsed problems:', problems.length, 'items');
-        
+
         // Create company map for quick lookups
         const companyMap = {};
         if (companiesResponse.success && companiesResponse.data) {
@@ -46,11 +48,12 @@ export const useProblems = () => {
             companyMap[company.id] = company;
           });
         }
-        
+
         // Enrich problems with company data
         return problems.map(problem => ({
           ...problem,
-          companyData: problem.companies?.map(id => companyMap[id]).filter(Boolean) || []
+          companyData:
+            problem.companies?.map(id => companyMap[id]).filter(Boolean) || [],
         }));
       } catch (error) {
         console.error('Error in useProblems:', error);
@@ -61,12 +64,14 @@ export const useProblems = () => {
   });
 };
 
-export const useProblem = (problemId) => {
+export const useProblem = problemId => {
   return useQuery({
     queryKey: ['problem', problemId],
     queryFn: async () => {
       const response = await problemAPI.getById(problemId);
-      return response.success ? response.problem : response.data?.problem || response.problem;
+      return response.success
+        ? response.problem
+        : response.data?.problem || response.problem;
     },
     enabled: !!problemId,
     staleTime: 15 * 60 * 1000,
@@ -75,13 +80,15 @@ export const useProblem = (problemId) => {
 
 export const usePrefetchProblem = () => {
   const queryClient = useQueryClient();
-  
-  return (problemId) => {
+
+  return problemId => {
     queryClient.prefetchQuery({
       queryKey: ['problem', problemId],
       queryFn: async () => {
         const response = await problemAPI.getById(problemId);
-        return response.success ? response.problem : response.data?.problem || response.problem;
+        return response.success
+          ? response.problem
+          : response.data?.problem || response.problem;
       },
       staleTime: 15 * 60 * 1000,
     });

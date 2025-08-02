@@ -13,7 +13,9 @@ export const DailyChallenge = pgTable(
   'daily_challenges',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    problemId: uuid('problem_id').references(() => Problem.id).notNull(),
+    problemId: uuid('problem_id')
+      .references(() => Problem.id)
+      .notNull(),
     challengeDate: date('challenge_date').notNull(),
     month: text('month').notNull(), // e.g., "2025-01"
     day: text('day').notNull(), // e.g., "27"

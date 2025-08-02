@@ -37,8 +37,6 @@ const VisualizerContent = () => {
     }
   }, [resolvedTheme]);
 
-
-
   const renderContent = () => {
     switch (category) {
       case 'sorting':
@@ -76,7 +74,9 @@ const VisualizerContent = () => {
           <Sidebar />
         </aside>
       )}
-      <div className={`flex-1 transition-all duration-0 ${showSidebar ? 'min-[1281px]:ml-64' : 'min-[1281px]:ml-0'}`}>
+      <div
+        className={`flex-1 transition-all duration-0 ${showSidebar ? 'min-[1281px]:ml-64' : 'min-[1281px]:ml-0'}`}
+      >
         <ErrorBoundary>{renderContent()}</ErrorBoundary>
       </div>
     </div>

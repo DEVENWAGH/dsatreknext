@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 
-export const useComments = (postId) => {
+export const useComments = postId => {
   return useQuery({
     queryKey: ['comments', postId],
     queryFn: async () => {
@@ -17,7 +17,7 @@ export const useComments = (postId) => {
 
 export const useAddComment = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async ({ postId, content }) => {
       const response = await fetch(`/api/community/posts/${postId}/comments`, {
@@ -31,30 +31,33 @@ export const useAddComment = () => {
     onMutate: async ({ postId, content }) => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries(['comments', postId]);
-      
+
       // Snapshot previous value
       const previousComments = queryClient.getQueryData(['comments', postId]);
-      
+
       // Optimistically update
       const optimisticComment = {
         id: `temp-${Date.now()}`,
         content,
         username: 'You',
         createdAt: new Date().toISOString(),
-        isOptimistic: true
+        isOptimistic: true,
       };
-      
-      queryClient.setQueryData(['comments', postId], (old) => ({
+
+      queryClient.setQueryData(['comments', postId], old => ({
         ...old,
-        data: [optimisticComment, ...(old?.data || [])]
+        data: [optimisticComment, ...(old?.data || [])],
       }));
-      
+
       return { previousComments };
     },
     onError: (err, variables, context) => {
       // Rollback on error
       if (context?.previousComments) {
-        queryClient.setQueryData(['comments', variables.postId], context.previousComments);
+        queryClient.setQueryData(
+          ['comments', variables.postId],
+          context.previousComments
+        );
       }
     },
     onSettled: (data, error, variables) => {

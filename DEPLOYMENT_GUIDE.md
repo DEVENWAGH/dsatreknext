@@ -13,6 +13,7 @@ chmod +x server-setup.sh
 ### 2. Domain Configuration
 
 Point your domain `dsatrek.com` to your server IP:
+
 - A record: `dsatrek.com` → `YOUR_SERVER_IP`
 - A record: `www.dsatrek.com` → `YOUR_SERVER_IP`
 
@@ -32,6 +33,7 @@ nano .env.production
 ```
 
 Fill in all required environment variables:
+
 - Database URLs
 - API keys (OpenAI, Gemini, etc.)
 - Authentication secrets
@@ -80,10 +82,12 @@ cat ~/.ssh/id_rsa
 ## 📊 Performance Specifications
 
 **Server Configuration:**
+
 - 2 vCPUs, 8GB RAM, 30GB storage
 - Ubuntu 25
 
 **Expected Performance:**
+
 - **Concurrent Users**: 800-1200
 - **Response Time**: 180-350ms (Mumbai)
 - **Memory Usage**: ~4-6GB under load
@@ -116,6 +120,7 @@ docker stats
 Health check endpoint: `https://dsatrek.com/api/health`
 
 Expected response:
+
 ```json
 {
   "status": "ok",
@@ -136,21 +141,25 @@ Expected response:
 ## 🚨 Troubleshooting
 
 ### Container Won't Start
+
 ```bash
 docker-compose logs dsatrek
 ```
 
 ### SSL Issues
+
 ```bash
 sudo certbot renew --dry-run
 ```
 
 ### High Memory Usage
+
 ```bash
 docker stats --no-stream
 ```
 
 ### Database Connection Issues
+
 ```bash
 # Check environment variables
 docker-compose exec dsatrek env | grep DATABASE
@@ -159,6 +168,7 @@ docker-compose exec dsatrek env | grep DATABASE
 ## 📈 Scaling Options
 
 For higher traffic, consider:
+
 - Increase server resources (4 vCPUs, 16GB RAM)
 - Add load balancer
 - Database read replicas
@@ -178,6 +188,7 @@ tar -czf dsatrek-backup.tar.gz /home/ubuntu/dsatrek
 ## 📞 Support
 
 For deployment issues:
+
 1. Check container logs
 2. Verify environment variables
 3. Test health endpoint

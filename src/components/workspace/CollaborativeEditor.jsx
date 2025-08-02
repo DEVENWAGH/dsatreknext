@@ -29,7 +29,7 @@ export function CollaborativeEditor({
     const checkAuth = async () => {
       const { useAuthStore } = await import('@/store/authStore');
       const authUser = useAuthStore.getState().authUser;
-      
+
       if (authUser) {
         let userName = 'User';
         if (authUser.firstName && authUser.lastName) {
@@ -44,7 +44,7 @@ export function CollaborativeEditor({
           name: userName,
           color: `hsl(${Math.random() * 360}, 70%, 50%)`,
         };
-        
+
         setUserInfo(info);
         setIsAuthenticated(true);
       } else {

@@ -5,18 +5,19 @@
 // Easing functions for smooth animations
 const easings = {
   easeOutCubic: t => 1 - Math.pow(1 - t, 3),
-  easeInOutCubic: t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
+  easeInOutCubic: t =>
+    t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
   easeOutQuart: t => 1 - Math.pow(1 - t, 4),
-  custom: t => Math.min(1, 1.001 - Math.pow(2, -10 * t))
+  custom: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
 };
 
 /**
  * Get optimal scroll offset based on viewport and element
  */
-const getOptimalOffset = (element) => {
+const getOptimalOffset = element => {
   const vh = window.innerHeight;
   const elementHeight = element.offsetHeight;
-  
+
   // Dynamic offset based on element size and viewport
   if (elementHeight > vh * 0.8) return -20;
   if (elementHeight > vh * 0.5) return -60;
@@ -29,7 +30,8 @@ const getOptimalOffset = (element) => {
 export const scrollToElement = (elementId, options = {}) => {
   if (typeof window === 'undefined') return Promise.resolve();
 
-  const element = document.getElementById(elementId) || document.querySelector(elementId);
+  const element =
+    document.getElementById(elementId) || document.querySelector(elementId);
   if (!element) return Promise.resolve();
 
   const defaultOptions = {
@@ -38,22 +40,22 @@ export const scrollToElement = (elementId, options = {}) => {
     easing: easings.custom,
     immediate: false,
     lock: true,
-    force: true
+    force: true,
   };
 
   const scrollOptions = { ...defaultOptions, ...options };
 
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     if (window.lenis) {
       window.lenis.scrollTo(element, {
         ...scrollOptions,
-        onComplete: resolve
+        onComplete: resolve,
       });
     } else {
-      element.scrollIntoView({ 
-        behavior: 'smooth', 
+      element.scrollIntoView({
+        behavior: 'smooth',
         block: 'start',
-        inline: 'nearest'
+        inline: 'nearest',
       });
       setTimeout(resolve, scrollOptions.duration * 1000);
     }
@@ -69,16 +71,16 @@ export const scrollToTop = (options = {}) => {
   const defaultOptions = {
     duration: 1.5,
     easing: easings.easeOutQuart,
-    offset: 0
+    offset: 0,
   };
 
   const scrollOptions = { ...defaultOptions, ...options };
 
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     if (window.lenis) {
       window.lenis.scrollTo(0, {
         ...scrollOptions,
-        onComplete: resolve
+        onComplete: resolve,
       });
     } else {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -94,7 +96,7 @@ export const scrollToSection = (sectionId, options = {}) => {
   return scrollToElement(`#${sectionId}`, {
     offset: -80,
     duration: 1.4,
-    ...options
+    ...options,
   });
 };
 
@@ -103,40 +105,42 @@ export const scrollToSection = (sectionId, options = {}) => {
  */
 export const scrollWithProgress = (target, options = {}) => {
   const { onProgress, ...scrollOptions } = options;
-  
+
   if (typeof window === 'undefined') return Promise.resolve();
-  
-  return new Promise((resolve) => {
+
+  return new Promise(resolve => {
     const startY = window.scrollY;
-    const targetY = typeof target === 'number' ? target : 
-      document.querySelector(target)?.offsetTop || 0;
-    
+    const targetY =
+      typeof target === 'number'
+        ? target
+        : document.querySelector(target)?.offsetTop || 0;
+
     const distance = targetY - startY;
     const duration = scrollOptions.duration || 1200;
     const startTime = performance.now();
-    
-    const animate = (currentTime) => {
+
+    const animate = currentTime => {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      
+
       const eased = easings.easeOutCubic(progress);
-      const currentY = startY + (distance * eased);
-      
+      const currentY = startY + distance * eased;
+
       window.scrollTo(0, currentY);
-      
+
       if (onProgress) onProgress(progress);
-      
+
       if (progress < 1) {
         requestAnimationFrame(animate);
       } else {
         resolve();
       }
     };
-    
+
     if (window.lenis) {
       window.lenis.scrollTo(target, {
         ...scrollOptions,
-        onComplete: resolve
+        onComplete: resolve,
       });
     } else {
       requestAnimationFrame(animate);
@@ -149,10 +153,10 @@ export const scrollWithProgress = (target, options = {}) => {
  */
 export const getScrollProgress = () => {
   if (typeof window === 'undefined') return 0;
-  
+
   const scrollTop = window.scrollY;
   const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-  
+
   return Math.min(scrollTop / docHeight, 1);
 };
 
@@ -161,10 +165,10 @@ export const getScrollProgress = () => {
  */
 export const isInViewport = (element, threshold = 0.1) => {
   if (!element || typeof window === 'undefined') return false;
-  
+
   const rect = element.getBoundingClientRect();
   const windowHeight = window.innerHeight;
-  
+
   return (
     rect.top < windowHeight * (1 - threshold) &&
     rect.bottom > windowHeight * threshold
@@ -176,7 +180,7 @@ export const isInViewport = (element, threshold = 0.1) => {
  */
 export const createScrollHandler = (callback, delay = 16) => {
   let timeoutId;
-  
+
   return (...args) => {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => callback(...args), delay);

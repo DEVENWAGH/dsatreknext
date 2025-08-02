@@ -233,8 +233,18 @@ const GraphVisualizer = () => {
       <div className="absolute inset-0 opacity-10">
         <svg width="100%" height="100%">
           <defs>
-            <pattern id="grid-graph" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#64748b" strokeWidth="1"/>
+            <pattern
+              id="grid-graph"
+              width="40"
+              height="40"
+              patternUnits="userSpaceOnUse"
+            >
+              <path
+                d="M 40 0 L 0 0 0 40"
+                fill="none"
+                stroke="#64748b"
+                strokeWidth="1"
+              />
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#grid-graph)" />
@@ -249,11 +259,11 @@ const GraphVisualizer = () => {
         {edges.map(edge => renderEdge(edge, nodes, edges, 'default'))}
 
         {/* Parent relationships */}
-        {Object.entries(parentNodes).map(([child, parent]) =>
+        {Object.entries(parentNodes).map(([child, parent]) => (
           <g key={`traversal-${parent}-${child}`}>
             {renderTraversalEdge(parent, child)}
           </g>
-        )}
+        ))}
 
         {/* Nodes */}
         {nodes.map(node => (

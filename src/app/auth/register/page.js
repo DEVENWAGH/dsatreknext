@@ -65,7 +65,11 @@ export default function Register() {
   });
 
   const [showPassword, setShowPassword] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState({ score: 0, text: '', color: '' });
+  const [passwordStrength, setPasswordStrength] = useState({
+    score: 0,
+    text: '',
+    color: '',
+  });
   const [isSigningUp, setIsSigningUp] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [showOTPForm, setShowOTPForm] = useState(false);
@@ -78,15 +82,15 @@ export default function Register() {
     getCsrfToken().then(setCsrfToken);
   }, []);
 
-  const checkPasswordStrength = (password) => {
+  const checkPasswordStrength = password => {
     const criteria = {
       length: password.length >= 8,
       lowercase: /[a-z]/.test(password),
       uppercase: /[A-Z]/.test(password),
       number: /\d/.test(password),
-      special: /[^\w\s]/.test(password)
+      special: /[^\w\s]/.test(password),
     };
-    
+
     const score = Object.values(criteria).filter(Boolean).length;
 
     const strength = {
@@ -95,7 +99,7 @@ export default function Register() {
       2: { text: 'Fair', color: 'bg-yellow-500' },
       3: { text: 'Good', color: 'bg-blue-500' },
       4: { text: 'Strong', color: 'bg-green-500' },
-      5: { text: 'Very Strong', color: 'bg-green-600' }
+      5: { text: 'Very Strong', color: 'bg-green-600' },
     };
 
     return { score, criteria, ...strength[score] };
@@ -127,7 +131,7 @@ export default function Register() {
         email: userEmail,
         otp: values.otp,
       });
-      
+
       if (response.success) {
         toast.success('Account created successfully!');
         // Auto-login after successful registration
@@ -136,7 +140,7 @@ export default function Register() {
           password: getValues('password'),
           redirect: false,
         });
-        
+
         if (loginResult?.ok) {
           const params = new URLSearchParams(window.location.search);
           const callbackUrl = params.get('callbackUrl');
@@ -186,7 +190,9 @@ export default function Register() {
                           type="text"
                           placeholder="First name"
                           {...register('firstName')}
-                          className={errors.firstName ? 'border-destructive' : ''}
+                          className={
+                            errors.firstName ? 'border-destructive' : ''
+                          }
                         />
                         {errors.firstName && (
                           <p className="text-sm text-destructive">
@@ -202,7 +208,9 @@ export default function Register() {
                           type="text"
                           placeholder="Last name"
                           {...register('lastName')}
-                          className={errors.lastName ? 'border-destructive' : ''}
+                          className={
+                            errors.lastName ? 'border-destructive' : ''
+                          }
                         />
                         {errors.lastName && (
                           <p className="text-sm text-destructive">
@@ -252,10 +260,15 @@ export default function Register() {
                           type={showPassword ? 'text' : 'password'}
                           placeholder="Enter your password"
                           {...register('password', {
-                            onChange: (e) => setPasswordStrength(checkPasswordStrength(e.target.value))
+                            onChange: e =>
+                              setPasswordStrength(
+                                checkPasswordStrength(e.target.value)
+                              ),
                           })}
                           className={
-                            errors.password ? 'border-destructive pr-10' : 'pr-10'
+                            errors.password
+                              ? 'border-destructive pr-10'
+                              : 'pr-10'
                           }
                         />
                         <Button
@@ -272,7 +285,7 @@ export default function Register() {
                           )}
                         </Button>
                       </div>
-                      
+
                       {/* Password Strength Indicator */}
                       <div className="space-y-2">
                         <div className="flex gap-1">
@@ -280,21 +293,28 @@ export default function Register() {
                             <div
                               key={i}
                               className={`h-1 flex-1 rounded transition-all duration-300 ${
-                                i < passwordStrength.score ? passwordStrength.color : 'bg-gray-200'
+                                i < passwordStrength.score
+                                  ? passwordStrength.color
+                                  : 'bg-gray-200'
                               }`}
                             />
                           ))}
                         </div>
                         {passwordStrength.text && (
-                          <p className={`text-xs transition-all duration-300 ${
-                            passwordStrength.score >= 3 ? 'text-green-600' : 
-                            passwordStrength.score >= 2 ? 'text-yellow-600' : 'text-red-600'
-                          }`}>
+                          <p
+                            className={`text-xs transition-all duration-300 ${
+                              passwordStrength.score >= 3
+                                ? 'text-green-600'
+                                : passwordStrength.score >= 2
+                                  ? 'text-yellow-600'
+                                  : 'text-red-600'
+                            }`}
+                          >
                             Password strength: {passwordStrength.text}
                           </p>
                         )}
                       </div>
-                      
+
                       {errors.password && (
                         <p className="text-sm text-destructive">
                           {errors.password.message}
@@ -302,14 +322,22 @@ export default function Register() {
                       )}
                     </div>
 
-                    <Button type="submit" className="w-full" disabled={isSigningUp}>
-                      {isSigningUp ? 'Sending OTP...' : 'Send Verification Code'}
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      disabled={isSigningUp}
+                    >
+                      {isSigningUp
+                        ? 'Sending OTP...'
+                        : 'Send Verification Code'}
                     </Button>
                   </>
                 ) : (
                   <>
                     <div className="text-center space-y-2">
-                      <h2 className="text-xl font-semibold">Verify Your Email</h2>
+                      <h2 className="text-xl font-semibold">
+                        Verify Your Email
+                      </h2>
                       <p className="text-sm text-muted-foreground">
                         We sent a 6-digit code to <strong>{userEmail}</strong>
                       </p>
@@ -323,7 +351,11 @@ export default function Register() {
                         placeholder="Enter 6-digit code"
                         maxLength={6}
                         {...registerOTP('otp')}
-                        className={otpErrors.otp ? 'border-destructive text-center text-lg tracking-widest' : 'text-center text-lg tracking-widest'}
+                        className={
+                          otpErrors.otp
+                            ? 'border-destructive text-center text-lg tracking-widest'
+                            : 'text-center text-lg tracking-widest'
+                        }
                       />
                       {otpErrors.otp && (
                         <p className="text-sm text-destructive">
@@ -347,12 +379,13 @@ export default function Register() {
                         disabled={isVerifying}
                         onClick={handleSubmitOTP(onVerifyOTP)}
                       >
-                        {isVerifying ? 'Verifying...' : 'Verify & Create Account'}
+                        {isVerifying
+                          ? 'Verifying...'
+                          : 'Verify & Create Account'}
                       </Button>
                     </div>
                   </>
                 )}
-
               </form>
 
               {/* Footer */}

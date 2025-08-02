@@ -5,7 +5,7 @@ import https from 'https';
 // Create custom agent for Liveblocks API calls
 const agent = new https.Agent({
   rejectUnauthorized: false, // Only for development
-  secureProtocol: 'TLSv1_2_method'
+  secureProtocol: 'TLSv1_2_method',
 });
 
 const liveblocks = new Liveblocks({

@@ -15,7 +15,8 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const isOwnProfile = session?.user?.username === id || session?.user?.id === id;
+  const isOwnProfile =
+    session?.user?.username === id || session?.user?.id === id;
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -36,10 +37,14 @@ export default function ProfilePage() {
           if (response.success && response.data) {
             setUserDetails(response.data);
             setError(null);
-            
+
             // If we accessed via UUID but have username, redirect to username URL
             if (id.includes('-') && response.data.username) {
-              window.history.replaceState(null, '', `/profile/${response.data.username}`);
+              window.history.replaceState(
+                null,
+                '',
+                `/profile/${response.data.username}`
+              );
             }
           } else {
             console.error('User not found or invalid response:', response);

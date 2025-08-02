@@ -3,7 +3,7 @@ import { useSession } from 'next-auth/react';
 
 export const useUserProgress = () => {
   const { data: session } = useSession();
-  
+
   return useQuery({
     queryKey: ['user-progress', session?.user?.id],
     queryFn: async () => {
@@ -18,7 +18,7 @@ export const useUserProgress = () => {
 
 export const useSolvedProblems = () => {
   const { data: session } = useSession();
-  
+
   return useQuery({
     queryKey: ['solved-problems', session?.user?.id],
     queryFn: async () => {
@@ -34,9 +34,9 @@ export const useSolvedProblems = () => {
 export const useUpdateProgress = () => {
   const queryClient = useQueryClient();
   const { data: session } = useSession();
-  
+
   return useMutation({
-    mutationFn: async (progressData) => {
+    mutationFn: async progressData => {
       const response = await fetch('/api/user/progress', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

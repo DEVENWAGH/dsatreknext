@@ -1,16 +1,19 @@
 # DSATrek Theme Implementation for Visualizer
 
 ## Overview
+
 Successfully implemented DSATrek theme across the entire visualizer application at `http://localhost:3000/visualizer`. The theme now matches the main DSATrek application styling.
 
 ## Files Modified
 
 ### 1. Core Theme Files
+
 - **`dsatrek-theme.css`** - New comprehensive theme file containing all DSATrek variables and styling
 - **`index.css`** - Updated to import DSATrek theme and use theme variables
 - **`App.css`** - Updated all hardcoded colors to use DSATrek theme variables
 
 ### 2. Component Files Updated
+
 - **`App.jsx`** - Added `visualizer-container` class
 - **`components/Layout.jsx`** - Added `visualizer-sidebar` class
 - **`components/Navbar.jsx`** - Updated to use theme classes and variables
@@ -20,11 +23,13 @@ Successfully implemented DSATrek theme across the entire visualizer application 
 ## Theme Features Implemented
 
 ### 1. Color Variables
+
 - All DSATrek color variables (background, foreground, card, primary, secondary, etc.)
 - Light and dark mode support
 - Brand colors and highlights
 
 ### 2. Component Classes
+
 - `.visualizer-container` - Main app container with theme background
 - `.visualizer-card` - Cards with theme styling and hover effects
 - `.visualizer-button` - Buttons with theme colors
@@ -33,6 +38,7 @@ Successfully implemented DSATrek theme across the entire visualizer application 
 - `.visualizer-navbar` - Navigation bar with theme styling
 
 ### 3. Algorithm-Specific Styling
+
 - `.algorithm-card` - Algorithm category cards with hover effects
 - `.sort-bar` - Sorting visualization bars
 - `.graph-node` - Graph algorithm nodes
@@ -40,12 +46,14 @@ Successfully implemented DSATrek theme across the entire visualizer application 
 - `.dp-cell` - Dynamic programming table cells
 
 ### 4. Interactive Elements
+
 - Custom scrollbars with theme colors
 - Hover effects using brand colors
 - Focus states with theme ring colors
 - Dropdown menus with theme styling
 
 ### 5. Animations & Effects
+
 - Golden shine effect for logos
 - Shiny border glow effects
 - Smooth transitions between theme states
@@ -54,6 +62,7 @@ Successfully implemented DSATrek theme across the entire visualizer application 
 ## Usage
 
 The theme is automatically applied to all visualizer routes:
+
 - `/visualizer` - Home page with algorithm categories
 - `/visualizer?category=sorting&algorithm=bubble` - Sorting algorithms
 - `/visualizer?category=searching&algorithm=binary` - Searching algorithms

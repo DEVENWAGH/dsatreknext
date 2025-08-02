@@ -1,7 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,7 +21,7 @@ const EditProfileDialog = ({ userDetails, onProfileUpdate }) => {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { update } = useSession();
-  
+
   const [formData, setFormData] = useState({
     firstName: userDetails?.firstName || '',
     lastName: userDetails?.lastName || '',
@@ -30,29 +36,29 @@ const EditProfileDialog = ({ userDetails, onProfileUpdate }) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
       const response = await authAPI.updateProfile(formData);
-      
+
       if (response.success) {
         toast.success('Profile updated successfully');
-        
+
         // Update session
         await update({
           ...formData,
           name: `${formData.firstName} ${formData.lastName}`.trim(),
         });
-        
+
         // Call parent callback
         if (onProfileUpdate) {
           onProfileUpdate(response.data);
         }
-        
+
         setOpen(false);
-        
+
         // Refresh page to show updated data
         setTimeout(() => {
           window.location.reload();
@@ -71,8 +77,8 @@ const EditProfileDialog = ({ userDetails, onProfileUpdate }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           size="sm"
           className="border-amber-500/30 text-amber-600 hover:bg-amber-500/10"
         >
@@ -80,14 +86,14 @@ const EditProfileDialog = ({ userDetails, onProfileUpdate }) => {
           Edit Profile
         </Button>
       </DialogTrigger>
-      
+
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-amber-600">
             Edit Profile
           </DialogTitle>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -95,76 +101,76 @@ const EditProfileDialog = ({ userDetails, onProfileUpdate }) => {
               <Input
                 id="firstName"
                 value={formData.firstName}
-                onChange={(e) => handleInputChange('firstName', e.target.value)}
+                onChange={e => handleInputChange('firstName', e.target.value)}
                 placeholder="Enter your first name"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="lastName">Last Name</Label>
               <Input
                 id="lastName"
                 value={formData.lastName}
-                onChange={(e) => handleInputChange('lastName', e.target.value)}
+                onChange={e => handleInputChange('lastName', e.target.value)}
                 placeholder="Enter your last name"
               />
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
               value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
+              onChange={e => handleInputChange('email', e.target.value)}
               placeholder="Enter your email"
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="bio">Bio</Label>
             <Textarea
               id="bio"
               value={formData.bio}
-              onChange={(e) => handleInputChange('bio', e.target.value)}
+              onChange={e => handleInputChange('bio', e.target.value)}
               placeholder="Tell us about yourself..."
               rows={3}
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="portfolioUrl">Portfolio Website</Label>
             <Input
               id="portfolioUrl"
               value={formData.portfolioUrl}
-              onChange={(e) => handleInputChange('portfolioUrl', e.target.value)}
+              onChange={e => handleInputChange('portfolioUrl', e.target.value)}
               placeholder="https://yourportfolio.com"
             />
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="githubUrl">GitHub URL</Label>
               <Input
                 id="githubUrl"
                 value={formData.githubUrl}
-                onChange={(e) => handleInputChange('githubUrl', e.target.value)}
+                onChange={e => handleInputChange('githubUrl', e.target.value)}
                 placeholder="https://github.com/username"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="linkedinUrl">LinkedIn URL</Label>
               <Input
                 id="linkedinUrl"
                 value={formData.linkedinUrl}
-                onChange={(e) => handleInputChange('linkedinUrl', e.target.value)}
+                onChange={e => handleInputChange('linkedinUrl', e.target.value)}
                 placeholder="https://linkedin.com/in/username"
               />
             </div>
           </div>
-          
+
           <div className="flex justify-between pt-6 border-t">
             <Button
               type="button"
@@ -176,7 +182,7 @@ const EditProfileDialog = ({ userDetails, onProfileUpdate }) => {
               <X className="w-4 h-4 mr-2" />
               Cancel
             </Button>
-            
+
             <Button
               type="submit"
               disabled={isLoading}

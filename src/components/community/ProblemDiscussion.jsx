@@ -1,7 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MessageSquare, Send, User, Clock, Copy, Check, Trash2 } from 'lucide-react';
+import {
+  MessageSquare,
+  Send,
+  User,
+  Clock,
+  Copy,
+  Check,
+  Trash2,
+} from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -45,7 +53,7 @@ export default function ProblemDiscussion({ problemId }) {
 
   const handleSubmit = async () => {
     if (!content || loading || !session?.user) return;
-    
+
     // Check if content is empty
     const hasContent = content.some(block => {
       if (block.type === 'p') {
@@ -53,7 +61,7 @@ export default function ProblemDiscussion({ problemId }) {
       }
       return block.text?.trim() || block.url;
     });
-    
+
     if (!hasContent) return;
 
     setLoading(true);
@@ -88,14 +96,17 @@ export default function ProblemDiscussion({ problemId }) {
     }
   };
 
-  const handleDelete = async (discussionId) => {
+  const handleDelete = async discussionId => {
     if (!confirm('Are you sure you want to delete this discussion?')) return;
-    
+
     try {
-      const response = await fetch(`/api/community/problem/${problemId}/${discussionId}`, {
-        method: 'DELETE',
-      });
-      
+      const response = await fetch(
+        `/api/community/problem/${problemId}/${discussionId}`,
+        {
+          method: 'DELETE',
+        }
+      );
+
       if (response.ok) {
         fetchDiscussions();
       }
@@ -124,7 +135,7 @@ export default function ProblemDiscussion({ problemId }) {
       for (let i = 0; i < content.length; i++) {
         const block = content[i];
         const key = block.id || `block-${i}`;
-        
+
         if (block.type === 'img') {
           elements.push(
             <Image

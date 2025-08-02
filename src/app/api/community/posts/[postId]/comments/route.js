@@ -9,7 +9,7 @@ export const runtime = 'nodejs';
 export async function GET(request, { params }) {
   try {
     const { postId } = await params;
-    
+
     const comments = await db
       .select()
       .from(Comments)

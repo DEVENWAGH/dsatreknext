@@ -11,7 +11,7 @@ export const useImageCache = () => {
     if (savedCache) {
       const parsed = JSON.parse(savedCache);
       const now = Date.now();
-      
+
       // Filter out expired entries
       const validCache = Object.entries(parsed).reduce((acc, [key, value]) => {
         if (now - value.timestamp < CACHE_DURATION) {
@@ -19,7 +19,7 @@ export const useImageCache = () => {
         }
         return acc;
       }, {});
-      
+
       setCache(validCache);
       localStorage.setItem(CACHE_KEY, JSON.stringify(validCache));
     }
@@ -32,8 +32,8 @@ export const useImageCache = () => {
         ...cache,
         [url]: {
           data: reader.result,
-          timestamp: Date.now()
-        }
+          timestamp: Date.now(),
+        },
       };
       setCache(newCache);
       localStorage.setItem(CACHE_KEY, JSON.stringify(newCache));
@@ -41,7 +41,7 @@ export const useImageCache = () => {
     reader.readAsDataURL(blob);
   };
 
-  const getCachedImage = (url) => {
+  const getCachedImage = url => {
     const cached = cache[url];
     if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
       return cached.data;
@@ -49,8 +49,8 @@ export const useImageCache = () => {
     return null;
   };
 
-  const prefetchImages = async (urls) => {
-    const promises = urls.map(async (url) => {
+  const prefetchImages = async urls => {
+    const promises = urls.map(async url => {
       if (!getCachedImage(url)) {
         try {
           const response = await fetch(url);
@@ -61,7 +61,7 @@ export const useImageCache = () => {
         }
       }
     });
-    
+
     await Promise.all(promises);
   };
 

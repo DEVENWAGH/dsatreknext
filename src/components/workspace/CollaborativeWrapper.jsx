@@ -28,7 +28,7 @@ export function CollaborativeWrapper({ children, problemId }) {
 
         if (urlRoomId) {
           const { roomStateManager } = await import('@/utils/roomState');
-          
+
           // Get user from authStore
           const { useAuthStore } = await import('@/store/authStore');
           const currentAuthUser = useAuthStore.getState().authUser;

@@ -14,7 +14,8 @@ import { toast } from 'sonner';
 export default function AdminUsers() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const { users, isLoading, getAllUsers, changeRole, deleteUser } = useAdminStore();
+  const { users, isLoading, getAllUsers, changeRole, deleteUser } =
+    useAdminStore();
   const { authUser } = useAuthStore();
   const [changingRole, setChangingRole] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -67,9 +68,9 @@ export default function AdminUsers() {
     }
   };
 
-  const handleDelete = async (userId) => {
+  const handleDelete = async userId => {
     if (!confirm('Are you sure you want to delete this user?')) return;
-    
+
     try {
       setChangingRole(true);
       await deleteUser(userId);
@@ -164,9 +165,13 @@ export default function AdminUsers() {
                         <td className="p-4 font-medium">{fullName}</td>
                         <td className="p-4">{user.email}</td>
                         <td className="p-4">
-                          <span className={`px-2 py-1 rounded text-xs ${
-                            user.role === 'admin' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
-                          }`}>
+                          <span
+                            className={`px-2 py-1 rounded text-xs ${
+                              user.role === 'admin'
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-blue-100 text-blue-800'
+                            }`}
+                          >
                             {user.role}
                           </span>
                         </td>
@@ -179,12 +184,17 @@ export default function AdminUsers() {
                               <Switch
                                 id={`role-${user.id}`}
                                 checked={user.role === 'admin'}
-                                onCheckedChange={() => handleRoleChange(user.id)}
+                                onCheckedChange={() =>
+                                  handleRoleChange(user.id)
+                                }
                                 disabled={
                                   changingRole || user.id === authUser?.id
                                 }
                               />
-                              <Label htmlFor={`role-${user.id}`} className="text-xs">
+                              <Label
+                                htmlFor={`role-${user.id}`}
+                                className="text-xs"
+                              >
                                 Toggle
                               </Label>
                             </div>
@@ -206,7 +216,7 @@ export default function AdminUsers() {
               </tbody>
             </table>
           </div>
-          
+
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex justify-center items-center space-x-2 mt-4">

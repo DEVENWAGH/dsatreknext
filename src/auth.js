@@ -57,7 +57,9 @@ export const authConfig = {
               .limit(1);
 
             if (existingUser.length > 0) {
-              throw new Error('An account with this email already exists. Please login instead.');
+              throw new Error(
+                'An account with this email already exists. Please login instead.'
+              );
             }
 
             // Hash password

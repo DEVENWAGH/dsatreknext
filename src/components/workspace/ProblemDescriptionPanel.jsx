@@ -108,7 +108,7 @@ const ProblemDescriptionPanel = ({
       return problem.testCases.map((testCase, index) => ({
         input: testCase.input || '',
         output: testCase.output || testCase.expectedOutput || '',
-        explanation: testCase.explanation || `Example ${index + 1}`
+        explanation: testCase.explanation || `Example ${index + 1}`,
       }));
     }
 
@@ -118,9 +118,12 @@ const ProblemDescriptionPanel = ({
         return problem.examples;
       }
       if (typeof problem.examples === 'object') {
-        return problem.examples[selectedLanguage] || 
-               problem.examples.JAVASCRIPT || 
-               problem.examples[Object.keys(problem.examples)[0]] || [];
+        return (
+          problem.examples[selectedLanguage] ||
+          problem.examples.JAVASCRIPT ||
+          problem.examples[Object.keys(problem.examples)[0]] ||
+          []
+        );
       }
     }
 
@@ -237,8 +240,6 @@ const ProblemDescriptionPanel = ({
                 className="max-w-none"
               />
             </div>
-
-
 
             {/* Constraints */}
             {problem.constraints && (

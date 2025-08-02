@@ -18,7 +18,8 @@ export async function GET(request) {
       fieldList.forEach(field => {
         if (field === 'id') selectFields.id = Problem.id;
         if (field === 'title') selectFields.title = Problem.title;
-        if (field === 'difficulty') selectFields.difficulty = Problem.difficulty;
+        if (field === 'difficulty')
+          selectFields.difficulty = Problem.difficulty;
         if (field === 'tags') selectFields.tags = Problem.tags;
         if (field === 'companies') selectFields.companies = Problem.companies;
         if (field === 'is_premium') selectFields.is_premium = Problem.isPremium;
@@ -27,7 +28,8 @@ export async function GET(request) {
       query = db.select(selectFields);
     }
 
-    const problems = await query.from(Problem)
+    const problems = await query
+      .from(Problem)
       .orderBy(sql`CAST(SUBSTRING(${Problem.title} FROM '[0-9]+') AS INTEGER)`);
 
     // Get submission statistics for each problem
@@ -48,7 +50,10 @@ export async function GET(request) {
             acceptedSubmissions: parseInt(stats[0]?.acceptedSubmissions) || 0,
           };
         } catch (error) {
-          console.error(`Error fetching stats for problem ${problem.id}:`, error);
+          console.error(
+            `Error fetching stats for problem ${problem.id}:`,
+            error
+          );
           return {
             ...problem,
             totalSubmissions: 0,
@@ -58,16 +63,19 @@ export async function GET(request) {
       })
     );
 
-    return NextResponse.json({
-      success: true,
-      data: { 
-        problems: problemsWithStats
+    return NextResponse.json(
+      {
+        success: true,
+        data: {
+          problems: problemsWithStats,
+        },
       },
-    }, {
-      headers: {
-        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+        },
       }
-    });
+    );
   } catch (error) {
     console.error('Problems API Error:', error);
     return NextResponse.json(

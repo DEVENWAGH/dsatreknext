@@ -86,7 +86,9 @@ export const WavyBackground = ({
     if (!ctx) return;
 
     // Get computed background color from CSS variable
-    const computedBg = getComputedStyle(document.documentElement).getPropertyValue('--background').trim();
+    const computedBg = getComputedStyle(document.documentElement)
+      .getPropertyValue('--background')
+      .trim();
     // Handle oklch format by using the computed style from body element
     const bodyBg = getComputedStyle(document.body).backgroundColor;
     ctx.fillStyle = bodyBg || `oklch(${computedBg})` || backgroundFill;

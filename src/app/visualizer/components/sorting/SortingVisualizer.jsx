@@ -47,7 +47,8 @@ const SortingVisualizer = () => {
       setCurrentAlgorithm(formattedAlgo);
 
       // Force reset to default size when algorithm changes
-      const screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+      const screenWidth =
+        typeof window !== 'undefined' ? window.innerWidth : 1024;
       const defaultSize = screenWidth < 640 ? 15 : screenWidth < 1024 ? 20 : 36;
 
       // Use timeout to ensure this happens after algorithm is set
@@ -71,7 +72,8 @@ const SortingVisualizer = () => {
   useEffect(() => {
     const handleResize = () => {
       // Only update custom size to match current array size (no auto-regeneration)
-      const defaultSize = typeof window !== 'undefined' && window.innerWidth < 1024 ? 16 : 36;
+      const defaultSize =
+        typeof window !== 'undefined' && window.innerWidth < 1024 ? 16 : 36;
 
       // Only update if there's a significant width change (mobile <-> desktop)
       const width = typeof window !== 'undefined' ? window.innerWidth : 1024;
@@ -327,7 +329,8 @@ const SortingVisualizer = () => {
       return { barWidth: 0, gap: 0, containerWidth: 'w-full' };
     }
 
-    const screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+    const screenWidth =
+      typeof window !== 'undefined' ? window.innerWidth : 1024;
     const isMobile = screenWidth < 640;
     const isTablet = screenWidth >= 640 && screenWidth < 1024;
 
@@ -718,8 +721,18 @@ const SortingVisualizer = () => {
           <div className="absolute inset-0 opacity-10">
             <svg width="100%" height="100%">
               <defs>
-                <pattern id="grid-sort" width="40" height="40" patternUnits="userSpaceOnUse">
-                  <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#64748b" strokeWidth="1"/>
+                <pattern
+                  id="grid-sort"
+                  width="40"
+                  height="40"
+                  patternUnits="userSpaceOnUse"
+                >
+                  <path
+                    d="M 40 0 L 0 0 0 40"
+                    fill="none"
+                    stroke="#64748b"
+                    strokeWidth="1"
+                  />
                 </pattern>
               </defs>
               <rect width="100%" height="100%" fill="url(#grid-sort)" />

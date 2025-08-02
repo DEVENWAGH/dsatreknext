@@ -13,9 +13,9 @@ const OptimizedCommentInput = React.memo(({ postId, onCommentAdded }) => {
 
   const handleSubmit = useCallback(async () => {
     if (!comment.trim() || !session?.user || isSubmitting) return;
-    
+
     setIsSubmitting(true);
-    
+
     // Optimistic UI update
     const optimisticComment = {
       id: `temp-${Date.now()}`,
@@ -23,9 +23,9 @@ const OptimizedCommentInput = React.memo(({ postId, onCommentAdded }) => {
       username: session.user.name,
       userId: session.user.id,
       createdAt: new Date().toISOString(),
-      isOptimistic: true
+      isOptimistic: true,
     };
-    
+
     onCommentAdded?.(optimisticComment);
     setComment('');
 
@@ -54,19 +54,22 @@ const OptimizedCommentInput = React.memo(({ postId, onCommentAdded }) => {
     }
   }, [comment, session?.user, isSubmitting, postId, onCommentAdded]);
 
-  const handleKeyDown = useCallback((e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit();
-    }
-  }, [handleSubmit]);
+  const handleKeyDown = useCallback(
+    e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSubmit();
+      }
+    },
+    [handleSubmit]
+  );
 
   return (
     <div className="flex gap-2">
       <Input
         placeholder="Add a comment..."
         value={comment}
-        onChange={(e) => setComment(e.target.value)}
+        onChange={e => setComment(e.target.value)}
         onKeyDown={handleKeyDown}
         className="flex-1"
         disabled={isSubmitting}

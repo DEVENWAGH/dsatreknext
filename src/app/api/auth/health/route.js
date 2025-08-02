@@ -15,10 +15,10 @@ export async function GET() {
     return NextResponse.json(health);
   } catch (error) {
     return NextResponse.json(
-      { 
-        status: 'error', 
+      {
+        status: 'error',
         error: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       },
       { status: 500 }
     );

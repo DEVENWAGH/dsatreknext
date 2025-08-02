@@ -1,4 +1,8 @@
-import { useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useQuery,
+  useInfiniteQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 /**
@@ -9,8 +13,12 @@ import { useMemo } from 'react';
 // Query keys for consistent caching
 export const QUERY_KEYS = {
   problems: ['problems'],
-  problemsPaginated: (page, limit, filters) => ['problems', 'paginated', { page, limit, ...filters }],
-  problem: (id) => ['problems', id],
+  problemsPaginated: (page, limit, filters) => [
+    'problems',
+    'paginated',
+    { page, limit, ...filters },
+  ],
+  problem: id => ['problems', id],
   companies: ['companies'],
   tags: ['tags'],
 };
@@ -29,7 +37,11 @@ export const useProblems = (options = {}) => {
   } = options;
 
   return useQuery({
-    queryKey: QUERY_KEYS.problemsPaginated(page, limit, { difficulty, search, tags }),
+    queryKey: QUERY_KEYS.problemsPaginated(page, limit, {
+      difficulty,
+      search,
+      tags,
+    }),
     queryFn: async () => {
       const params = new URLSearchParams({
         page: page.toString(),
@@ -51,7 +63,7 @@ export const useProblems = (options = {}) => {
     keepPreviousData: true, // Keep previous data while fetching new data
     refetchOnWindowFocus: false,
     retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 };
 
@@ -59,13 +71,7 @@ export const useProblems = (options = {}) => {
  * Infinite scroll implementation for problems
  */
 export const useInfiniteProblems = (options = {}) => {
-  const {
-    limit = 20,
-    difficulty,
-    search,
-    tags,
-    enabled = true,
-  } = options;
+  const { limit = 20, difficulty, search, tags, enabled = true } = options;
 
   return useInfiniteQuery({
     queryKey: ['problems', 'infinite', { difficulty, search, tags }],
@@ -131,7 +137,8 @@ export const usePrefetchAdjacentProblems = (currentProblemId, allProblems) => {
 
     const adjacent = [];
     if (currentIndex > 0) adjacent.push(allProblems[currentIndex - 1]);
-    if (currentIndex < allProblems.length - 1) adjacent.push(allProblems[currentIndex + 1]);
+    if (currentIndex < allProblems.length - 1)
+      adjacent.push(allProblems[currentIndex + 1]);
 
     return adjacent;
   }, [currentProblemId, allProblems]);
@@ -200,19 +207,18 @@ export const useBatchProblems = (problemIds, options = {}) => {
  * Optimized search with debouncing
  */
 export const useSearchProblems = (searchQuery, options = {}) => {
-  const {
-    debounceMs = 300,
-    enabled = true,
-    minLength = 2,
-  } = options;
+  const { debounceMs = 300, enabled = true, minLength = 2 } = options;
 
   const debouncedQuery = useDebounce(searchQuery, debounceMs);
-  const shouldSearch = enabled && debouncedQuery && debouncedQuery.length >= minLength;
+  const shouldSearch =
+    enabled && debouncedQuery && debouncedQuery.length >= minLength;
 
   return useQuery({
     queryKey: ['problems', 'search', debouncedQuery],
     queryFn: async () => {
-      const response = await fetch(`/api/problems/search?q=${encodeURIComponent(debouncedQuery)}`);
+      const response = await fetch(
+        `/api/problems/search?q=${encodeURIComponent(debouncedQuery)}`
+      );
       if (!response.ok) {
         throw new Error('Failed to search problems');
       }
@@ -244,7 +250,9 @@ export const useUpdateProblem = () => {
     },
     onSuccess: (data, variables) => {
       // Invalidate and refetch related queries
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.problem(variables.problemId) });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.problem(variables.problemId),
+      });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.problems });
     },
   });

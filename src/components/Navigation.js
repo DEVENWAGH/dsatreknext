@@ -284,7 +284,13 @@ const Navigation = () => {
               <HoverCard openDelay={0} closeDelay={100}>
                 <HoverCardTrigger asChild>
                   <div className="items-center hidden gap-3 p-2 transition-colors rounded-lg cursor-pointer select-none lg:flex hover:bg-accent/50">
-                    <div className="relative" onClick={(e) => { e.stopPropagation(); router.push(`/profile/${user.id}`); }}>
+                    <div
+                      className="relative"
+                      onClick={e => {
+                        e.stopPropagation();
+                        router.push(`/profile/${user.id}`);
+                      }}
+                    >
                       {user.avatar ? (
                         <Image
                           src={user.avatar}
@@ -296,7 +302,11 @@ const Navigation = () => {
                           unoptimized
                         />
                       ) : (
-                        <AvatarFallback name={user.name} size={32} className="border-2 border-border shadow-sm cursor-pointer" />
+                        <AvatarFallback
+                          name={user.name}
+                          size={32}
+                          className="border-2 border-border shadow-sm cursor-pointer"
+                        />
                       )}
                       {user.role === 'admin' && (
                         <Crown className="absolute w-4 h-4 text-yellow-500 -top-1 -right-1" />
@@ -323,7 +333,11 @@ const Navigation = () => {
                               unoptimized
                             />
                           ) : (
-                            <AvatarFallback name={user.name} size={48} className="border-2 border-border" />
+                            <AvatarFallback
+                              name={user.name}
+                              size={48}
+                              className="border-2 border-border"
+                            />
                           )}
                           {user.role === 'admin' && (
                             <Crown className="absolute w-5 h-5 text-yellow-500 -top-1 -right-1" />
@@ -523,7 +537,11 @@ const Navigation = () => {
                           unoptimized
                         />
                       ) : (
-                        <AvatarFallback name={user.name} size={40} className="border-2 border-border" />
+                        <AvatarFallback
+                          name={user.name}
+                          size={40}
+                          className="border-2 border-border"
+                        />
                       )}
                       {user.role === 'admin' && (
                         <Crown className="absolute w-4 h-4 text-yellow-500 -top-1 -right-1" />

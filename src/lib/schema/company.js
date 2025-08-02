@@ -1,10 +1,4 @@
-import {
-  pgTable,
-  uuid,
-  text,
-  index,
-  jsonb,
-} from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, index, jsonb } from 'drizzle-orm/pg-core';
 
 export const Company = pgTable(
   'company',

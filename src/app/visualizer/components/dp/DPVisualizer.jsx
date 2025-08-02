@@ -878,12 +878,25 @@ const DPVisualizer = () => {
       {/* Main Content - Adjust margin for mobile with improved horizontal scrolling */}
       <div className="p-2 sm:p-4 mt-20 lg:mt-40 sm:lg:mt-48 flex flex-col h-[calc(100vh-10rem)] pb-4">
         {visualizationType === 'table' && (
-          <div className="flex-1 relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-lg border border-slate-700 mt-12" style={{ overflow: 'hidden' }}>
+          <div
+            className="flex-1 relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-lg border border-slate-700 mt-12"
+            style={{ overflow: 'hidden' }}
+          >
             <div className="absolute inset-0 opacity-10">
               <svg width="100%" height="100%">
                 <defs>
-                  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#64748b" strokeWidth="1"/>
+                  <pattern
+                    id="grid"
+                    width="40"
+                    height="40"
+                    patternUnits="userSpaceOnUse"
+                  >
+                    <path
+                      d="M 40 0 L 0 0 0 40"
+                      fill="none"
+                      stroke="#64748b"
+                      strokeWidth="1"
+                    />
                   </pattern>
                 </defs>
                 <rect width="100%" height="100%" fill="url(#grid)" />
@@ -908,8 +921,18 @@ const DPVisualizer = () => {
             <div className="absolute inset-0 opacity-10">
               <svg width="100%" height="100%">
                 <defs>
-                  <pattern id="grid-tree" width="40" height="40" patternUnits="userSpaceOnUse">
-                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#64748b" strokeWidth="1"/>
+                  <pattern
+                    id="grid-tree"
+                    width="40"
+                    height="40"
+                    patternUnits="userSpaceOnUse"
+                  >
+                    <path
+                      d="M 40 0 L 0 0 0 40"
+                      fill="none"
+                      stroke="#64748b"
+                      strokeWidth="1"
+                    />
                   </pattern>
                 </defs>
                 <rect width="100%" height="100%" fill="url(#grid-tree)" />
@@ -931,12 +954,25 @@ const DPVisualizer = () => {
         )}
 
         {visualizationType === 'code' && (
-          <div className="flex-1 relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-lg border border-slate-700 mt-12" style={{ overflow: 'hidden' }}>
+          <div
+            className="flex-1 relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-lg border border-slate-700 mt-12"
+            style={{ overflow: 'hidden' }}
+          >
             <div className="absolute inset-0 opacity-10">
               <svg width="100%" height="100%">
                 <defs>
-                  <pattern id="grid-code" width="40" height="40" patternUnits="userSpaceOnUse">
-                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#64748b" strokeWidth="1"/>
+                  <pattern
+                    id="grid-code"
+                    width="40"
+                    height="40"
+                    patternUnits="userSpaceOnUse"
+                  >
+                    <path
+                      d="M 40 0 L 0 0 0 40"
+                      fill="none"
+                      stroke="#64748b"
+                      strokeWidth="1"
+                    />
                   </pattern>
                 </defs>
                 <rect width="100%" height="100%" fill="url(#grid-code)" />

@@ -38,7 +38,9 @@ export const bubbleSort = async (
   isAscending
 ) => {
   // Create a fresh copy of the array to avoid reference issues
-  const arr = array.map(val => typeof val === 'object' ? val.value || val : val);
+  const arr = array.map(val =>
+    typeof val === 'object' ? val.value || val : val
+  );
   const n = arr.length;
 
   try {
@@ -54,7 +56,7 @@ export const bubbleSort = async (
         // Set comparison indices
         setCurrentIndex(j);
         setCompareIndex(j + 1);
-        
+
         // Wait for visualization
         await new Promise(resolve => setTimeout(resolve, getDelay(getSpeed())));
 
@@ -62,12 +64,14 @@ export const bubbleSort = async (
         if (shouldSwap(arr[j], arr[j + 1], isAscending)) {
           [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
           swapped = true;
-          
+
           // Update array immediately after swap
           setArray([...arr]);
-          
+
           // Brief pause to show the swap
-          await new Promise(resolve => setTimeout(resolve, getDelay(getSpeed()) * 0.3));
+          await new Promise(resolve =>
+            setTimeout(resolve, getDelay(getSpeed()) * 0.3)
+          );
         }
       }
 
@@ -177,8 +181,6 @@ export const selectionSort = async (
   setCompareIndex(-1);
   return arr;
 };
-
-
 
 export const quickSort = async (
   array,

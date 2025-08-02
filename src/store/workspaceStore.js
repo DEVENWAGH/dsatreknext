@@ -13,7 +13,7 @@ export const useWorkspaceStore = create(
       selectedTabs: {},
       showHints: {},
       selectedTestCases: {},
-      
+
       // Editor preferences
       editorSettings: {
         fontSize: 14,
@@ -22,7 +22,7 @@ export const useWorkspaceStore = create(
         lineNumbers: 'on',
         theme: 'vs-dark',
       },
-      
+
       // Panel visibility
       panelVisibility: {
         description: true,
@@ -30,44 +30,44 @@ export const useWorkspaceStore = create(
         submissions: false,
         discussion: false,
       },
-      
+
       // Split panel sizes
       panelSizes: {
         horizontal: [50, 50],
         vertical: [60, 40],
       },
-      
+
       // Test case visibility
       hiddenTestCases: {},
-      
+
       // Maximized states
       isEditorMaximized: false,
       isDescriptionMaximized: false,
 
       // UI Actions
-      setEditorSettings: (settings) => {
+      setEditorSettings: settings => {
         set(state => ({
-          editorSettings: { ...state.editorSettings, ...settings }
+          editorSettings: { ...state.editorSettings, ...settings },
         }));
       },
-      
+
       setPanelVisibility: (panel, visible) => {
         set(state => ({
-          panelVisibility: { ...state.panelVisibility, [panel]: visible }
+          panelVisibility: { ...state.panelVisibility, [panel]: visible },
         }));
       },
-      
+
       setPanelSizes: (orientation, sizes) => {
         set(state => ({
-          panelSizes: { ...state.panelSizes, [orientation]: sizes }
+          panelSizes: { ...state.panelSizes, [orientation]: sizes },
         }));
       },
-      
-      setEditorMaximized: (maximized) => {
+
+      setEditorMaximized: maximized => {
         set({ isEditorMaximized: maximized });
       },
-      
-      setDescriptionMaximized: (maximized) => {
+
+      setDescriptionMaximized: maximized => {
         set({ isDescriptionMaximized: maximized });
       },
 

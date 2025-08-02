@@ -7,7 +7,13 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, ArrowUp, ArrowDown, MessageCircle, Clock } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowUp,
+  ArrowDown,
+  MessageCircle,
+  Clock,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import OptimizedCommentInput from '@/components/community/OptimizedCommentInput';
 import { useComments } from '@/hooks/useComments';
@@ -17,14 +23,19 @@ const PostDetailPage = () => {
   const { postId } = useParams();
   const router = useRouter();
   const { data: session } = useSession();
-  const { data: postData, isLoading: postLoading, error: postError } = useCommunityPost(postId);
-  const { data: commentsData, isLoading: commentsLoading } = useComments(postId);
+  const {
+    data: postData,
+    isLoading: postLoading,
+    error: postError,
+  } = useCommunityPost(postId);
+  const { data: commentsData, isLoading: commentsLoading } =
+    useComments(postId);
   const [optimisticComments, setOptimisticComments] = React.useState([]);
 
   const post = postData?.data;
   const allComments = [...(commentsData?.data || []), ...optimisticComments];
 
-  const renderContent = (content) => {
+  const renderContent = content => {
     if (!content) return 'Content not available';
     if (typeof content === 'string') return content;
     if (Array.isArray(content)) {
@@ -56,8 +67,10 @@ const PostDetailPage = () => {
       setOptimisticComments(prev => prev.filter(c => c.id !== tempId));
     } else if (newComment && tempId) {
       // Replace optimistic comment with real one - don't remove, just update
-      setOptimisticComments(prev => 
-        prev.map(c => c.id === tempId ? { ...newComment, isOptimistic: false } : c)
+      setOptimisticComments(prev =>
+        prev.map(c =>
+          c.id === tempId ? { ...newComment, isOptimistic: false } : c
+        )
       );
     } else if (newComment) {
       // Add optimistic comment
@@ -65,7 +78,7 @@ const PostDetailPage = () => {
     }
   };
 
-  const votePost = async (type) => {
+  const votePost = async type => {
     if (!session?.user) {
       toast.error('Please sign in to vote');
       return;
@@ -87,17 +100,23 @@ const PostDetailPage = () => {
     }
   };
 
-  if (postLoading) return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
-  if (postError || !post) return <div className="flex justify-center items-center min-h-screen">Post not found</div>;
+  if (postLoading)
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        Loading...
+      </div>
+    );
+  if (postError || !post)
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        Post not found
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-amber-100 dark:from-gray-900 dark:via-black dark:to-gray-800">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Button
-          onClick={() => router.back()}
-          variant="ghost"
-          className="mb-6"
-        >
+        <Button onClick={() => router.back()} variant="ghost" className="mb-6">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
         </Button>
@@ -111,7 +130,9 @@ const PostDetailPage = () => {
                   className={`p-2 rounded-full transition-colors hover:bg-green-100 dark:hover:bg-green-900/20 
                     ${post.userVote === 'upvote' ? 'bg-green-100 dark:bg-green-900/30' : ''}`}
                 >
-                  <ArrowUp className={`w-4 h-4 ${post.userVote === 'upvote' ? 'text-green-600 font-bold' : 'text-green-600'}`} />
+                  <ArrowUp
+                    className={`w-4 h-4 ${post.userVote === 'upvote' ? 'text-green-600 font-bold' : 'text-green-600'}`}
+                  />
                 </button>
                 <span className="text-sm font-medium text-gray-900 dark:text-white">
                   {post.votes || 0}
@@ -121,14 +142,22 @@ const PostDetailPage = () => {
                   className={`p-2 rounded-full transition-colors hover:bg-red-100 dark:hover:bg-red-900/20 
                     ${post.userVote === 'downvote' ? 'bg-red-100 dark:bg-red-900/30' : ''}`}
                 >
-                  <ArrowDown className={`w-4 h-4 ${post.userVote === 'downvote' ? 'text-red-600 font-bold' : 'text-red-600'}`} />
+                  <ArrowDown
+                    className={`w-4 h-4 ${post.userVote === 'downvote' ? 'text-red-600 font-bold' : 'text-red-600'}`}
+                  />
                 </button>
               </div>
 
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
                   <Avatar className="w-8 h-8">
-                    <AvatarImage src={post.isAnonymous ? '/user.png' : post.profilePicture || '/user.png'} />
+                    <AvatarImage
+                      src={
+                        post.isAnonymous
+                          ? '/user.png'
+                          : post.profilePicture || '/user.png'
+                      }
+                    />
                     <AvatarFallback className="bg-gradient-to-br from-amber-400 to-amber-600 text-white">
                       {post.isAnonymous ? 'A' : post.username?.charAt(0)}
                     </AvatarFallback>
@@ -137,7 +166,10 @@ const PostDetailPage = () => {
                     <span className="font-medium text-gray-900 dark:text-white">
                       {post.isAnonymous ? 'Anonymous' : post.username}
                     </span>
-                    <Badge variant="outline" className="text-xs border-amber-200 text-amber-700 dark:border-amber-500 dark:text-amber-400">
+                    <Badge
+                      variant="outline"
+                      className="text-xs border-amber-200 text-amber-700 dark:border-amber-500 dark:text-amber-400"
+                    >
                       {post.topic}
                     </Badge>
                     <Badge variant="outline" className="text-xs">
@@ -163,24 +195,39 @@ const PostDetailPage = () => {
 
                   {session?.user && (
                     <div className="mb-6">
-                      <OptimizedCommentInput postId={postId} onCommentAdded={handleCommentAdded} />
+                      <OptimizedCommentInput
+                        postId={postId}
+                        onCommentAdded={handleCommentAdded}
+                      />
                     </div>
                   )}
 
                   <div className="space-y-4">
                     {commentsLoading ? (
-                      <div className="text-center py-4 text-gray-500">Loading comments...</div>
+                      <div className="text-center py-4 text-gray-500">
+                        Loading comments...
+                      </div>
                     ) : allComments.length > 0 ? (
                       allComments.map(comment => (
-                        <div key={comment.id} className={`bg-gray-50 dark:bg-gray-800 rounded-lg p-4 ${comment.isOptimistic ? 'opacity-80 border-l-2 border-amber-500' : ''}`}>
+                        <div
+                          key={comment.id}
+                          className={`bg-gray-50 dark:bg-gray-800 rounded-lg p-4 ${comment.isOptimistic ? 'opacity-80 border-l-2 border-amber-500' : ''}`}
+                        >
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
-                              <span className="font-medium text-sm">{comment.username}</span>
+                              <span className="font-medium text-sm">
+                                {comment.username}
+                              </span>
                               <span className="text-xs text-gray-500">
-                                {new Date(comment.createdAt).toLocaleDateString()}
-                                {comment.updatedAt && comment.updatedAt !== comment.createdAt && (
-                                  <span className="ml-1 text-xs text-gray-400">(edited)</span>
-                                )}
+                                {new Date(
+                                  comment.createdAt
+                                ).toLocaleDateString()}
+                                {comment.updatedAt &&
+                                  comment.updatedAt !== comment.createdAt && (
+                                    <span className="ml-1 text-xs text-gray-400">
+                                      (edited)
+                                    </span>
+                                  )}
                               </span>
                             </div>
                           </div>

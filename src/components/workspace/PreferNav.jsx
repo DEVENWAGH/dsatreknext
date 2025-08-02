@@ -46,7 +46,6 @@ const PreferNav = ({
   editorSettings,
   setEditorSettings,
 }) => {
-
   const { getLanguageDisplayName, getLanguageDisplayNameByKey } =
     useLanguageStore();
   const { data: session } = useSession();
@@ -76,10 +75,7 @@ const PreferNav = ({
 
           {/* Language Selector */}
           <div className="flex items-center gap-1 ml-2">
-            <Select
-              value={selectedLanguage}
-              onValueChange={onLanguageChange}
-            >
+            <Select value={selectedLanguage} onValueChange={onLanguageChange}>
               <SelectTrigger className="w-auto bg-transparent border-none h-auto p-2 text-sm font-medium">
                 <SelectValue />
               </SelectTrigger>

@@ -2,7 +2,11 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useProblems, useProblem, usePrefetchProblem } from '@/hooks/useProblems';
+import {
+  useProblems,
+  useProblem,
+  usePrefetchProblem,
+} from '@/hooks/useProblems';
 import { useLanguageStore } from '@/store/languageStore';
 import { useUIStore } from '@/store/uiStore';
 import { useSession } from 'next-auth/react';
@@ -39,11 +43,9 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import dynamic from 'next/dynamic';
 
-const Workspace = dynamic(
-  () => import('@/components/workspace/Workspace'),
-  { ssr: false }
-);
-
+const Workspace = dynamic(() => import('@/components/workspace/Workspace'), {
+  ssr: false,
+});
 
 import { usePremiumAccess } from '@/hooks/usePremiumAccess';
 import PremiumGate from '@/components/PremiumGate';
@@ -92,8 +94,8 @@ const WorkspacePage = () => {
     });
   }, [problems]);
 
-  const currentIndex = React.useMemo(() => 
-    sortedProblems.findIndex(p => p.id === problemId), 
+  const currentIndex = React.useMemo(
+    () => sortedProblems.findIndex(p => p.id === problemId),
     [sortedProblems, problemId]
   );
 
@@ -115,7 +117,7 @@ const WorkspacePage = () => {
           prefetchProblem(sortedProblems[currentIndex + 1].id);
         }
       }, 500);
-      
+
       return () => clearTimeout(prefetchTimer);
     }
   }, [currentIndex, sortedProblems, prefetchProblem]);
@@ -196,13 +198,14 @@ const WorkspacePage = () => {
     getCompanyFromCache,
   ]);
 
-
-
-  const navigateToProblem = useCallback((targetProblemId) => {
-    // Prefetch next problem data
-    prefetchProblem(targetProblemId);
-    router.push(`/workspace/${targetProblemId}`);
-  }, [router, prefetchProblem]);
+  const navigateToProblem = useCallback(
+    targetProblemId => {
+      // Prefetch next problem data
+      prefetchProblem(targetProblemId);
+      router.push(`/workspace/${targetProblemId}`);
+    },
+    [router, prefetchProblem]
+  );
 
   const handlePrevious = useCallback(() => {
     if (currentIndex > 0) {
@@ -248,7 +251,9 @@ const WorkspacePage = () => {
   }
 
   // Always calculate access after problem is loaded
-  const canAccessProblem = problem ? checkProblemAccess(problem, subscription) : true;
+  const canAccessProblem = problem
+    ? checkProblemAccess(problem, subscription)
+    : true;
   const requiredPlan = problem ? getRequiredPlan(problem) : null;
 
   // Show loading when no problem data and still loading
@@ -566,12 +571,10 @@ const WorkspacePage = () => {
                 setEditorSettings={setEditorSettings}
               />
             )}
-            
+
             {/* Premium/Pro Access Gate */}
             {!canAccessProblem && requiredPlan && (
-              <PremiumGate 
-                problemType={requiredPlan} 
-              />
+              <PremiumGate problemType={requiredPlan} />
             )}
           </div>
         </div>

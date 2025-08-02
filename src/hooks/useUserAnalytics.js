@@ -115,23 +115,25 @@ export const useUserAnalytics = userId => {
               : 0,
         }
       : { easy: 0, medium: 0, hard: 0 },
-    mostUsedLanguage: analytics.statistics?.solvedByLanguage && 
-      typeof analytics.statistics.solvedByLanguage === 'object' && 
+    mostUsedLanguage:
+      analytics.statistics?.solvedByLanguage &&
+      typeof analytics.statistics.solvedByLanguage === 'object' &&
       analytics.statistics.solvedByLanguage !== null
-      ? Object.entries(analytics.statistics.solvedByLanguage).reduce(
-          (a, b) =>
-            analytics.statistics.solvedByLanguage[a[0]] >
-            analytics.statistics.solvedByLanguage[b[0]]
-              ? a
-              : b,
-          ['none', 0]
-        )[0]
-      : null,
-    languageCount: analytics.statistics?.solvedByLanguage && 
-      typeof analytics.statistics.solvedByLanguage === 'object' && 
+        ? Object.entries(analytics.statistics.solvedByLanguage).reduce(
+            (a, b) =>
+              analytics.statistics.solvedByLanguage[a[0]] >
+              analytics.statistics.solvedByLanguage[b[0]]
+                ? a
+                : b,
+            ['none', 0]
+          )[0]
+        : null,
+    languageCount:
+      analytics.statistics?.solvedByLanguage &&
+      typeof analytics.statistics.solvedByLanguage === 'object' &&
       analytics.statistics.solvedByLanguage !== null
-      ? Object.keys(analytics.statistics.solvedByLanguage).length
-      : 0,
+        ? Object.keys(analytics.statistics.solvedByLanguage).length
+        : 0,
   };
 
   useEffect(() => {

@@ -16,7 +16,7 @@ export default function ForgotPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSendOTP = async (e) => {
+  const handleSendOTP = async e => {
     e.preventDefault();
     if (!email) {
       toast.error('Please enter your email');
@@ -45,7 +45,7 @@ export default function ForgotPasswordPage() {
     }
   };
 
-  const handleVerifyOTP = async (e) => {
+  const handleVerifyOTP = async e => {
     e.preventDefault();
     if (!otp) {
       toast.error('Please enter the OTP');
@@ -74,7 +74,7 @@ export default function ForgotPasswordPage() {
     }
   };
 
-  const handleResetPassword = async (e) => {
+  const handleResetPassword = async e => {
     e.preventDefault();
     if (!newPassword || !confirmPassword) {
       toast.error('Please fill all fields');
@@ -112,7 +112,15 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-amber-950/20 p-4" style={{ backgroundImage: 'url(/otp.svg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
+    <div
+      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-amber-950/20 p-4"
+      style={{
+        backgroundImage: 'url(/otp.svg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
@@ -128,7 +136,7 @@ export default function ForgotPasswordPage() {
                     type="email"
                     placeholder="Enter your email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={e => setEmail(e.target.value)}
                     className="pl-10"
                     required
                   />
@@ -148,7 +156,7 @@ export default function ForgotPasswordPage() {
                   type="text"
                   placeholder="Enter 6-digit OTP"
                   value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
+                  onChange={e => setOtp(e.target.value)}
                   maxLength={6}
                   required
                 />
@@ -180,7 +188,7 @@ export default function ForgotPasswordPage() {
                     type="password"
                     placeholder="Enter new password"
                     value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
+                    onChange={e => setNewPassword(e.target.value)}
                     className="pl-10"
                     required
                   />
@@ -194,7 +202,7 @@ export default function ForgotPasswordPage() {
                     type="password"
                     placeholder="Confirm new password"
                     value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    onChange={e => setConfirmPassword(e.target.value)}
                     className="pl-10"
                     required
                   />

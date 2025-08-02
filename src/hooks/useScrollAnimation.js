@@ -11,7 +11,7 @@ export const useScrollAnimation = (options = {}) => {
     threshold = 0.1,
     rootMargin = '0px',
     triggerOnce = false,
-    spring = { stiffness: 100, damping: 30, restDelta: 0.001 }
+    spring = { stiffness: 100, damping: 30, restDelta: 0.001 },
   } = options;
 
   const [isInView, setIsInView] = useState(false);
@@ -20,14 +20,18 @@ export const useScrollAnimation = (options = {}) => {
 
   const scrollY = useMotionValue(0);
   const scrollProgress = useMotionValue(0);
-  
+
   // Smooth spring animations
   const smoothScrollY = useSpring(scrollY, spring);
   const smoothProgress = useSpring(scrollProgress, spring);
 
   // Transform values for animations
   const opacity = useTransform(smoothProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
-  const scale = useTransform(smoothProgress, [0, 0.2, 0.8, 1], [0.8, 1, 1, 0.8]);
+  const scale = useTransform(
+    smoothProgress,
+    [0, 0.2, 0.8, 1],
+    [0.8, 1, 1, 0.8]
+  );
   const y = useTransform(smoothScrollY, [0, 1], [50, -50]);
 
   const updateScrollValues = useCallback(() => {
@@ -36,21 +40,25 @@ export const useScrollAnimation = (options = {}) => {
     const element = ref.current;
     const rect = element.getBoundingClientRect();
     const windowHeight = window.innerHeight;
-    
+
     // Calculate scroll progress
     const elementTop = rect.top;
     const elementHeight = rect.height;
-    const progress = Math.max(0, Math.min(1, 
-      (windowHeight - elementTop) / (windowHeight + elementHeight)
-    ));
-    
+    const progress = Math.max(
+      0,
+      Math.min(1, (windowHeight - elementTop) / (windowHeight + elementHeight))
+    );
+
     scrollProgress.set(progress);
-    scrollY.set(window.scrollY / (document.documentElement.scrollHeight - windowHeight));
+    scrollY.set(
+      window.scrollY / (document.documentElement.scrollHeight - windowHeight)
+    );
 
     // Check if element is in view
-    const inView = elementTop < windowHeight * (1 - threshold) && 
-                   rect.bottom > windowHeight * threshold;
-    
+    const inView =
+      elementTop < windowHeight * (1 - threshold) &&
+      rect.bottom > windowHeight * threshold;
+
     if (inView && (!triggerOnce || !hasTriggered)) {
       setIsInView(true);
       if (triggerOnce) setHasTriggered(true);
@@ -97,7 +105,7 @@ export const useScrollAnimation = (options = {}) => {
     opacity,
     scale,
     y,
-    progress: smoothProgress
+    progress: smoothProgress,
   };
 };
 
@@ -105,11 +113,7 @@ export const useScrollAnimation = (options = {}) => {
  * Hook for scroll-triggered animations with stagger
  */
 export const useStaggeredScrollAnimation = (itemCount, options = {}) => {
-  const {
-    staggerDelay = 0.1,
-    threshold = 0.1,
-    triggerOnce = true
-  } = options;
+  const { staggerDelay = 0.1, threshold = 0.1, triggerOnce = true } = options;
 
   const [isInView, setIsInView] = useState(false);
   const ref = useRef(null);
@@ -122,14 +126,17 @@ export const useStaggeredScrollAnimation = (itemCount, options = {}) => {
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsInView(true);
-          
+
           // Stagger animation for child elements
           itemRefs.current.forEach((item, index) => {
             if (item) {
-              setTimeout(() => {
-                item.style.opacity = '1';
-                item.style.transform = 'translateY(0) scale(1)';
-              }, index * staggerDelay * 1000);
+              setTimeout(
+                () => {
+                  item.style.opacity = '1';
+                  item.style.transform = 'translateY(0) scale(1)';
+                },
+                index * staggerDelay * 1000
+              );
             }
           });
         }
@@ -144,9 +151,12 @@ export const useStaggeredScrollAnimation = (itemCount, options = {}) => {
     return () => observer.disconnect();
   }, [threshold, staggerDelay]);
 
-  const setItemRef = useCallback((index) => (el) => {
-    itemRefs.current[index] = el;
-  }, []);
+  const setItemRef = useCallback(
+    index => el => {
+      itemRefs.current[index] = el;
+    },
+    []
+  );
 
   return { ref, isInView, setItemRef };
 };
@@ -169,8 +179,10 @@ export const useParallaxScroll = (speed = 0.5, options = {}) => {
       const rect = ref.current.getBoundingClientRect();
       const scrolled = window.scrollY;
       const rate = scrolled * speed;
-      const yPos = clamp ? Math.max(-200, Math.min(200, rate + offset)) : rate + offset;
-      
+      const yPos = clamp
+        ? Math.max(-200, Math.min(200, rate + offset))
+        : rate + offset;
+
       y.set(yPos);
     };
 
@@ -204,17 +216,21 @@ export const useParallaxScroll = (speed = 0.5, options = {}) => {
 export const useScrollProgress = () => {
   const [progress, setProgress] = useState(0);
   const progressValue = useMotionValue(0);
-  const smoothProgress = useSpring(progressValue, { stiffness: 100, damping: 30 });
+  const smoothProgress = useSpring(progressValue, {
+    stiffness: 100,
+    damping: 30,
+  });
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const updateProgress = () => {
       const scrollTop = window.scrollY;
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const docHeight =
+        document.documentElement.scrollHeight - window.innerHeight;
       const scrollPercent = scrollTop / docHeight;
       const clampedProgress = Math.max(0, Math.min(1, scrollPercent));
-      
+
       setProgress(clampedProgress);
       progressValue.set(clampedProgress);
     };

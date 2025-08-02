@@ -25,7 +25,8 @@ export async function POST(request) {
     }
 
     // Verify OTP from password_resets table
-    const resetRecord = await db.select()
+    const resetRecord = await db
+      .select()
       .from(PasswordReset)
       .where(
         and(
@@ -48,12 +49,14 @@ export async function POST(request) {
     const hashedPassword = await bcrypt.hash(newPassword, 12);
 
     // Update password
-    await db.update(User)
+    await db
+      .update(User)
       .set({ password: hashedPassword })
       .where(eq(User.email, email));
 
     // Mark OTP as used
-    await db.update(PasswordReset)
+    await db
+      .update(PasswordReset)
       .set({ isUsed: 'true' })
       .where(eq(PasswordReset.id, resetRecord[0].id));
 
@@ -61,7 +64,6 @@ export async function POST(request) {
       success: true,
       message: 'Password reset successfully',
     });
-
   } catch (error) {
     console.error('Reset password error:', error);
     return NextResponse.json(

@@ -40,8 +40,6 @@ export function InviteButton({ problemId }) {
 
   const router = useRouter();
 
-
-
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
       const searchParams = new URLSearchParams(window.location.search);
@@ -90,17 +88,16 @@ export function InviteButton({ problemId }) {
     }
 
     try {
-
-    if (isInRoom) {
-      // Copy current URL if already in room
-      try {
-        await navigator.clipboard.writeText(window.location.href);
-        toast.success('Room link copied to clipboard!');
-      } catch (err) {
-        toast.error('Failed to copy link');
+      if (isInRoom) {
+        // Copy current URL if already in room
+        try {
+          await navigator.clipboard.writeText(window.location.href);
+          toast.success('Room link copied to clipboard!');
+        } catch (err) {
+          toast.error('Failed to copy link');
+        }
+        return;
       }
-      return;
-    }
 
       // Create new room
       setShowJoining(true);
@@ -115,12 +112,16 @@ export function InviteButton({ problemId }) {
       setIsHost(true);
 
       const newUrl = `${window.location.origin}${window.location.pathname}?roomId=${roomIdParam}`;
-      window.history.pushState({}, '', `${window.location.pathname}?roomId=${roomIdParam}`);
+      window.history.pushState(
+        {},
+        '',
+        `${window.location.pathname}?roomId=${roomIdParam}`
+      );
 
       setTimeout(async () => {
         setShowJoining(false);
         setIsInRoom(true);
-        
+
         // Auto-copy the collaboration link with full URL
         try {
           await navigator.clipboard.writeText(newUrl);
@@ -128,7 +129,7 @@ export function InviteButton({ problemId }) {
         } catch (err) {
           toast.success('Room created! Share this URL to invite others.');
         }
-        
+
         // Refresh page with smooth animation for proper sync
         setTimeout(() => {
           window.location.reload();
@@ -146,49 +147,48 @@ export function InviteButton({ problemId }) {
 
     if (currentRoomId) {
       const { roomStateManager } = await import('@/utils/roomState');
-      
+
       try {
-
         if (isHost) {
-        // Host ends the room for everyone
-        const { useAuthStore } = await import('@/store/authStore');
-        const authUser = useAuthStore.getState().authUser;
-        
-        const ended = roomStateManager.endRoom(
-          currentRoomId,
-          authUser?.id || 'user'
-        );
+          // Host ends the room for everyone
+          const { useAuthStore } = await import('@/store/authStore');
+          const authUser = useAuthStore.getState().authUser;
 
-        if (ended) {
+          const ended = roomStateManager.endRoom(
+            currentRoomId,
+            authUser?.id || 'user'
+          );
+
+          if (ended) {
+            setShowEndDialog(false);
+
+            // Show single toast for host only
+            toast.success('Collaboration ended for all users');
+
+            window.history.pushState({}, '', window.location.pathname);
+            setIsInRoom(false);
+
+            // Refresh page to return to regular workspace
+            setTimeout(() => {
+              window.location.reload();
+            }, 500);
+          } else {
+            toast.error('Failed to end collaboration');
+            setShowEndDialog(false);
+          }
+        } else {
+          // Member leaves the room (can rejoin)
           setShowEndDialog(false);
-
-          // Show single toast for host only
-          toast.success('Collaboration ended for all users');
-
           window.history.pushState({}, '', window.location.pathname);
           setIsInRoom(false);
+          setIsHost(false);
+          toast.success('Left collaboration - you can rejoin using the link');
 
           // Refresh page to return to regular workspace
           setTimeout(() => {
             window.location.reload();
           }, 500);
-        } else {
-          toast.error('Failed to end collaboration');
-          setShowEndDialog(false);
         }
-      } else {
-        // Member leaves the room (can rejoin)
-        setShowEndDialog(false);
-        window.history.pushState({}, '', window.location.pathname);
-        setIsInRoom(false);
-        setIsHost(false);
-        toast.success('Left collaboration - you can rejoin using the link');
-
-        // Refresh page to return to regular workspace
-        setTimeout(() => {
-          window.location.reload();
-        }, 500);
-      }
       } catch (error) {
         console.error('Failed to check authentication:', error);
         toast.error('Authentication check failed');

@@ -238,7 +238,9 @@ const AlgorithmCategory = ({
             >
               {icon}
             </div>
-            <h3 className="text-xl font-bold text-neutral-600 dark:text-white">{title}</h3>
+            <h3 className="text-xl font-bold text-neutral-600 dark:text-white">
+              {title}
+            </h3>
           </CardItem>
 
           <CardItem translateZ="50" className="flex-grow">
@@ -460,7 +462,7 @@ const Home = () => {
         className="relative w-full"
         colors={['#8c6239', '#ffd277', '#d4af37', '#b45309']}
         waveWidth={50}
-        backgroundFill='var(--background)'
+        backgroundFill="var(--background)"
         blur={10}
         waveOpacity={0.5}
       />

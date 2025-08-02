@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { problemAPI } from '@/api/api';
 
-export const useSubmissions = (problemId) => {
+export const useSubmissions = problemId => {
   return useQuery({
     queryKey: ['submissions', problemId],
     queryFn: async () => {
@@ -15,7 +15,7 @@ export const useSubmissions = (problemId) => {
 
 export const useSubmitSolution = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async ({ problemId, code, language }) => {
       return await problemAPI.submit({ problemId, code, language });
@@ -26,7 +26,7 @@ export const useSubmitSolution = () => {
       // Update user progress
       queryClient.invalidateQueries(['user-progress']);
     },
-    onError: (error) => {
+    onError: error => {
       console.error('Submission failed:', error);
     },
   });

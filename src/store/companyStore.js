@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { companyAPI } from '@/api/api';
 
-const createCompanyMap = (companies) => 
+const createCompanyMap = companies =>
   companies.reduce((acc, company) => {
     acc[company.id] = {
       name: company.name,

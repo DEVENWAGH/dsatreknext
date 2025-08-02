@@ -22,7 +22,7 @@ PostItem.displayName = 'PostItem';
 
 const VirtualizedPostList = memo(({ posts, PostCard, height = 600 }) => {
   const itemData = { posts, PostCard };
-  
+
   if (!posts?.length) {
     return (
       <Card className="p-8 text-center">

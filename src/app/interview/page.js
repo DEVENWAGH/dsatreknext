@@ -60,9 +60,9 @@ const Interview = () => {
           setIsDialogOpen(false);
           toast.success('Interview created successfully!');
         },
-        onError: (error) => {
+        onError: error => {
           toast.error(`Failed to create interview: ${error.message}`);
-        }
+        },
       });
     } catch (error) {
       console.error('Error creating interview:', error);
@@ -121,8 +121,8 @@ const Interview = () => {
                     Master Your Next Interview
                   </h2>
                   <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed">
-                    Practice with AI-powered mock interviews tailored to your role.
-                    Get real-time feedback and boost your confidence.
+                    Practice with AI-powered mock interviews tailored to your
+                    role. Get real-time feedback and boost your confidence.
                   </p>
                 </div>
                 <div className="space-y-4">
@@ -152,7 +152,10 @@ const Interview = () => {
                         Create New Interview
                       </DialogTitle>
                     </DialogHeader>
-                    <InterviewForm onSubmit={onSubmit} isCreating={isCreating} />
+                    <InterviewForm
+                      onSubmit={onSubmit}
+                      isCreating={isCreating}
+                    />
                   </DialogContent>
                 </Dialog>
               </div>

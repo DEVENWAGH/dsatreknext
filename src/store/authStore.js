@@ -15,7 +15,7 @@ export const useAuthStore = create(
       checkAuth: async () => {
         const state = get();
         if (state.isCheckingAuth) return state.authUser;
-        
+
         set({ isCheckingAuth: true, error: null });
         try {
           const response = await fetch('/api/auth/session', {
@@ -48,12 +48,12 @@ export const useAuthStore = create(
         try {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 3000);
-          
+
           const response = await fetch('/api/payments/subscription', {
             credentials: 'include',
             signal: controller.signal,
           });
-          
+
           clearTimeout(timeoutId);
 
           if (response.ok) {
@@ -67,7 +67,7 @@ export const useAuthStore = create(
             console.error('Subscription check error:', error);
           }
         }
-        
+
         set({ subscription: defaultSub });
         return defaultSub;
       },

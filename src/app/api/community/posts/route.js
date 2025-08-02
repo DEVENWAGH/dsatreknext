@@ -82,7 +82,7 @@ export async function GET(request) {
       posts.map(async post => {
         // Create a unique scope for each post to prevent vote count leakage
         const postId = post.id; // Store post ID in local variable
-        
+
         // Ensure content is properly formatted
         if (post.content && typeof post.content === 'object') {
           // If content is already an object, keep it as is
@@ -99,7 +99,7 @@ export async function GET(request) {
           // Fallback for null/undefined content
           post.content = null;
         }
-        
+
         try {
           const comments = await db
             .select({

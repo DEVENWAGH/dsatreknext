@@ -234,11 +234,11 @@ const useAlgorithmStore = create((set, get) => ({
     const { arraySize } = get();
     const screenWidth = getScreenWidth();
     const baseHeight = screenWidth < 640 ? 20 : screenWidth < 1024 ? 15 : 10;
-    
+
     const newArray = Array.from({ length: arraySize }, () =>
       Math.floor(Math.random() * (200 - baseHeight) + baseHeight)
     );
-    
+
     set({
       array: newArray,
       isPlaying: false,
@@ -254,13 +254,13 @@ const useAlgorithmStore = create((set, get) => ({
   startSorting: async () => {
     const state = get();
     const { array, currentAlgorithm, isAscending, isSorting } = state;
-    
+
     // Prevent multiple sorts from running
     if (isSorting || !array.length || !currentAlgorithm) return;
 
     // Create a unique sort ID to track this sort operation
     const sortId = Date.now();
-    
+
     set({
       isSorting: true,
       isPlaying: true,
@@ -279,7 +279,7 @@ const useAlgorithmStore = create((set, get) => ({
       if (algorithm) {
         await algorithm(
           [...array], // Always pass a fresh copy
-          (newArray) => {
+          newArray => {
             // Only update if this is still the current sort
             if (get().currentSortId === sortId) {
               set({ array: newArray });
@@ -299,7 +299,7 @@ const useAlgorithmStore = create((set, get) => ({
           () => get().isPlaying && get().currentSortId === sortId,
           isAscending
         );
-        
+
         // Only complete if this is still the current sort
         if (get().currentSortId === sortId) {
           set({

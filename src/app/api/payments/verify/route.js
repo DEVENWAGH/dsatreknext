@@ -51,7 +51,7 @@ export async function POST(request) {
         orderId: razorpay_order_id,
         paymentId: razorpay_payment_id,
         userId: session.user.id,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
       return NextResponse.json(
         {
@@ -63,12 +63,17 @@ export async function POST(request) {
     }
 
     // Additional security: Verify planId is valid for paid plans
-    const validPaidPlans = ['pro', 'premium', 'premium_monthly', 'premium_yearly'];
+    const validPaidPlans = [
+      'pro',
+      'premium',
+      'premium_monthly',
+      'premium_yearly',
+    ];
     if (!validPaidPlans.includes(planId)) {
       console.error('Invalid plan ID for payment verification:', {
         planId,
         userId: session.user.id,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
       return NextResponse.json(
         {
@@ -128,7 +133,7 @@ export async function POST(request) {
       orderId: razorpay_order_id,
       paymentId: razorpay_payment_id,
       expiresAt: subscriptionExpiresAt?.toISOString(),
-      timestamp: now.toISOString()
+      timestamp: now.toISOString(),
     });
 
     return NextResponse.json({
@@ -144,7 +149,8 @@ export async function POST(request) {
     return NextResponse.json(
       {
         success: false,
-        message: 'Payment verification failed. Please contact support if amount was deducted.',
+        message:
+          'Payment verification failed. Please contact support if amount was deducted.',
       },
       { status: 500 }
     );

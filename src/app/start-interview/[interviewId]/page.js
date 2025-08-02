@@ -1,5 +1,5 @@
 'use client';
-
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
 import { useInterviewStore } from '@/store/interviewStore';
@@ -20,7 +20,6 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-
 
 export default function StartInterviewPage() {
   const { interviewId } = useParams();
@@ -92,7 +91,7 @@ export default function StartInterviewPage() {
   );
 
   // Parse duration to seconds
-  const parseDurationToSeconds = (duration) => {
+  const parseDurationToSeconds = duration => {
     if (!duration) return 900; // Default 15 minutes
     const match = duration.match(/(\d+)\s*(minute|min|hour|hr)s?/i);
     if (match) {
@@ -123,10 +122,10 @@ export default function StartInterviewPage() {
         const now = new Date();
         const elapsed = Math.floor((now - interviewStartTime) / 1000);
         const remaining = Math.max(0, totalDuration - elapsed);
-        
+
         setElapsedTime(elapsed);
         setRemainingTime(remaining);
-        
+
         // Auto-end interview when time is up
         if (remaining <= 0 && vapi && isConnected) {
           toast.success('Interview completed! Time is up.');
@@ -136,8 +135,9 @@ export default function StartInterviewPage() {
               type: 'add-message',
               message: {
                 role: 'assistant',
-                content: 'Thank you for your time today. Your interview duration has been completed. This concludes our interview session. Have a great day!'
-              }
+                content:
+                  'Thank you for your time today. Your interview duration has been completed. This concludes our interview session. Have a great day!',
+              },
             });
             // Wait a moment for the message to be spoken
             setTimeout(() => {
@@ -151,7 +151,14 @@ export default function StartInterviewPage() {
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isInterviewActive, interviewStartTime, totalDuration, vapi, isConnected, handleInterviewEnd]);
+  }, [
+    isInterviewActive,
+    interviewStartTime,
+    totalDuration,
+    vapi,
+    isConnected,
+    handleInterviewEnd,
+  ]);
 
   // Initialize Vapi
   useEffect(() => {
@@ -164,17 +171,23 @@ export default function StartInterviewPage() {
           console.error('Failed to import @vapi-ai/web:', err);
           throw new Error('Vapi module not available');
         });
-        
+
         let Vapi;
-        
+
         // Handle different export formats in dev vs production
         if (VapiModule.default) {
           // In production, default might be wrapped
           if (typeof VapiModule.default === 'function') {
             Vapi = VapiModule.default;
-          } else if (VapiModule.default.default && typeof VapiModule.default.default === 'function') {
+          } else if (
+            VapiModule.default.default &&
+            typeof VapiModule.default.default === 'function'
+          ) {
             Vapi = VapiModule.default.default;
-          } else if (VapiModule.default.Vapi && typeof VapiModule.default.Vapi === 'function') {
+          } else if (
+            VapiModule.default.Vapi &&
+            typeof VapiModule.default.Vapi === 'function'
+          ) {
             Vapi = VapiModule.default.Vapi;
           }
         } else if (VapiModule.Vapi && typeof VapiModule.Vapi === 'function') {
@@ -182,7 +195,7 @@ export default function StartInterviewPage() {
         } else if (typeof VapiModule === 'function') {
           Vapi = VapiModule;
         }
-        
+
         const vapiApiKey = process.env.NEXT_PUBLIC_VAPI_API_KEY;
 
         if (!vapiApiKey) {
@@ -192,9 +205,15 @@ export default function StartInterviewPage() {
         }
 
         if (typeof Vapi !== 'function') {
-          console.error('Vapi is not a constructor. Available exports:', Object.keys(VapiModule));
+          console.error(
+            'Vapi is not a constructor. Available exports:',
+            Object.keys(VapiModule)
+          );
           console.error('Default export type:', typeof VapiModule.default);
-          console.error('Default export keys:', VapiModule.default ? Object.keys(VapiModule.default) : 'none');
+          console.error(
+            'Default export keys:',
+            VapiModule.default ? Object.keys(VapiModule.default) : 'none'
+          );
           setIsVoiceInitialized(false);
           return;
         }
@@ -372,7 +391,9 @@ export default function StartInterviewPage() {
       } catch (vapiError) {
         console.warn('Vapi failed but continuing with timer:', vapiError);
         // Keep the interview active even if Vapi fails
-        toast.warning('Voice service unavailable, but interview timer is running');
+        toast.warning(
+          'Voice service unavailable, but interview timer is running'
+        );
       }
     } catch (error) {
       console.error('❌ Failed to start voice interview:', error);
@@ -416,7 +437,7 @@ export default function StartInterviewPage() {
   };
 
   // Format time display
-  const formatTime = (seconds) => {
+  const formatTime = seconds => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
@@ -440,7 +461,7 @@ export default function StartInterviewPage() {
     // Multiple event listeners for different exit scenarios
     window.addEventListener('beforeunload', handlePageExit);
     window.addEventListener('pagehide', handlePageExit);
-    
+
     // Visibility change (tab switch)
     const handleVisibilityChange = () => {
       if (document.hidden && isInterviewActive) {
@@ -503,10 +524,7 @@ export default function StartInterviewPage() {
                   <div className="text-center lg:text-left space-y-4 relative">
                     <div className="lg:hidden mb-6">
                       <Avatar className="w-24 h-24 mx-auto">
-                        <AvatarImage
-                          src="/user.png"
-                          alt="AI Interviewer"
-                        />
+                        <AvatarImage src="/user.png" alt="AI Interviewer" />
                         <AvatarFallback className="bg-primary/10">
                           <Bot className="w-12 h-12 text-primary" />
                         </AvatarFallback>
@@ -547,7 +565,11 @@ export default function StartInterviewPage() {
                   </div>
                   <div className="hidden lg:block">
                     <div className="w-64 h-64 flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg">
-                      <img src="/user.png" alt="User" className="w-32 h-32 rounded-full" />
+                      <Image
+                        src="/user.png"
+                        alt="User"
+                        className="w-32 h-32 rounded-full"
+                      />
                     </div>
                   </div>
                 </div>
@@ -557,15 +579,26 @@ export default function StartInterviewPage() {
             {/* Always show timer when interview is active */}
             {isInterviewActive && (
               <div className="absolute top-2 right-2 z-50">
-                <Badge 
-                  variant={remainingTime <= 60 ? 'destructive' : remainingTime <= 300 ? 'default' : 'secondary'}
+                <Badge
+                  variant={
+                    remainingTime <= 60
+                      ? 'destructive'
+                      : remainingTime <= 300
+                        ? 'default'
+                        : 'secondary'
+                  }
                   className={`flex items-center gap-1 px-3 py-1 text-lg font-mono transition-all duration-300 ${
                     remainingTime <= 60 ? 'animate-pulse' : ''
                   }`}
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10"/>
-                    <polyline points="12,6 12,12 16,14"/>
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12,6 12,12 16,14" />
                   </svg>
                   {formatTime(remainingTime)}
                 </Badge>
@@ -599,7 +632,10 @@ export default function StartInterviewPage() {
                 {/* Time Warning */}
                 {remainingTime <= 60 && remainingTime > 0 && (
                   <div className="absolute top-14 right-2">
-                    <Badge variant="destructive" className="text-xs animate-bounce">
+                    <Badge
+                      variant="destructive"
+                      className="text-xs animate-bounce"
+                    >
                       ⚠️ 1 minute left!
                     </Badge>
                   </div>
@@ -700,9 +736,13 @@ export default function StartInterviewPage() {
                     Duration: {interview.duration}
                   </div>
                   {isInterviewActive && (
-                    <div className={`mt-1 text-xs ${
-                      remainingTime <= 60 ? 'text-red-500 font-semibold' : 'text-muted-foreground'
-                    }`}>
+                    <div
+                      className={`mt-1 text-xs ${
+                        remainingTime <= 60
+                          ? 'text-red-500 font-semibold'
+                          : 'text-muted-foreground'
+                      }`}
+                    >
                       Remaining: {formatTime(remainingTime)}
                     </div>
                   )}

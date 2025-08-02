@@ -25,12 +25,12 @@ export const useAdminStore = create(
       // Get all users with deduplication
       getAllUsers: async (params = {}) => {
         const state = get();
-        
+
         // Return existing promise if already fetching
         if (state._usersPromise) {
           return state._usersPromise;
         }
-        
+
         const promise = (async () => {
           set({ isLoading: true, error: null });
           try {
@@ -53,12 +53,16 @@ export const useAdminStore = create(
 
             return { data: users, pagination };
           } catch (error) {
-            set({ error: error.message, isLoading: false, _usersPromise: null });
+            set({
+              error: error.message,
+              isLoading: false,
+              _usersPromise: null,
+            });
             console.error('Error fetching users:', error);
             return null;
           }
         })();
-        
+
         set({ _usersPromise: promise });
         return promise;
       },
@@ -98,17 +102,17 @@ export const useAdminStore = create(
       // Get admin statistics with caching
       getTotalStats: async (forceRefresh = false) => {
         const state = get();
-        
+
         // Return cached data if available and not forcing refresh
         if (!forceRefresh && state.totalStats.totalUsers > 0) {
           return state.totalStats;
         }
-        
+
         // Return existing promise if already fetching
         if (state._statsPromise) {
           return state._statsPromise;
         }
-        
+
         const promise = (async () => {
           set({ isLoadingStats: true, error: null });
           try {
@@ -123,12 +127,16 @@ export const useAdminStore = create(
 
             return stats;
           } catch (error) {
-            set({ error: error.message, isLoadingStats: false, _statsPromise: null });
+            set({
+              error: error.message,
+              isLoadingStats: false,
+              _statsPromise: null,
+            });
             console.error('Error fetching admin stats:', error);
             return get().totalStats; // Return cached data on error
           }
         })();
-        
+
         set({ _statsPromise: promise });
         return promise;
       },

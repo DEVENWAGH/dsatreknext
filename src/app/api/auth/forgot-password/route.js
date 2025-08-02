@@ -27,8 +27,12 @@ export async function POST(request) {
     }
 
     // Check if user exists
-    const user = await db.select().from(User).where(eq(User.email, email)).limit(1);
-    
+    const user = await db
+      .select()
+      .from(User)
+      .where(eq(User.email, email))
+      .limit(1);
+
     if (!user.length) {
       return NextResponse.json(
         { success: false, message: 'User not found' },
@@ -72,7 +76,6 @@ export async function POST(request) {
       success: true,
       message: 'OTP sent successfully',
     });
-
   } catch (error) {
     console.error('Forgot password error:', error);
     return NextResponse.json(

@@ -83,8 +83,6 @@ const Workspace = ({
     setIsEditorMaximized(maximized);
   }, []);
 
-
-
   // Workspace component will structure the main split view
   return (
     <div className="h-full">

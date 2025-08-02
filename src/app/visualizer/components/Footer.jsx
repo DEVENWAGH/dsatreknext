@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { FloatingDock } from './ui/floating-dock';
 import Link from 'next/link';
 import Image from 'next/image';
-  import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import PropTypes from 'prop-types';
 
 const Footer = () => {

@@ -93,7 +93,7 @@ export async function POST(request, { params }) {
     const { Problem } = await import('@/lib/schema');
     const { prepareCodeForJudge } = await import('@/utils/codeProcessor');
     const { useLanguageStore } = await import('@/store/languageStore');
-    
+
     const problem = await db
       .select()
       .from(Problem)
@@ -108,14 +108,14 @@ export async function POST(request, { params }) {
     }
 
     const testCases = problem[0].testCases || [];
-    
+
     // Convert language ID to language key
     const languageData = useLanguageStore.getState().getLanguageById(language);
     const languageKey = languageData?.key || 'CPP';
 
     // Prepare final code with template merging
     const finalCode = prepareCodeForJudge(problem[0], code, languageKey);
-    
+
     // Submit to Judge0 for all test cases
     const testInputs = testCases.map(tc => tc.input);
     const submissions = [];
@@ -152,11 +152,11 @@ export async function POST(request, { params }) {
       const result = submissions[i];
       const expectedOutput = testCases[i]?.output || '';
       const actualOutput = result.stdout || '';
-      
+
       if (actualOutput.trim() === expectedOutput.trim()) {
         passedTests++;
       }
-      
+
       // Get runtime and memory from first successful execution
       if (!runtime && result.time) runtime = result.time;
       if (!memory && result.memory) memory = result.memory;

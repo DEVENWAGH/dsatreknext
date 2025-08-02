@@ -160,19 +160,19 @@ export const authAPI = {
 export const problemAPI = {
   getAll: async (filters = {}) => {
     const queryParams = new URLSearchParams();
-    
+
     // Handle pagination parameters
     if (filters.page) queryParams.append('page', filters.page);
     if (filters.limit) queryParams.append('limit', filters.limit);
     if (filters.fields) queryParams.append('fields', filters.fields);
-    
+
     // Handle other filters
     Object.keys(filters).forEach(key => {
       if (!['page', 'limit', 'fields'].includes(key) && filters[key]) {
         queryParams.append(key, filters[key]);
       }
     });
-    
+
     return apiCall(`/problems?${queryParams}`);
   },
 
@@ -219,14 +219,21 @@ export const problemAPI = {
   submit: async ({ problemId, code, language }) => {
     return apiCall(`/submissions/${problemId}`, {
       method: 'POST',
-      body: JSON.stringify({ source_code: code, language_id: parseInt(language) }),
+      body: JSON.stringify({
+        source_code: code,
+        language_id: parseInt(language),
+      }),
     });
   },
 
   test: async ({ problemId, code, language, testCases }) => {
     return apiCall(`/submissions/${problemId}`, {
       method: 'POST',
-      body: JSON.stringify({ source_code: code, language_id: parseInt(language), stdin: testCases }),
+      body: JSON.stringify({
+        source_code: code,
+        language_id: parseInt(language),
+        stdin: testCases,
+      }),
     });
   },
 };
@@ -593,7 +600,9 @@ export const paymentAPI = {
       if (sessionResponse.ok) {
         const session = await sessionResponse.json();
         if (session?.user?.id) {
-          const response = await apiCall(`/payments/subscription?userId=${session.user.id}`);
+          const response = await apiCall(
+            `/payments/subscription?userId=${session.user.id}`
+          );
           return response;
         }
       }

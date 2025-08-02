@@ -49,9 +49,7 @@ const MobileSidebar = ({ isOpen, onClose }) => {
         onClick={e => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-6 border-b border-border pb-4">
-          <h3 className="text-xl font-bold text-brand">
-            Algorithm Categories
-          </h3>
+          <h3 className="text-xl font-bold text-brand">Algorithm Categories</h3>
           <button
             onClick={onClose}
             className="p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-accent"

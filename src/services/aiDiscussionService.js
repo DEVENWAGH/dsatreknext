@@ -20,8 +20,10 @@ export const generateAIDiscussionResponse = async ({
   try {
     // Use direct Gemini API if selected
     if (model === 'gemini-direct') {
-      const geminiModel = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-      
+      const geminiModel = genAI.getGenerativeModel({
+        model: 'gemini-2.5-flash',
+      });
+
       const prompt = `You are an expert programming tutor helping students understand data structures and algorithms problems.
 
 Problem Context:
@@ -69,7 +71,7 @@ Keep responses concise but informative.`;
 
       const result = await geminiModel.generateContent(prompt);
       const response = result.response.text();
-      
+
       return {
         success: true,
         response: response.trim(),

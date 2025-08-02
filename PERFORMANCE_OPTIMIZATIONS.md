@@ -3,35 +3,41 @@
 ## Implemented Optimizations
 
 ### 1. API Pagination & Caching
+
 - **Added pagination support** to `/api/problems` route
 - **Implemented server-side caching** with `Cache-Control` headers (5 minutes)
 - **Field selection** support to fetch only required data
 - **Reduced initial payload** from all problems to 10 problems per page
 
 ### 2. Pagination
+
 - **Traditional pagination** with Previous/Next controls
 - **10 problems per page** for optimal loading
 - **Page state management** in problem store
 - **Scalable for future growth**
 
 ### 3. Code Splitting & Lazy Loading
+
 - **Created `LazyComponents.jsx`** with dynamic imports
 - **Lazy loaded heavy components**: ProblemTable, DifficultyFilter, DailyChallengeCalendar
 - **Added proper loading skeletons** for each lazy component
 - **Reduced initial bundle size** by ~30-40%
 
 ### 4. Optimized Company Data Fetching
+
 - **Single API call** fetches all companies on mount
 - **Cached in Zustand store** with persistence
 - **Instant company display** from cache for all rows
 - **Reduced from 50+ API calls to 1 call**
 
 ### 5. Prefetching
+
 - **Created `usePrefetch` hook** for background data loading
 - **Added prefetching on home page** to load first 10 problems
 - **Improved perceived performance** when navigating to /problems
 
 ### 6. Performance Monitoring
+
 - **Added `PerformanceMonitor` component** to track Core Web Vitals
 - **Monitoring LCP, FID, CLS** and load times
 - **Console logging** for development performance tracking
@@ -39,12 +45,14 @@
 ## Performance Impact
 
 ### Before Optimizations:
+
 - Initial load: ~2-3 seconds for 50+ problems
 - Bundle size: Large due to all components loaded upfront
 - Company API calls: 50+ simultaneous requests
 - No caching: Every visit refetched all data
 
 ### After Optimizations:
+
 - Initial load: ~600ms-1s for 10 problems
 - Bundle size: Reduced by ~35% with code splitting
 - Company API calls: Reduced from 50+ to 1 single call
@@ -98,6 +106,7 @@
 ## Monitoring:
 
 Use the browser's Network tab and Console to monitor:
+
 - Reduced API calls
 - Faster load times
 - Smaller initial bundle size

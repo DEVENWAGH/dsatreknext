@@ -17,7 +17,8 @@ export async function POST(request) {
     }
 
     // Verify OTP from database
-    const resetRecord = await db.select()
+    const resetRecord = await db
+      .select()
       .from(PasswordReset)
       .where(
         and(
@@ -35,15 +36,17 @@ export async function POST(request) {
         { status: 400 }
       );
     }
-    
+
     // Mark user as verified
-    const [verifiedUser] = await db.update(User)
+    const [verifiedUser] = await db
+      .update(User)
       .set({ isVerified: true })
       .where(eq(User.email, email))
       .returning();
 
     // Mark OTP as used
-    await db.update(PasswordReset)
+    await db
+      .update(PasswordReset)
       .set({ isUsed: 'true' })
       .where(eq(PasswordReset.id, resetRecord[0].id));
 
@@ -58,7 +61,6 @@ export async function POST(request) {
         lastName: verifiedUser.lastName,
       },
     });
-
   } catch (error) {
     console.error('Verify signup error:', error);
     return NextResponse.json(

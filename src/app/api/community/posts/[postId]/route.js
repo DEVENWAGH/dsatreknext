@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { Community as posts, Comments as comments, User, Votes } from '@/lib/schema';
+import {
+  Community as posts,
+  Comments as comments,
+  User,
+  Votes,
+} from '@/lib/schema';
 import { eq } from 'drizzle-orm';
 import { auth } from '@/auth';
 
@@ -8,7 +13,7 @@ export async function GET(request, { params }) {
   try {
     const { postId } = await params;
     console.log('Fetching post with ID:', postId);
-    
+
     const session = await auth();
     const userId = session?.user?.id;
     console.log('User ID:', userId);
@@ -27,8 +32,11 @@ export async function GET(request, { params }) {
       .from(posts)
       .where(eq(posts.id, postId))
       .limit(1);
-    
-    console.log('Post data fetched:', postData.length > 0 ? 'Found' : 'Not found');
+
+    console.log(
+      'Post data fetched:',
+      postData.length > 0 ? 'Found' : 'Not found'
+    );
 
     if (postData.length === 0) {
       return NextResponse.json(
@@ -50,7 +58,7 @@ export async function GET(request, { params }) {
       createdAt: post.createdAt,
       userId: post.userId,
       username: post.username,
-      content: null // Will be set below
+      content: null, // Will be set below
     };
 
     // Safely handle content
@@ -73,14 +81,14 @@ export async function GET(request, { params }) {
       console.error('Error processing content:', error);
       safePost.content = null;
     }
-    
+
     console.log('Safe post content after processing:', typeof safePost.content);
 
     // Set default values to avoid undefined issues
     safePost.comments = [];
     safePost.votes = 0;
     safePost.userVote = null;
-    
+
     console.log('About to return post data');
     console.log('Safe post object keys:', Object.keys(safePost));
     console.log('Safe post content final:', safePost.content);
@@ -112,7 +120,11 @@ export async function DELETE(request, { params }) {
     const { postId } = await params;
 
     // Get post to check ownership
-    const [post] = await db.select().from(posts).where(eq(posts.id, postId)).limit(1);
+    const [post] = await db
+      .select()
+      .from(posts)
+      .where(eq(posts.id, postId))
+      .limit(1);
     if (!post) {
       return NextResponse.json(
         { success: false, error: 'Post not found' },
@@ -121,7 +133,11 @@ export async function DELETE(request, { params }) {
     }
 
     // Check if user is admin or post owner
-    const [user] = await db.select().from(User).where(eq(User.id, session.user.id)).limit(1);
+    const [user] = await db
+      .select()
+      .from(User)
+      .where(eq(User.id, session.user.id))
+      .limit(1);
     const isAdmin = user?.role === 'admin';
     const isOwner = post.userId === session.user.id;
 
@@ -134,7 +150,7 @@ export async function DELETE(request, { params }) {
 
     // Delete comments first
     await db.delete(comments).where(eq(comments.postId, postId));
-    
+
     // Delete post
     await db.delete(posts).where(eq(posts.id, postId));
 

@@ -143,9 +143,10 @@ function PlateContentRenderer({ content, className = '' }) {
           };
 
           const codeContent = extractTextFromCodeLines(node.children);
-          
+
           // Check if this is a test case (contains Input: or Output:)
-          const isTestCase = codeContent.includes('Input:') || codeContent.includes('Output:');
+          const isTestCase =
+            codeContent.includes('Input:') || codeContent.includes('Output:');
 
           if (isTestCase) {
             // Render test case without copy button
@@ -158,9 +159,7 @@ function PlateContentRenderer({ content, className = '' }) {
                 </div>
                 <div className="relative overflow-x-auto bg-muted/50 border border-border rounded-b-lg">
                   <pre className="p-4 text-sm font-mono leading-relaxed text-foreground overflow-x-auto">
-                    <code className="text-foreground">
-                      {codeContent}
-                    </code>
+                    <code className="text-foreground">{codeContent}</code>
                   </pre>
                 </div>
               </div>

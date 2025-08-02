@@ -1447,14 +1447,28 @@ const TreeVisualizer = () => {
           <div className="absolute inset-0 opacity-10">
             <svg width="100%" height="100%">
               <defs>
-                <pattern id="grid-tree-viz" width="40" height="40" patternUnits="userSpaceOnUse">
-                  <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#64748b" strokeWidth="1"/>
+                <pattern
+                  id="grid-tree-viz"
+                  width="40"
+                  height="40"
+                  patternUnits="userSpaceOnUse"
+                >
+                  <path
+                    d="M 40 0 L 0 0 0 40"
+                    fill="none"
+                    stroke="#64748b"
+                    strokeWidth="1"
+                  />
                 </pattern>
               </defs>
               <rect width="100%" height="100%" fill="url(#grid-tree-viz)" />
             </svg>
           </div>
-          <svg width="100%" height="100%" className="w-full h-full relative z-10">
+          <svg
+            width="100%"
+            height="100%"
+            className="w-full h-full relative z-10"
+          >
             <g
               transform={`translate(${isNaN(transform.x) ? 0 : transform.x}, ${
                 isNaN(transform.y) ? 0 : transform.y

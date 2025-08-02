@@ -8,7 +8,7 @@ import { eq } from 'drizzle-orm';
 export async function GET() {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, message: 'Unauthorized' },
@@ -55,7 +55,7 @@ export async function GET() {
 export async function PATCH(request) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, message: 'Unauthorized' },
@@ -64,7 +64,15 @@ export async function PATCH(request) {
     }
 
     const body = await request.json();
-    const { firstName, lastName, email, bio, githubUrl, linkedinUrl, portfolioUrl } = body;
+    const {
+      firstName,
+      lastName,
+      email,
+      bio,
+      githubUrl,
+      linkedinUrl,
+      portfolioUrl,
+    } = body;
 
     // Update user basic info
     const updatedUser = await db

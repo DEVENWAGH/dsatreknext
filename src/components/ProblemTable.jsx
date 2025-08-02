@@ -3,12 +3,7 @@
 import React, { useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useProblems } from '@/hooks/useProblems';
-import {
-  useUIStore,
-  useCompanyStore,
-  useUserStore,
-} from '@/store';
-
+import { useUIStore, useCompanyStore, useUserStore } from '@/store';
 
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -46,27 +41,37 @@ const ProblemTable = () => {
   // Problems are automatically loaded by TanStack Query
 
   // Memoized handlers
-  const handleSort = useCallback((field) => {
-    if (sortBy === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(field);
-      setSortOrder(field === 'acceptance' ? 'desc' : 'asc');
-    }
-  }, [sortBy, sortOrder]);
+  const handleSort = useCallback(
+    field => {
+      if (sortBy === field) {
+        setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+      } else {
+        setSortBy(field);
+        setSortOrder(field === 'acceptance' ? 'desc' : 'asc');
+      }
+    },
+    [sortBy, sortOrder]
+  );
 
-  const handleProblemClick = useCallback((problemId) => {
-    // Navigate immediately - TanStack Query will handle data fetching
-    router.push(`/workspace/${problemId}`);
-  }, [router]);
+  const handleProblemClick = useCallback(
+    problemId => {
+      // Navigate immediately - TanStack Query will handle data fetching
+      router.push(`/workspace/${problemId}`);
+    },
+    [router]
+  );
 
   // Memoized difficulty color function
-  const getDifficultyColorMemo = useCallback((difficulty) => {
+  const getDifficultyColorMemo = useCallback(difficulty => {
     switch (difficulty?.toLowerCase()) {
-      case 'easy': return 'bg-green-500/10 text-green-500';
-      case 'medium': return 'bg-yellow-500/10 text-yellow-500';
-      case 'hard': return 'bg-red-500/10 text-red-500';
-      default: return 'bg-gray-500/10 text-gray-500';
+      case 'easy':
+        return 'bg-green-500/10 text-green-500';
+      case 'medium':
+        return 'bg-yellow-500/10 text-yellow-500';
+      case 'hard':
+        return 'bg-red-500/10 text-red-500';
+      default:
+        return 'bg-gray-500/10 text-gray-500';
     }
   }, []);
 
@@ -143,8 +148,6 @@ const ProblemTable = () => {
     getAllCompanies();
   }, [getAllCompanies]);
 
-
-
   const SKELETON_ITEMS = Array.from({ length: 5 }, (_, i) => `skeleton-${i}`);
 
   if (isLoading) {
@@ -156,8 +159,6 @@ const ProblemTable = () => {
       </div>
     );
   }
-
-
 
   const displayProblems = filteredProblems;
 
@@ -215,44 +216,41 @@ const ProblemTable = () => {
             {displayProblems.map((problem, index) => {
               const companies = problem.companies || [];
               const isLast = index === displayProblems.length - 1;
-              
-
 
               return (
-                <tr 
-                  key={problem.id} 
-                  className="border-b hover:bg-muted/50"
-                >
+                <tr key={problem.id} className="border-b hover:bg-muted/50">
                   <td className="p-4 font-medium">
-                    <div 
+                    <div
                       className="cursor-pointer hover:text-primary transition-colors"
                       onClick={() => handleProblemClick(problem.id)}
                     >
-                    <div className="flex items-center gap-2">
-                      {solvedProblems?.includes(problem.id) && (
-                        <Check className="h-4 w-4 text-green-500" />
-                      )}
-                      {problem.isPremium && (
-                        <Lock className="h-4 w-4 text-yellow-500" />
-                      )}
-                      <span className="flex items-center gap-2">
-                        {problem.title}
-                        {index < 3 && (
-                          <Badge className="bg-blue-500/10 text-blue-500 text-xs">
-                            Demo
-                          </Badge>
+                      <div className="flex items-center gap-2">
+                        {solvedProblems?.includes(problem.id) && (
+                          <Check className="h-4 w-4 text-green-500" />
                         )}
                         {problem.isPremium && (
-                          <Badge className="bg-yellow-500/10 text-yellow-500 text-xs">
-                            Premium
-                          </Badge>
+                          <Lock className="h-4 w-4 text-yellow-500" />
                         )}
-                      </span>
-                    </div>
+                        <span className="flex items-center gap-2">
+                          {problem.title}
+                          {index < 3 && (
+                            <Badge className="bg-blue-500/10 text-blue-500 text-xs">
+                              Demo
+                            </Badge>
+                          )}
+                          {problem.isPremium && (
+                            <Badge className="bg-yellow-500/10 text-yellow-500 text-xs">
+                              Premium
+                            </Badge>
+                          )}
+                        </span>
+                      </div>
                     </div>
                   </td>
                   <td className="p-4">
-                    <Badge className={getDifficultyColorMemo(problem.difficulty)}>
+                    <Badge
+                      className={getDifficultyColorMemo(problem.difficulty)}
+                    >
                       {problem.difficulty}
                     </Badge>
                   </td>
@@ -302,8 +300,6 @@ const ProblemTable = () => {
           </tbody>
         </table>
       </div>
-      
-
     </div>
   );
 };

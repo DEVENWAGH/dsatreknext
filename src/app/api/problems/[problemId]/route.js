@@ -34,14 +34,17 @@ export async function GET(request, { params }) {
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      problem: problem[0],
-    }, {
-      headers: {
-        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300'
+    return NextResponse.json(
+      {
+        success: true,
+        problem: problem[0],
+      },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+        },
       }
-    });
+    );
   } catch (error) {
     console.error('Error fetching problem:', error);
     return NextResponse.json(

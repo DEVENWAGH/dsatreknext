@@ -3,11 +3,20 @@
 import React from 'react';
 import styled from 'styled-components';
 
-const SubmitButton = ({ onClick, disabled = false, children = 'Submit', isLoading = false }) => {
+const SubmitButton = ({
+  onClick,
+  disabled = false,
+  children = 'Submit',
+  isLoading = false,
+}) => {
   return (
     <StyledWrapper>
       <div className="btn-conteiner">
-        <button className={`btn-content ${isLoading ? 'loading' : ''}`} onClick={onClick} disabled={disabled}>
+        <button
+          className={`btn-content ${isLoading ? 'loading' : ''}`}
+          onClick={onClick}
+          disabled={disabled}
+        >
           <span className="btn-title">{children}</span>
           <span className="icon-arrow">
             <svg

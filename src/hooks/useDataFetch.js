@@ -11,38 +11,41 @@ export const useDataFetch = (key, fetcher, options = {}) => {
   const lastFetchTime = useRef(0);
   const cache = useRef(new Map());
 
-  const fetchData = useCallback(async (force = false) => {
-    const now = Date.now();
-    
-    // Check cache first
-    if (!force && cache.current.has(key)) {
-      const cached = cache.current.get(key);
-      if (now - cached.timestamp < dedupingInterval) {
-        setData(cached.data);
-        setIsLoading(false);
-        return cached.data;
+  const fetchData = useCallback(
+    async (force = false) => {
+      const now = Date.now();
+
+      // Check cache first
+      if (!force && cache.current.has(key)) {
+        const cached = cache.current.get(key);
+        if (now - cached.timestamp < dedupingInterval) {
+          setData(cached.data);
+          setIsLoading(false);
+          return cached.data;
+        }
       }
-    }
 
-    // Prevent duplicate requests
-    if (!force && now - lastFetchTime.current < 100) return;
-    
-    lastFetchTime.current = now;
-    setIsLoading(true);
-    setError(null);
+      // Prevent duplicate requests
+      if (!force && now - lastFetchTime.current < 100) return;
 
-    try {
-      const result = await fetcher();
-      cache.current.set(key, { data: result, timestamp: now });
-      setData(result);
-      return result;
-    } catch (err) {
-      setError(err);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [key, fetcher, dedupingInterval]);
+      lastFetchTime.current = now;
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const result = await fetcher();
+        cache.current.set(key, { data: result, timestamp: now });
+        setData(result);
+        return result;
+      } catch (err) {
+        setError(err);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [key, fetcher, dedupingInterval]
+  );
 
   useEffect(() => {
     fetchData();
@@ -51,7 +54,7 @@ export const useDataFetch = (key, fetcher, options = {}) => {
   // Revalidate on focus
   useEffect(() => {
     if (!revalidateOnFocus) return;
-    
+
     const handleFocus = () => fetchData();
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);

@@ -15,21 +15,21 @@ export const useTestSolution = () => {
           testCases,
         }),
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       return await response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: data => {
       if (data.success) {
         toast.success('Test completed successfully');
       } else {
         toast.error(data.message || 'Test failed');
       }
     },
-    onError: (error) => {
+    onError: error => {
       console.error('Test error:', error);
       toast.error('Failed to run test');
     },

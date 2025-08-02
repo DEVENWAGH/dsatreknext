@@ -7,11 +7,13 @@ import { eq } from 'drizzle-orm';
 
 export async function GET() {
   try {
-    const companies = await db.select({
-      id: Company.id,
-      name: Company.name,
-      company_url: Company.companyUrl
-    }).from(Company);
+    const companies = await db
+      .select({
+        id: Company.id,
+        name: Company.name,
+        company_url: Company.companyUrl,
+      })
+      .from(Company);
 
     return NextResponse.json({
       success: true,

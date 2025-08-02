@@ -47,7 +47,10 @@ import {
 
 const problemSchema = z.object({
   title: z.string().min(1, 'Title is required'),
-  difficulty: z.enum(['easy', 'medium', 'hard', 'premium'], 'Invalid difficulty'),
+  difficulty: z.enum(
+    ['easy', 'medium', 'hard', 'premium'],
+    'Invalid difficulty'
+  ),
   tags: z.array(z.string()).optional(),
   companies: z.array(z.string()).optional(),
   hints: z.array(z.string()).optional(),

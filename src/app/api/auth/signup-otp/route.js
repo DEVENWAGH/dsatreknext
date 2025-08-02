@@ -18,11 +18,15 @@ const transporter = nodemailer.createTransport({
 
 export async function POST(request) {
   try {
-    const { email, username, password, firstName, lastName } = await request.json();
+    const { email, username, password, firstName, lastName } =
+      await request.json();
 
     if (!email || !username || !password) {
       return NextResponse.json(
-        { success: false, message: 'Email, username, and password are required' },
+        {
+          success: false,
+          message: 'Email, username, and password are required',
+        },
         { status: 400 }
       );
     }
@@ -35,22 +39,33 @@ export async function POST(request) {
     }
 
     // Check if user already exists
-    const existingUser = await db.select().from(User).where(eq(User.email, email)).limit(1);
+    const existingUser = await db
+      .select()
+      .from(User)
+      .where(eq(User.email, email))
+      .limit(1);
     if (existingUser.length && existingUser[0].isVerified) {
       return NextResponse.json(
         { success: false, message: 'User with this email already exists' },
         { status: 400 }
       );
     }
-    
+
     if (existingUser.length && !existingUser[0].isVerified) {
       return NextResponse.json(
-        { success: false, message: 'Please verify your email. Check your inbox for the OTP.' },
+        {
+          success: false,
+          message: 'Please verify your email. Check your inbox for the OTP.',
+        },
         { status: 400 }
       );
     }
 
-    const existingUsername = await db.select().from(User).where(eq(User.username, username)).limit(1);
+    const existingUsername = await db
+      .select()
+      .from(User)
+      .where(eq(User.username, username))
+      .limit(1);
     if (existingUsername.length) {
       return NextResponse.json(
         { success: false, message: 'Username already taken' },
@@ -64,14 +79,17 @@ export async function POST(request) {
 
     // Create temporary unverified user
     const hashedPassword = await bcrypt.hash(password, 12);
-    const [tempUser] = await db.insert(User).values({
-      email,
-      username,
-      password: hashedPassword,
-      firstName: firstName || null,
-      lastName: lastName || null,
-      isVerified: false, // Mark as unverified
-    }).returning();
+    const [tempUser] = await db
+      .insert(User)
+      .values({
+        email,
+        username,
+        password: hashedPassword,
+        firstName: firstName || null,
+        lastName: lastName || null,
+        isVerified: false, // Mark as unverified
+      })
+      .returning();
 
     // Store OTP in password_resets table
     await db.insert(PasswordReset).values({
@@ -105,7 +123,6 @@ export async function POST(request) {
       success: true,
       message: 'Verification OTP sent to your email',
     });
-
   } catch (error) {
     console.error('Signup OTP error:', error);
     return NextResponse.json(
