@@ -109,6 +109,7 @@ const AIDiscussion = ({ problem, editorRef }) => {
           };
           addMessage(updatedMessage);
           index++;
+          scrollToBottom();
         } else {
           clearInterval(typeInterval);
         }
@@ -122,7 +123,7 @@ const AIDiscussion = ({ problem, editorRef }) => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, localMessages]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
@@ -173,6 +174,7 @@ const AIDiscussion = ({ problem, editorRef }) => {
             isTyping: index < result.response.length - 1,
           });
           index++;
+          scrollToBottom();
         } else {
           clearInterval(typeInterval);
         }
