@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
 import { useInterviewStore } from '@/store/interviewStore';
 import voiceInterviewService from '@/services/voiceInterviewService';
+import { useSession } from 'next-auth/react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,7 @@ import { cn } from '@/lib/utils';
 export default function StartInterviewPage() {
   const { interviewId } = useParams();
   const router = useRouter();
+  const { data: session } = useSession();
 
   // Interview state
   const [interview, setInterview] = useState(null);
@@ -65,11 +67,33 @@ export default function StartInterviewPage() {
 
   // Handle ending interview
   const handleInterviewEnd = useCallback(
-    async (finalResponses = null) => {
+    async (finalResponses = null, customFeedback = null) => {
       try {
         const interviewResponses = finalResponses || responses;
+        const questions = getQuestions(interview);
+        const completionRate = Math.round((elapsedTime / totalDuration) * 100);
+        
+        // Generate comprehensive feedback
+        const feedback = customFeedback || `Interview Summary:
+• Position: ${interview.position || 'N/A'}
+• Duration: ${formatTime(elapsedTime)} (${completionRate}% of allocated time)
+• Questions Prepared: ${questions.length || 0}
+• Interview Type: ${interview.interviewType || 'N/A'}
+• Difficulty Level: ${interview.difficulty || 'medium'}
+• Completion Status: ${completionRate >= 90 ? 'Full completion' : completionRate >= 50 ? 'Partial completion' : 'Early termination'}
+• Performance: Interview conducted successfully with AI assistance.`;
 
-        // Update interview status to completed
+        // Update interview status to completed with feedback
+        await fetch(`/api/interviews/${interviewId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            status: 'completed',
+            feedback: feedback
+          })
+        });
+
+        // Also update via store for consistency
         await updateInterviewStatus(interviewId, {
           status: 'completed',
           responses: interviewResponses,
@@ -87,7 +111,7 @@ export default function StartInterviewPage() {
         toast.error('Error saving interview results');
       }
     },
-    [responses, updateInterviewStatus, interviewId, elapsedTime, router]
+    [responses, updateInterviewStatus, interviewId, elapsedTime, router, interview, totalDuration]
   );
 
   // Parse duration to seconds
@@ -248,6 +272,48 @@ export default function StartInterviewPage() {
           setIsAISpeaking(false);
         });
 
+        vapiInstance.on('message', (message) => {
+          if (message.type === 'transcript' && message.transcriptType === 'final') {
+            const transcript = message.transcript?.toLowerCase() || '';
+            const endPhrases = ['goodbye', 'good bye', 'end interview', 'finish interview', 'stop interview', 'thank you', 'that\'s all', 'we\'re done', 'interview complete'];
+            
+            if (endPhrases.some(phrase => transcript.includes(phrase))) {
+              console.log('End phrase detected:', transcript);
+              // Generate comprehensive feedback with natural ending note
+              setTimeout(async () => {
+                try {
+                  const questions = getQuestions(interview);
+                  const completionRate = Math.round((elapsedTime / totalDuration) * 100);
+                  
+                  const feedback = `Interview Summary:
+• Position: ${interview.position || 'N/A'}
+• Duration: ${formatTime(elapsedTime)} (${completionRate}% of allocated time)
+• Questions Prepared: ${questions.length || 0}
+• Interview Type: ${interview.interviewType || 'N/A'}
+• Difficulty Level: ${interview.difficulty || 'medium'}
+• Completion Status: Natural completion - User ended with: "${message.transcript}"
+• Performance: Interview concluded naturally by candidate.`;
+                  
+                  await fetch(`/api/interviews/${interviewId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                      status: 'completed',
+                      feedback: feedback
+                    })
+                  });
+                  
+                  toast.success('Interview completed and feedback saved!');
+                  vapi.stop();
+                } catch (error) {
+                  console.error('Error saving feedback:', error);
+                  vapi.stop();
+                }
+              }, 2000);
+            }
+          }
+        });
+
         vapiInstance.on('error', error => {
           setIsConnected(false);
           setIsAISpeaking(false);
@@ -345,10 +411,15 @@ export default function StartInterviewPage() {
       const difficulty =
         interview.difficulty || interview.interviewDifficulty || 'medium';
       const duration = interview.duration || '15 minutes';
+      
+      // Get user's name from session
+      const userName = session?.user?.firstName 
+        ? `${session.user.firstName}${session.user.lastName ? ' ' + session.user.lastName : ''}`
+        : session?.user?.name || 'candidate';
 
       const assistantOptions = {
         name: 'AI Interviewer',
-        firstMessage: `Hi! I'm your AI interviewer for the ${jobPosition} position. Are you ready to begin?`,
+        firstMessage: `Hi ${userName}! I'm your AI interviewer for the ${jobPosition} position. Are you ready to begin?`,
         model: {
           provider: 'openai',
           model: 'gpt-3.5-turbo',
@@ -356,7 +427,7 @@ export default function StartInterviewPage() {
           messages: [
             {
               role: 'system',
-              content: `You are conducting an interview for ${jobPosition}. Ask these questions one by one: ${questionList}. Keep responses brief and professional.`,
+              content: `You are conducting an interview for ${jobPosition} with ${userName}. Address them by name throughout the conversation. Ask these questions one by one: ${questionList}. Keep responses brief and professional.`,
             },
           ],
         },
