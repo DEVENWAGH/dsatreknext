@@ -135,12 +135,19 @@ const EditProfileDialog = ({ userDetails, onProfileUpdate }) => {
             <Input
               id="username"
               value={formData.username}
-              onChange={e => handleInputChange('username', e.target.value)}
+              onChange={e => {
+                const value = e.target.value.replace(/[^a-zA-Z0-9_]/g, '');
+                if (value.length <= 20) {
+                  handleInputChange('username', value);
+                }
+              }}
               placeholder="Enter your username"
             />
             <p className="text-xs text-gray-500">
-              This will be used in your profile URL: /profile/
-              {formData.username || 'username'}
+              Only letters, numbers, and underscores allowed (max 20 characters)
+            </p>
+            <p className="text-xs text-gray-500">
+              Profile URL: /profile/{formData.username || 'username'}
             </p>
           </div>
 

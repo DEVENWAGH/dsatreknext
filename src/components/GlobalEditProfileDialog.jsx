@@ -56,18 +56,24 @@ const GlobalEditProfileDialog = () => {
   useEffect(() => {
     const handleOpenEdit = () => {
       setIsOpen(true);
-      fetchUserData();
     };
 
     window.addEventListener('openEditProfile', handleOpenEdit);
     return () => window.removeEventListener('openEditProfile', handleOpenEdit);
   }, []);
 
+  useEffect(() => {
+    if (isOpen && session?.user?.id) {
+      fetchUserData();
+    }
+  }, [isOpen, session?.user?.id]);
+
   const fetchUserData = async () => {
     if (!session?.user?.id) return;
 
     try {
-      const userData = await authAPI.getUserDetails(session.user.id);
+      const response = await fetch(`/api/users/${session.user.id}`);
+      const userData = await response.json();
       if (userData.success) {
         const user = userData.data;
         setUserAvatar(user.profilePicture || session?.user?.image);
@@ -75,7 +81,7 @@ const GlobalEditProfileDialog = () => {
           username:
             user.username ||
             session?.user?.username ||
-            session?.user?.name ||
+            session?.user?.name?.toLowerCase().replace(/[^a-z0-9_]/g, '') ||
             session?.user?.email?.split('@')[0] ||
             '',
           gender: user.gender || '',
@@ -191,14 +197,21 @@ const GlobalEditProfileDialog = () => {
               onChange={e => {
                 const value = e.target.value
                   .toLowerCase()
-                  .replace(/[^a-z0-9_-]/g, '');
+                  .replace(/[^a-z0-9_]/g, '')
+                  .slice(0, 20);
                 handleInputChange('username', value);
               }}
               placeholder="Enter your username"
-              pattern="^[a-z0-9_-]+$"
+              pattern="^[a-z0-9_]+$"
               minLength={3}
-              maxLength={30}
+              maxLength={20}
             />
+            <p className="text-xs text-muted-foreground mt-1">
+              Only letters, numbers, and underscores (3-20 characters)
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Profile URL: /profile/{formData.username || 'username'}
+            </p>
           </div>
           <div>
             <label className="text-sm font-medium">Gender</label>
@@ -228,40 +241,13 @@ const GlobalEditProfileDialog = () => {
           </div>
           <div>
             <label className="text-sm font-medium">Birthday</label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    'w-full justify-start text-left font-normal',
-                    !formData.birthday && 'text-muted-foreground'
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.birthday
-                    ? format(new Date(formData.birthday), 'PPP')
-                    : 'Pick a date'}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={
-                    formData.birthday ? new Date(formData.birthday) : undefined
-                  }
-                  onSelect={date =>
-                    handleInputChange(
-                      'birthday',
-                      date ? format(date, 'yyyy-MM-dd') : ''
-                    )
-                  }
-                  initialFocus
-                  captionLayout="dropdown-buttons"
-                  fromYear={1950}
-                  toYear={new Date().getFullYear()}
-                />
-              </PopoverContent>
-            </Popover>
+            <Input
+              type="date"
+              value={formData.birthday}
+              onChange={e => handleInputChange('birthday', e.target.value)}
+              max={new Date().toISOString().split('T')[0]}
+              min="1950-01-01"
+            />
           </div>
         </div>
       ),
@@ -270,12 +256,19 @@ const GlobalEditProfileDialog = () => {
       title: 'About & Links',
       description: 'Tell us about yourself and add social links',
       content: (
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div>
             <label className="text-sm font-medium">Summary</label>
             <Textarea
               value={formData.summary}
               onChange={e => handleInputChange('summary', e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  const nextButton = document.querySelector('[data-dialog-stack-next]');
+                  if (nextButton) nextButton.click();
+                }
+              }}
               placeholder="Tell us about yourself (interests, experience, etc.)"
               rows={3}
             />
@@ -317,93 +310,95 @@ const GlobalEditProfileDialog = () => {
     },
     {
       title: 'Experience',
-      description: 'Add your work experience',
+      description: 'Add your work experience or education',
       content: (
         <div className="space-y-4">
-          {formData.experience.map((exp, index) => (
-            <div key={index} className="p-4 border rounded-lg space-y-3">
-              <div className="flex justify-between items-center">
-                <h4 className="font-medium">Experience {index + 1}</h4>
-                {formData.experience.length > 1 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeArrayItem('experience', index)}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                )}
+          <div className="max-h-[300px] overflow-y-auto space-y-4">
+            {formData.experience.map((exp, index) => (
+              <div key={index} className="p-4 border rounded-lg space-y-3">
+                <div className="flex justify-between items-center">
+                  <h4 className="font-medium">Experience {index + 1}</h4>
+                  {formData.experience.length > 1 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeArrayItem('experience', index)}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Input
+                    placeholder="Company/Institution"
+                    value={exp.company}
+                    onChange={e =>
+                      handleArrayChange(
+                        'experience',
+                        index,
+                        'company',
+                        e.target.value
+                      )
+                    }
+                  />
+                  <Input
+                    placeholder="Position/Degree"
+                    value={exp.position}
+                    onChange={e =>
+                      handleArrayChange(
+                        'experience',
+                        index,
+                        'position',
+                        e.target.value
+                      )
+                    }
+                  />
+                  <Input
+                    type="date"
+                    placeholder="Start Date"
+                    value={exp.startDate}
+                    onChange={e =>
+                      handleArrayChange(
+                        'experience',
+                        index,
+                        'startDate',
+                        e.target.value
+                      )
+                    }
+                  />
+                  <Input
+                    type="date"
+                    placeholder="End Date"
+                    value={exp.endDate}
+                    onChange={e =>
+                      handleArrayChange(
+                        'experience',
+                        index,
+                        'endDate',
+                        e.target.value
+                      )
+                    }
+                    disabled={exp.current}
+                  />
+                </div>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={exp.current}
+                    onChange={e =>
+                      handleArrayChange(
+                        'experience',
+                        index,
+                        'current',
+                        e.target.checked
+                      )
+                    }
+                  />
+                  <span className="text-sm">Currently here</span>
+                </label>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <Input
-                  placeholder="Company"
-                  value={exp.company}
-                  onChange={e =>
-                    handleArrayChange(
-                      'experience',
-                      index,
-                      'company',
-                      e.target.value
-                    )
-                  }
-                />
-                <Input
-                  placeholder="Position"
-                  value={exp.position}
-                  onChange={e =>
-                    handleArrayChange(
-                      'experience',
-                      index,
-                      'position',
-                      e.target.value
-                    )
-                  }
-                />
-                <Input
-                  type="date"
-                  placeholder="Start Date"
-                  value={exp.startDate}
-                  onChange={e =>
-                    handleArrayChange(
-                      'experience',
-                      index,
-                      'startDate',
-                      e.target.value
-                    )
-                  }
-                />
-                <Input
-                  type="date"
-                  placeholder="End Date"
-                  value={exp.endDate}
-                  onChange={e =>
-                    handleArrayChange(
-                      'experience',
-                      index,
-                      'endDate',
-                      e.target.value
-                    )
-                  }
-                  disabled={exp.current}
-                />
-              </div>
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={exp.current}
-                  onChange={e =>
-                    handleArrayChange(
-                      'experience',
-                      index,
-                      'current',
-                      e.target.checked
-                    )
-                  }
-                />
-                <span className="text-sm">Currently working here</span>
-              </label>
-            </div>
-          ))}
+            ))}
+          </div>
           <Button
             variant="outline"
             onClick={() =>
@@ -517,22 +512,43 @@ const GlobalEditProfileDialog = () => {
 
           <div>
             <label className="text-sm font-medium">Technical Skills</label>
-            <Textarea
-              value={formData.skills.join(', ')}
-              onChange={e =>
-                handleInputChange(
-                  'skills',
-                  e.target.value
-                    .split(',')
-                    .map(s => s.trim())
-                    .filter(Boolean)
-                )
-              }
-              placeholder="Java, JavaScript, React, Next.js, Python..."
-              rows={3}
-            />
+            <div className="space-y-2">
+              <div className="flex flex-wrap gap-2 min-h-[40px] p-2 border rounded-md">
+                {formData.skills.map((skill, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-md text-sm"
+                  >
+                    {skill}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newSkills = formData.skills.filter((_, i) => i !== index);
+                        handleInputChange('skills', newSkills);
+                      }}
+                      className="ml-1 hover:text-red-600"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <Input
+                placeholder="Type a skill and press Enter"
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const value = e.target.value.trim();
+                    if (value && !formData.skills.includes(value)) {
+                      handleInputChange('skills', [...formData.skills, value]);
+                      e.target.value = '';
+                    }
+                  }
+                }}
+              />
+            </div>
             <p className="text-xs text-gray-500 mt-1">
-              Separate skills with commas
+              Press Enter to add skills as tags
             </p>
           </div>
         </div>
@@ -554,7 +570,7 @@ const GlobalEditProfileDialog = () => {
                 {section.description}
               </p>
             </DialogStackHeader>
-            <div className="min-h-[300px] py-4">{section.content}</div>
+            <div className="h-[400px] py-4 overflow-hidden">{section.content}</div>
 
             <DialogStackFooter>
               {index > 0 && (

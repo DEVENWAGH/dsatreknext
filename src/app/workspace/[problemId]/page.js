@@ -161,11 +161,11 @@ const WorkspacePage = () => {
   };
 
   const handleBackToProblems = () => {
-    router.push('/problems');
+    router.back();
   };
 
   const handleBackToProblem = () => {
-    router.push('/problems');
+    router.back();
   };
 
   // Filtered problems for side panel

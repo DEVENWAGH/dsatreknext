@@ -105,7 +105,9 @@ const Playground = ({
               ? [0, 100]
               : isTestCasesCollapsed
                 ? [95, 5]
-                : [60, 40]
+                : runResults
+                  ? [45, 55]
+                  : [60, 40]
         }
         minSize={isMaximized ? [100, 0] : [40, 40]}
         gutterSize={10}

@@ -26,7 +26,9 @@ const formSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
   username: z
     .string()
-    .min(3, { message: 'Username must be at least 3 characters.' }),
+    .min(3, { message: 'Username must be at least 3 characters.' })
+    .max(20, { message: 'Username must be at most 20 characters.' })
+    .regex(/^[a-zA-Z0-9_]+$/, { message: 'Username can only contain letters, numbers, and underscores.' }),
   password: z
     .string()
     .min(6, { message: 'Password must be at least 6 characters.' }),
@@ -243,8 +245,16 @@ export default function Register() {
                         type="text"
                         placeholder="Choose a username"
                         {...register('username')}
+                        onChange={e => {
+                          const value = e.target.value.replace(/[^a-zA-Z0-9_]/g, '');
+                          e.target.value = value.slice(0, 20);
+                          register('username').onChange(e);
+                        }}
                         className={errors.username ? 'border-destructive' : ''}
                       />
+                      <p className="text-xs text-muted-foreground">
+                        Only letters, numbers, and underscores (3-20 characters)
+                      </p>
                       {errors.username && (
                         <p className="text-sm text-destructive">
                           {errors.username.message}

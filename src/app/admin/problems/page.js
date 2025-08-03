@@ -64,6 +64,8 @@ export default function AdminProblems() {
     problem: null,
   });
   const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedProblems, setSelectedProblems] = useState([]);
+  const [bulkDeleteDialog, setBulkDeleteDialog] = useState(false);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -111,6 +113,42 @@ export default function AdminProblems() {
       toast.error('Failed to delete problem');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedProblems.length === 0) return;
+
+    try {
+      setIsDeleting(true);
+      const deletePromises = selectedProblems.map(id => problemAPI.delete(id));
+      await Promise.all(deletePromises);
+      
+      toast.success(`${selectedProblems.length} problems deleted successfully`);
+      setProblems(prev => prev.filter(p => !selectedProblems.includes(p.id)));
+      setSelectedProblems([]);
+      setBulkDeleteDialog(false);
+    } catch (error) {
+      console.error('Error deleting problems:', error);
+      toast.error('Failed to delete some problems');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      setSelectedProblems(filteredProblems.map(p => p.id));
+    } else {
+      setSelectedProblems([]);
+    }
+  };
+
+  const handleSelectProblem = (problemId, checked) => {
+    if (checked) {
+      setSelectedProblems(prev => [...prev, problemId]);
+    } else {
+      setSelectedProblems(prev => prev.filter(id => id !== problemId));
     }
   };
 
@@ -265,10 +303,22 @@ export default function AdminProblems() {
       {/* Problems Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Code2 className="w-5 h-5" />
-            Problems ({filteredProblems.length})
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Code2 className="w-5 h-5" />
+              Problems ({filteredProblems.length})
+            </CardTitle>
+            {selectedProblems.length > 0 && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setBulkDeleteDialog(true)}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete Selected ({selectedProblems.length})
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {filteredProblems.length === 0 ? (
@@ -285,6 +335,14 @@ export default function AdminProblems() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">
+                    <input
+                      type="checkbox"
+                      checked={selectedProblems.length === filteredProblems.length && filteredProblems.length > 0}
+                      onChange={(e) => handleSelectAll(e.target.checked)}
+                      className="rounded"
+                    />
+                  </TableHead>
                   <TableHead
                     className="cursor-pointer hover:bg-muted/50"
                     onClick={() => {
@@ -331,7 +389,19 @@ export default function AdminProblems() {
                       : '0.0';
 
                   return (
-                    <TableRow key={problem.id}>
+                    <TableRow 
+                      key={problem.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => router.push(`/workspace/${problem.id}`)}
+                    >
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={selectedProblems.includes(problem.id)}
+                          onChange={(e) => handleSelectProblem(problem.id, e.target.checked)}
+                          className="rounded"
+                        />
+                      </TableCell>
                       <TableCell>
                         <div className="font-medium">{problem.title}</div>
                         <div className="text-sm text-muted-foreground truncate max-w-[200px]">
@@ -399,7 +469,7 @@ export default function AdminProblems() {
                           {new Date(problem.createdAt).toLocaleDateString()}
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm">
@@ -470,6 +540,35 @@ export default function AdminProblems() {
               disabled={isDeleting}
             >
               {isDeleting ? 'Deleting...' : 'Delete Problem'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <Dialog open={bulkDeleteDialog} onOpenChange={setBulkDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Selected Problems</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {selectedProblems.length} selected problems? 
+              This action cannot be undone and will remove all associated submissions and discussions.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setBulkDeleteDialog(false)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Deleting...' : `Delete ${selectedProblems.length} Problems`}
             </Button>
           </DialogFooter>
         </DialogContent>

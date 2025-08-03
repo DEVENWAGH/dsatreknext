@@ -35,7 +35,7 @@ export default function AdminUsers() {
 
   const loadUsers = async (page = 1) => {
     try {
-      const response = await getAllUsers({ page, limit: 50 });
+      const response = await getAllUsers({ page, limit: 10 });
       if (response?.pagination) {
         setTotalPages(response.pagination.totalPages);
         setCurrentPage(page);

@@ -213,6 +213,11 @@ const useCodeSubmission = () => {
               `Wrong Answer - ${passedCount}/${results.length} test cases passed`
             );
           }
+
+          // Stop submit animation after results are processed
+          setTimeout(() => {
+            setIsSubmitting(false);
+          }, 300);
         };
 
         pollSubmissionResults(responseData.data.tokens);
@@ -220,14 +225,15 @@ const useCodeSubmission = () => {
         setSubmissionResult(null);
         setRunResults(null);
         toast.error(responseData.message || 'Code submission failed.');
+        setIsSubmitting(false);
       }
     } catch (error) {
       toast.error('An error occurred during code submission.');
       setSubmissionResult(null);
       setRunResults(null);
+      setIsSubmitting(false);
     } finally {
       setIsLoading(false);
-      setIsSubmitting(false);
     }
   };
 
