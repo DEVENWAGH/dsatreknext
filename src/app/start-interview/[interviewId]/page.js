@@ -1,9 +1,10 @@
 'use client';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useInterviewStore } from '@/store/interviewStore';
-import voiceInterviewService from '@/services/voiceInterviewService';
+import jarvisVoiceService from '@/services/jarvisVoiceService';
+import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import { useSession } from 'next-auth/react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,11 +22,20 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { Ripple } from '@/components/magicui/ripple';
 
 export default function StartInterviewPage() {
   const { interviewId } = useParams();
   const router = useRouter();
   const { data: session } = useSession();
+  
+  // Speech recognition hook
+  const {
+    transcript,
+    listening,
+    resetTranscript,
+    browserSupportsSpeechRecognition
+  } = useSpeechRecognition();
 
   // Interview state
   const [interview, setInterview] = useState(null);
@@ -34,7 +44,7 @@ export default function StartInterviewPage() {
 
   // Voice interview state
   const [isVoiceInitialized, setIsVoiceInitialized] = useState(false);
-  const [vapi, setVapi] = useState(null);
+  const [jarvis, setJarvis] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [currentQuestion] = useState(0);
@@ -48,6 +58,8 @@ export default function StartInterviewPage() {
   const [volumeLevel] = useState(0);
   const [currentQuestionText] = useState('');
   const [isAISpeaking, setIsAISpeaking] = useState(false);
+  const [feedbackSaved, setFeedbackSaved] = useState(false);
+  const [interviewTranscript, setInterviewTranscript] = useState([]);
 
   const { getInterviewById, getInterviewFromCache, updateInterviewStatus } =
     useInterviewStore();
@@ -68,23 +80,50 @@ export default function StartInterviewPage() {
   // Handle ending interview
   const handleInterviewEnd = useCallback(
     async (finalResponses = null, customFeedback = null) => {
+      if (feedbackSaved) return; // Prevent duplicate saves
+      setFeedbackSaved(true);
+      
       try {
         const interviewResponses = finalResponses || responses;
         const questions = getQuestions(interview);
         const completionRate = Math.round((elapsedTime / totalDuration) * 100);
         
-        // Generate comprehensive feedback
-        const feedback = customFeedback || `Interview Summary:
-• Position: ${interview.position || 'N/A'}
-• Duration: ${formatTime(elapsedTime)} (${completionRate}% of allocated time)
-• Questions Prepared: ${questions.length || 0}
-• Interview Type: ${interview.interviewType || 'N/A'}
-• Difficulty Level: ${interview.difficulty || 'medium'}
-• Completion Status: ${completionRate >= 90 ? 'Full completion' : completionRate >= 50 ? 'Partial completion' : 'Early termination'}
-• Performance: Interview conducted successfully with AI assistance.`;
+        // Generate AI-based feedback
+        let feedback = customFeedback;
+        if (!feedback) {
+          try {
+            console.log('🤖 Sending transcript to AI for feedback. Entries:', interviewTranscript.length);
+            console.log('📜 Full transcript:', interviewTranscript);
+            const feedbackResponse = await fetch('/api/generate-feedback', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                position: interview?.position || 'N/A',
+                duration: formatTime(elapsedTime),
+                completionRate,
+                interviewType: interview?.interviewType || 'N/A',
+                difficulty: interview?.difficulty || 'medium',
+                questionsCount: questions.length || 0,
+                transcript: interviewTranscript
+              })
+            });
+            
+            if (feedbackResponse.ok) {
+              const feedbackData = await feedbackResponse.json();
+              feedback = feedbackData.feedback;
+            } else {
+              throw new Error('Feedback generation failed');
+            }
+          } catch (error) {
+            console.error('AI feedback generation failed:', error);
+            feedback = `Interview completed for ${interview?.position || 'position'}. Duration: ${formatTime(elapsedTime)}. The candidate participated in a ${interview?.interviewType || 'interview'} session.`;
+          }
+        }
 
+        console.log('Saving feedback:', feedback);
+        
         // Update interview status to completed with feedback
-        await fetch(`/api/interviews/${interviewId}`, {
+        const response = await fetch(`/api/interviews/${interviewId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
@@ -92,26 +131,37 @@ export default function StartInterviewPage() {
             feedback: feedback
           })
         });
+        
+        if (response.ok) {
+          console.log('Feedback saved successfully');
+          toast.success('Interview completed and feedback saved!');
+        } else {
+          console.error('Failed to save feedback');
+          toast.error('Interview completed but feedback save failed');
+        }
 
         // Also update via store for consistency
-        await updateInterviewStatus(interviewId, {
-          status: 'completed',
-          responses: interviewResponses,
-          completedAt: new Date().toISOString(),
-          duration: elapsedTime,
-        });
-
-        toast.success('Interview completed successfully!');
+        try {
+          await updateInterviewStatus(interviewId, {
+            status: 'completed',
+            responses: interviewResponses,
+            completedAt: new Date().toISOString(),
+            duration: elapsedTime,
+          });
+        } catch (storeError) {
+          console.error('Store update failed:', storeError);
+        }
 
         // Navigate to interview details to show results
         setTimeout(() => {
           router.push(`/interview-details/${interviewId}`);
         }, 2000);
       } catch (error) {
+        console.error('Error in handleInterviewEnd:', error);
         toast.error('Error saving interview results');
       }
     },
-    [responses, updateInterviewStatus, interviewId, elapsedTime, router, interview, totalDuration]
+    [responses, updateInterviewStatus, interviewId, elapsedTime, router, interview, totalDuration, feedbackSaved]
   );
 
   // Parse duration to seconds
@@ -151,24 +201,16 @@ export default function StartInterviewPage() {
         setRemainingTime(remaining);
 
         // Auto-end interview when time is up
-        if (remaining <= 0 && vapi && isConnected) {
+        if (remaining <= 0 && isInterviewActive) {
+          console.log('⏰ Time up - ending interview');
           toast.success('Interview completed! Time is up.');
-          // Send final message before ending
-          try {
-            vapi.send({
-              type: 'add-message',
-              message: {
-                role: 'assistant',
-                content:
-                  'Thank you for your time today. Your interview duration has been completed. This concludes our interview session. Have a great day!',
-              },
-            });
-            // Wait a moment for the message to be spoken
-            setTimeout(() => {
-              vapi.stop();
-            }, 3000);
-          } catch (error) {
-            vapi.stop();
+          setIsInterviewActive(false);
+          if (jarvis && isConnected) {
+            try {
+              jarvis.stop();
+            } catch (error) {
+              console.error('Error stopping jarvis:', error);
+            }
           }
           handleInterviewEnd();
         }
@@ -179,158 +221,79 @@ export default function StartInterviewPage() {
     isInterviewActive,
     interviewStartTime,
     totalDuration,
-    vapi,
+    jarvis,
     isConnected,
     handleInterviewEnd,
   ]);
 
-  // Initialize Vapi
+  // Initialize Jarvis
   useEffect(() => {
-    const initVapi = async () => {
-      if (vapi || isVoiceInitialized) return;
+    const initJarvis = async () => {
+      if (jarvis || isVoiceInitialized) return;
 
       try {
-        // Dynamic import with better error handling for production
-        const VapiModule = await import('@vapi-ai/web').catch(err => {
-          console.error('Failed to import @vapi-ai/web:', err);
-          throw new Error('Vapi module not available');
-        });
-
-        let Vapi;
-
-        // Handle different export formats in dev vs production
-        if (VapiModule.default) {
-          // In production, default might be wrapped
-          if (typeof VapiModule.default === 'function') {
-            Vapi = VapiModule.default;
-          } else if (
-            VapiModule.default.default &&
-            typeof VapiModule.default.default === 'function'
-          ) {
-            Vapi = VapiModule.default.default;
-          } else if (
-            VapiModule.default.Vapi &&
-            typeof VapiModule.default.Vapi === 'function'
-          ) {
-            Vapi = VapiModule.default.Vapi;
-          }
-        } else if (VapiModule.Vapi && typeof VapiModule.Vapi === 'function') {
-          Vapi = VapiModule.Vapi;
-        } else if (typeof VapiModule === 'function') {
-          Vapi = VapiModule;
-        }
-
-        const vapiApiKey = process.env.NEXT_PUBLIC_VAPI_API_KEY;
-
-        if (!vapiApiKey) {
-          console.warn('VAPI API key not configured');
-          setIsVoiceInitialized(false);
-          return;
-        }
-
-        if (typeof Vapi !== 'function') {
-          console.error(
-            'Vapi is not a constructor. Available exports:',
-            Object.keys(VapiModule)
-          );
-          console.error('Default export type:', typeof VapiModule.default);
-          console.error(
-            'Default export keys:',
-            VapiModule.default ? Object.keys(VapiModule.default) : 'none'
-          );
-          setIsVoiceInitialized(false);
-          return;
-        }
-
-        const vapiInstance = new Vapi(vapiApiKey);
-        setVapi(vapiInstance);
+        const jarvisInstance = jarvisVoiceService;
+        setJarvis(jarvisInstance);
         setIsVoiceInitialized(true);
 
-        vapiInstance.on('call-start', () => {
-          console.log('✅ Call started - setting up timer');
-          setIsConnected(true);
-          setIsInterviewActive(true);
-          setInterviewStartTime(new Date());
-          toast.success('Interview started!');
-        });
-
-        vapiInstance.on('call-end', () => {
-          setIsConnected(false);
-          setIsAISpeaking(false);
-          setIsInterviewActive(false);
-          setElapsedTime(0);
-          setRemainingTime(totalDuration);
-          // End interview with voice note
-          handleInterviewEnd();
-        });
-
-        vapiInstance.on('speech-start', () => {
-          setIsAISpeaking(true);
-        });
-
-        vapiInstance.on('speech-end', () => {
-          setIsAISpeaking(false);
-        });
-
-        vapiInstance.on('message', (message) => {
-          if (message.type === 'transcript' && message.transcriptType === 'final') {
-            const transcript = message.transcript?.toLowerCase() || '';
-            const endPhrases = ['goodbye', 'good bye', 'end interview', 'finish interview', 'stop interview', 'thank you', 'that\'s all', 'we\'re done', 'interview complete'];
-            
-            if (endPhrases.some(phrase => transcript.includes(phrase))) {
-              console.log('End phrase detected:', transcript);
-              // Generate comprehensive feedback with natural ending note
-              setTimeout(async () => {
-                try {
-                  const questions = getQuestions(interview);
-                  const completionRate = Math.round((elapsedTime / totalDuration) * 100);
-                  
-                  const feedback = `Interview Summary:
-• Position: ${interview.position || 'N/A'}
-• Duration: ${formatTime(elapsedTime)} (${completionRate}% of allocated time)
-• Questions Prepared: ${questions.length || 0}
-• Interview Type: ${interview.interviewType || 'N/A'}
-• Difficulty Level: ${interview.difficulty || 'medium'}
-• Completion Status: Natural completion - User ended with: "${message.transcript}"
-• Performance: Interview concluded naturally by candidate.`;
-                  
-                  await fetch(`/api/interviews/${interviewId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                      status: 'completed',
-                      feedback: feedback
-                    })
-                  });
-                  
-                  toast.success('Interview completed and feedback saved!');
-                  vapi.stop();
-                } catch (error) {
-                  console.error('Error saving feedback:', error);
-                  vapi.stop();
-                }
-              }, 2000);
-            }
+        // Set up event listeners
+        jarvisInstance.onTranscript = (transcript, role) => {
+          const transcriptEntry = {
+            role: role || 'user',
+            text: transcript,
+            timestamp: new Date().toISOString()
+          };
+          console.log('📝 Recording transcript:', transcriptEntry);
+          setInterviewTranscript(prev => {
+            const updated = [...prev, transcriptEntry];
+            console.log('📋 Total transcript entries:', updated.length);
+            return updated;
+          });
+          
+          // Check for end phrases
+          const text = transcript?.toLowerCase() || '';
+          const endPhrases = ['goodbye', 'good bye', 'end interview', 'finish interview', 'stop interview', 'thank you for your time', 'that\'s all', 'we\'re done', 'interview complete', 'i\'m done', 'that concludes', 'end this'];
+          
+          console.log('🔍 Checking transcript for end phrases:', text);
+          const foundPhrase = endPhrases.find(phrase => text.includes(phrase));
+          
+          if (foundPhrase) {
+            console.log('✅ End phrase detected:', foundPhrase, 'in:', text);
+            setTimeout(() => {
+              jarvisInstance.stop();
+              handleInterviewEnd();
+            }, 2000);
           }
-        });
+        };
 
-        vapiInstance.on('error', error => {
+        jarvisInstance.onSpeechStart = () => {
+          setIsAISpeaking(true);
+        };
+
+        jarvisInstance.onSpeechEnd = () => {
+          setIsAISpeaking(false);
+        };
+
+        jarvisInstance.onError = (error) => {
+          console.log('Jarvis error - saving feedback:', error);
           setIsConnected(false);
           setIsAISpeaking(false);
           setIsInterviewActive(false);
-        });
+          handleInterviewEnd();
+        };
+
       } catch (err) {
-        console.error('Failed to initialize Vapi:', err);
+        console.error('Failed to initialize Jarvis:', err);
         setIsVoiceInitialized(false);
       }
     };
 
-    initVapi();
+    initJarvis();
 
     return () => {
-      if (vapi) {
+      if (jarvis) {
         try {
-          vapi.stop();
+          jarvis.stop();
         } catch (e) {
           // Silent error handling
         }
@@ -376,9 +339,9 @@ export default function StartInterviewPage() {
     fetchInterview();
   }, [interviewId, getInterviewById, getInterviewFromCache]);
 
-  // Handle starting voice interview (based on Vite Meeting.jsx)
+  // Handle starting voice interview
   const handleStartVoiceInterview = async () => {
-    if (!vapi) {
+    if (!jarvis) {
       setError('Interview system is not initialized. Please refresh the page.');
       toast.error('Voice service not initialized');
       return;
@@ -399,56 +362,20 @@ export default function StartInterviewPage() {
     try {
       console.log('🎙️ Starting voice interview...');
       setError(null);
-
-      // Create question list
-      let questionList = questions
-        .map(q => (typeof q === 'string' ? q : q.question))
-        .join(', ');
-
-      const jobPosition =
-        interview.position || interview.jobPosition || 'position';
-      const interviewType = interview.interviewType || 'interview';
-      const difficulty =
-        interview.difficulty || interview.interviewDifficulty || 'medium';
-      const duration = interview.duration || '15 minutes';
       
-      // Get user's name from session
+      // Check if browser supports speech recognition
+      if (!browserSupportsSpeechRecognition) {
+        toast.error('Speech recognition not supported in this browser. Please use Chrome or Edge.');
+        setError('Speech recognition not supported in this browser');
+        return;
+      }
+
+      const jobPosition = interview.position || interview.jobPosition || 'position';
       const userName = session?.user?.firstName 
         ? `${session.user.firstName}${session.user.lastName ? ' ' + session.user.lastName : ''}`
         : session?.user?.name || 'candidate';
 
-      const assistantOptions = {
-        name: 'AI Interviewer',
-        firstMessage: `Hi ${userName}! I'm your AI interviewer for the ${jobPosition} position. Are you ready to begin?`,
-        model: {
-          provider: 'openai',
-          model: 'gpt-3.5-turbo',
-          temperature: 0.7,
-          messages: [
-            {
-              role: 'system',
-              content: `You are conducting an interview for ${jobPosition} with ${userName}. Address them by name throughout the conversation. Ask these questions one by one: ${questionList}. Keep responses brief and professional.`,
-            },
-          ],
-        },
-        voice: {
-          provider: '11labs',
-          voiceId: 'pNInz6obpgDQGcFmaJgB', // Adam - Natural male voice
-        },
-        transcriber: {
-          provider: 'deepgram',
-          model: 'nova-2',
-          language: 'en-IN',
-        },
-      };
-
-      console.log('📋 Starting Vapi call with assistant options:', {
-        name: assistantOptions.name,
-        questionCount: questions.length,
-        hasQuestions: questionList.length > 0,
-      });
-
-      // Start timer immediately on button click
+      // Start timer immediately
       const startTime = new Date();
       setIsInterviewActive(true);
       setIsConnected(true);
@@ -456,29 +383,37 @@ export default function StartInterviewPage() {
       console.log('⏰ Timer started at:', startTime);
       toast.success('Interview started! Timer is running.');
 
+      // Initialize Jarvis (will handle microphone internally)
       try {
-        await vapi.start(assistantOptions);
-        console.log('✅ Voice interview call started successfully');
-      } catch (vapiError) {
-        console.warn('Vapi failed but continuing with timer:', vapiError);
-        // Keep the interview active even if Vapi fails
-        toast.warning(
-          'Voice service unavailable, but interview timer is running'
-        );
+        await jarvis.initialize();
+        console.log('🎤 Jarvis initialized successfully');
+      } catch (initError) {
+        console.error('🎤 Jarvis initialization failed:', initError);
+        toast.error('Voice system initialization failed. Please try refreshing the page.');
+        setError('Voice system initialization failed');
+        return;
       }
+
+      // Start Jarvis voice interview
+      await jarvis.startInterview({
+        position: jobPosition,
+        candidateName: userName,
+        questions: questions.map(q => typeof q === 'string' ? q : q.question),
+        sessionId: interviewId
+      });
+      
+      console.log('✅ Voice interview started successfully');
     } catch (error) {
       console.error('❌ Failed to start voice interview:', error);
-      toast.error(
-        `Failed to start interview: ${error.message || 'Unknown error'}`
-      );
+      toast.error(`Failed to start interview: ${error.message || 'Unknown error'}`);
       setError(error.message || 'Failed to start interview');
     }
   };
 
   // Handle stopping interview
   const handleStopInterview = () => {
-    if (vapi && isConnected) {
-      vapi.stop();
+    if (jarvis && isConnected) {
+      jarvis.stop();
     }
     setIsInterviewActive(false);
     setIsConnected(false);
@@ -489,7 +424,9 @@ export default function StartInterviewPage() {
   const handleToggleMute = () => {
     const newMutedState = !isMuted;
     setIsMuted(newMutedState);
-    voiceInterviewService.setMuted(newMutedState);
+    if (jarvis) {
+      jarvis.setMuted(newMutedState);
+    }
     toast.info(newMutedState ? 'Microphone muted' : 'Microphone unmuted');
   };
 
@@ -519,9 +456,9 @@ export default function StartInterviewPage() {
     const handlePageExit = () => {
       if (isInterviewActive) {
         console.log('🛑 Page exit detected - stopping interview');
-        if (vapi) {
+        if (jarvis) {
           try {
-            vapi.stop();
+            jarvis.stop();
           } catch (e) {}
         }
         setIsInterviewActive(false);
@@ -544,11 +481,108 @@ export default function StartInterviewPage() {
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
       window.removeEventListener('beforeunload', handlePageExit);
       window.removeEventListener('pagehide', handlePageExit);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [isInterviewActive, vapi]);
+  }, [isInterviewActive, jarvis]);
+
+  // Handle transcript from react-speech-recognition with debouncing
+  const [isProcessingTranscript, setIsProcessingTranscript] = useState(false);
+  const debounceTimeoutRef = useRef(null);
+  
+  useEffect(() => {
+    if (transcript && isInterviewActive && jarvis && !isProcessingTranscript) {
+      const trimmedTranscript = transcript.trim();
+      
+      // Clear existing timeout
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+      
+      // Only process meaningful input (at least 3 words)
+      const wordCount = trimmedTranscript.split(' ').filter(word => word.length > 0).length;
+      if (wordCount >= 3) {
+        // Debounce for 2 seconds to ensure user finished speaking
+        debounceTimeoutRef.current = setTimeout(() => {
+          if (!isProcessingTranscript) {
+            setIsProcessingTranscript(true);
+            console.log('🎤 PROCESSING SPEECH:', trimmedTranscript);
+            
+            // Process the transcript
+            const transcriptEntry = {
+              role: 'user',
+              text: trimmedTranscript,
+              timestamp: new Date().toISOString()
+            };
+            
+            setInterviewTranscript(prev => {
+              const updated = [...prev, transcriptEntry];
+              console.log('📋 Total transcript entries:', updated.length);
+              return updated;
+            });
+            
+            // Get AI response
+            console.log('🤖 Getting AI response for:', trimmedTranscript);
+            
+            fetch('/api/jarvis/chat', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                message: trimmedTranscript,
+                sessionId: jarvis.sessionId || interviewId,
+                interviewType: interview?.type || 'technical',
+                candidateName: session?.user?.name || 'Candidate'
+              })
+            })
+            .then(response => {
+              console.log('📞 API Response Status:', response.status);
+              if (!response.ok) {
+                throw new Error(`API Error: ${response.status}`);
+              }
+              return response.json();
+            })
+            .then(data => {
+              console.log('🤖 API Response Data:', data);
+              if (data.success && data.response) {
+                // Add AI response to transcript
+                const aiMessage = {
+                  role: 'assistant',
+                  text: data.response,
+                  timestamp: new Date().toISOString()
+                };
+                
+                setInterviewTranscript(prev => {
+                  const updated = [...prev, aiMessage];
+                  console.log('📋 AI response added, total entries:', updated.length);
+                  return updated;
+                });
+                
+                jarvis.speak(data.response);
+              } else {
+                console.error('No response in data:', data);
+                jarvis.speak("I'm having trouble understanding. Could you try again?");
+              }
+            })
+            .catch(error => {
+              console.error('🚨 API Error:', error);
+              jarvis.speak("I'm having trouble understanding. Could you try again?");
+            })
+            .finally(() => {
+              // Reset processing state after 3 seconds
+              setTimeout(() => {
+                setIsProcessingTranscript(false);
+                resetTranscript();
+              }, 3000);
+            });
+          }
+        }, 2000);
+      }
+    }
+  }, [transcript, isInterviewActive, jarvis, isProcessingTranscript, resetTranscript, interviewId, interview, session]);
 
   // Loading state
   if (loading) {
@@ -639,6 +673,8 @@ export default function StartInterviewPage() {
                       <Image
                         src="/user.png"
                         alt="User"
+                        width={128}
+                        height={128}
                         className="w-32 h-32 rounded-full"
                       />
                     </div>
@@ -714,16 +750,16 @@ export default function StartInterviewPage() {
 
                 <div className="text-center space-y-4">
                   <div className="flex flex-col items-center gap-3">
-                    <Avatar className="w-20 h-20">
-                      <AvatarImage src="/user.png" alt="AI Interviewer" />
-                      <AvatarFallback className="bg-primary/10">
-                        <Bot className="w-10 h-10 text-primary" />
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="relative h-32 w-32 overflow-hidden rounded-full bg-gradient-to-br from-primary/20 to-secondary/20">
+                      {(isAISpeaking || isConnected) && <Ripple mainCircleSize={120} numCircles={6} />}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Bot className="w-12 h-12 text-primary z-10" />
+                      </div>
+                    </div>
                     <div className="text-center">
                       <h3 className="text-lg font-semibold">AI Interviewer</h3>
                       <p className="text-sm text-muted-foreground">
-                        Interview in progress
+                        {isAISpeaking ? 'Speaking...' : 'Listening...'}
                       </p>
                     </div>
                   </div>
