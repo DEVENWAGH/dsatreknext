@@ -6,7 +6,9 @@ export const useVoiceInterview = () => {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [transcript, setTranscript] = useState('');
+  const [interimTranscript, setInterimTranscript] = useState(''); // New: real-time transcript
   const [error, setError] = useState(null);
+  const [debugLogs, setDebugLogs] = useState([]); // New: debug logging
   const conversationRef = useRef([]);
 
   const initialize = useCallback(async () => {
@@ -15,19 +17,26 @@ export const useVoiceInterview = () => {
       if (success) {
         voiceService.setCallbacks({
           onTranscript: ({ transcript, isFinal }) => {
-            setTranscript(transcript);
             if (isFinal) {
+              setTranscript(transcript);
+              setInterimTranscript(''); // Clear interim when final received
               conversationRef.current.push({
                 role: 'user',
                 text: transcript,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
               });
               console.log('📝 User said:', transcript);
             }
           },
+          onInterimTranscript: ({ transcript }) => {
+            setInterimTranscript(transcript); // Show real-time updates
+          },
           onSpeechStart: () => setIsSpeaking(true),
           onSpeechEnd: () => setIsSpeaking(false),
-          onError: (error) => setError(error)
+          onError: error => setError(error),
+          onDebug: logEntry => {
+            setDebugLogs(prev => [...prev.slice(-49), logEntry]); // Keep last 50 logs
+          },
         });
         setIsInitialized(true);
       }
@@ -48,36 +57,46 @@ export const useVoiceInterview = () => {
     setIsListening(false);
   }, []);
 
-  const speak = useCallback(async (text) => {
-    if (isInitialized) {
-      try {
-        // Stop listening while speaking
-        if (isListening) {
-          stopListening();
+  const speak = useCallback(
+    async text => {
+      if (isInitialized) {
+        try {
+          // Stop listening while speaking
+          if (isListening) {
+            stopListening();
+          }
+
+          await voiceService.speak(text);
+
+          // Add to conversation
+          conversationRef.current.push({
+            role: 'assistant',
+            text: text,
+            timestamp: new Date().toISOString(),
+          });
+
+          // Resume listening after speaking
+          setTimeout(() => {
+            startListening();
+          }, 500);
+        } catch (err) {
+          setError(err.message);
         }
-        
-        await voiceService.speak(text);
-        
-        // Add to conversation
-        conversationRef.current.push({
-          role: 'assistant',
-          text: text,
-          timestamp: new Date().toISOString()
-        });
-        
-        // Resume listening after speaking
-        setTimeout(() => {
-          startListening();
-        }, 500);
-        
-      } catch (err) {
-        setError(err.message);
       }
-    }
-  }, [isInitialized, isListening, startListening, stopListening]);
+    },
+    [isInitialized, isListening, startListening, stopListening]
+  );
 
   const getConversation = useCallback(() => {
     return conversationRef.current;
+  }, []);
+
+  const getDebugLogs = useCallback(() => {
+    return debugLogs;
+  }, [debugLogs]);
+
+  const clearDebugLogs = useCallback(() => {
+    setDebugLogs([]);
   }, []);
 
   const cleanup = useCallback(() => {
@@ -85,6 +104,9 @@ export const useVoiceInterview = () => {
     setIsInitialized(false);
     setIsListening(false);
     setIsSpeaking(false);
+    setTranscript('');
+    setInterimTranscript('');
+    setDebugLogs([]);
     conversationRef.current = [];
   }, []);
 
@@ -93,12 +115,16 @@ export const useVoiceInterview = () => {
     isListening,
     isSpeaking,
     transcript,
+    interimTranscript, // New: real-time transcript
     error,
+    debugLogs, // New: debug logs
     initialize,
     startListening,
     stopListening,
     speak,
     getConversation,
-    cleanup
+    getDebugLogs,
+    clearDebugLogs,
+    cleanup,
   };
 };

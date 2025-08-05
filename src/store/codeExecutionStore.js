@@ -22,6 +22,19 @@ export const useCodeExecutionStore = create(
       // Code templates by language
       codeTemplates: {},
 
+      // Enhanced voice recognition states
+      isListening: false,
+      currentTranscript: '',
+      interimTranscript: '',
+      finalTranscript: '',
+      voiceDebugLog: [],
+      // New states for better user feedback
+      isAudioActive: false,
+      isSoundDetected: false,
+      speechConfidence: 0,
+      speechProcessingState: 'idle', // idle, listening, processing, responding
+      liveTranscriptBuffer: '',
+
       // Execute code
       executeCode: async codeData => {
         set({ isExecuting: true, error: null, executionResults: null });
@@ -158,6 +171,23 @@ export const useCodeExecutionStore = create(
           ),
         }));
       },
+
+      // Enhanced voice recognition methods
+      setListening: listening => set({ isListening: listening }),
+      setCurrentTranscript: transcript => set({ currentTranscript: transcript }),
+      setInterimTranscript: transcript => set({ interimTranscript: transcript }),
+      setFinalTranscript: transcript => set({ finalTranscript: transcript }),
+      // New methods for enhanced voice feedback
+      setAudioActive: active => set({ isAudioActive: active }),
+      setSoundDetected: detected => set({ isSoundDetected: detected }),
+      setSpeechConfidence: confidence => set({ speechConfidence: confidence }),
+      setSpeechProcessingState: state => set({ speechProcessingState: state }),
+      setLiveTranscriptBuffer: buffer => set({ liveTranscriptBuffer: buffer }),
+      addVoiceDebugLog: entry =>
+        set(state => ({
+          voiceDebugLog: [...state.voiceDebugLog.slice(-50), entry], // Keep last 50 entries
+        })),
+      clearVoiceDebugLog: () => set({ voiceDebugLog: [] }),
     }),
     {
       name: 'code-execution-storage',

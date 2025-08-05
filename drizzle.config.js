@@ -2,7 +2,7 @@ import { defineConfig } from 'drizzle-kit';
 import dotenv from 'dotenv';
 
 // Load environment variables
-dotenv.config({ path: '.env.local' });
+dotenv.config({ path: '.env' });
 
 export default defineConfig({
   schema: './src/lib/schema/index.js',

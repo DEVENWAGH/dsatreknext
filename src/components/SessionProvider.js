@@ -29,15 +29,23 @@ export function SessionProvider({ children }) {
   // Add visibility change listener for additional session checking
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (!document.hidden && !authUser) {
-        checkAuth();
+      if (document.hidden) {
+        console.log('🔍 Session: Tab hidden - maintaining session');
+        // Don't perform any session checks that might interrupt interviews
+      } else {
+        console.log('🔍 Session: Tab visible - checking session');
+        // Only check auth when tab is visible and no interview is active
+        const isInterviewActive =
+          window.location.pathname.includes('/start-interview');
+        if (!isInterviewActive && authUser && checkAuth) {
+          checkAuth();
+        }
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
+    return () =>
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
   }, [authUser, checkAuth]);
 
   // Sync NextAuth session with Zustand store

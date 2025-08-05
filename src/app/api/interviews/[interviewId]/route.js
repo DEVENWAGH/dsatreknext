@@ -54,7 +54,7 @@ export async function PUT(request, { params }) {
 
     const { interviewId } = await params;
     const body = await request.json();
-    const { status, feedback, rating } = body;
+    const { status, feedback, rating, completedAt, duration } = body;
 
     const validStatuses = ['scheduled', 'pending', 'in_progress', 'completed'];
     if (status && !validStatuses.includes(status)) {
@@ -63,8 +63,10 @@ export async function PUT(request, { params }) {
 
     const updateData = {};
     if (status) updateData.status = status;
-    if (feedback) updateData.feedback = feedback;
+    if (feedback) updateData.feedback = feedback; // Store feedback as text
     if (rating) updateData.rating = rating;
+    if (completedAt) updateData.completedAt = new Date(completedAt);
+    if (duration !== undefined) updateData.duration = duration;
     updateData.updatedAt = new Date();
 
     const updatedInterview = await db
@@ -88,7 +90,7 @@ export async function PUT(request, { params }) {
     return NextResponse.json({
       success: true,
       message: 'Interview updated successfully',
-      data: updatedInterview[0],
+      interview: updatedInterview[0],
     });
   } catch (error) {
     console.error('Error updating interview:', error);

@@ -11,11 +11,30 @@ const useCodeSubmission = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [runResults, setRunResults] = useState(null);
   const [submissionResult, setSubmissionResult] = useState(null);
+  const [voiceDebugLogs, setVoiceDebugLogs] = useState([]); // New: voice debug logs
   const { getLanguageIdByDisplayName } = useLanguageStore();
 
+  // Add voice debug logging
+  const addVoiceDebugLog = (message, data = null) => {
+    const logEntry = {
+      timestamp: new Date().toISOString(),
+      message,
+      data,
+      source: 'code-submission',
+    };
+    setVoiceDebugLogs(prev => [...prev.slice(-29), logEntry]); // Keep last 30 logs
+    console.log(`🔊 [Code] ${message}`, data || '');
+  };
+
   const submitCode = async ({ problem, selectedLanguage, sourceCode }) => {
+    addVoiceDebugLog('Starting code submission', {
+      problem: problem?.title,
+      language: selectedLanguage,
+    });
+
     if (!problem?.testCases || problem.testCases.length === 0) {
       toast.warning('No test cases available for this problem.');
+      addVoiceDebugLog('No test cases available');
       setSubmissionResult(null);
       setRunResults(null);
       return;
@@ -23,6 +42,7 @@ const useCodeSubmission = () => {
 
     if (!problem?.id) {
       toast.error('Problem information is missing.');
+      addVoiceDebugLog('Problem ID missing');
       return;
     }
 
@@ -38,6 +58,7 @@ const useCodeSubmission = () => {
 
     if (!language_id) {
       toast.error(`Language ID is not configured for ${selectedLanguage}.`);
+      addVoiceDebugLog('Language ID not found', selectedLanguage);
       setIsLoading(false);
       return;
     }
@@ -56,6 +77,11 @@ const useCodeSubmission = () => {
       expected_outputs,
     };
 
+    addVoiceDebugLog('Submitting to Judge0', {
+      language_id,
+      testCasesCount: stdin.length,
+    });
+
     try {
       const response = await fetch(`/api/submissions/${problem.id}`, {
         method: 'POST',
@@ -71,6 +97,10 @@ const useCodeSubmission = () => {
         responseData.data.tokens &&
         responseData.data.tokens.length > 0
       ) {
+        addVoiceDebugLog('Submission tokens received', {
+          tokensCount: responseData.data.tokens.length,
+        });
+
         // Poll for submission results like run code
         const pollSubmissionResults = async tokens => {
           const maxAttempts = 10;
@@ -90,6 +120,10 @@ const useCodeSubmission = () => {
                   attempts++;
                   continue;
                 }
+
+                addVoiceDebugLog(`Test case ${i + 1} result`, {
+                  status: result.status?.id,
+                });
 
                 // Handle Judge0 internal errors (status 13) - treat as server issue
                 if (result.status?.id === 13) {
@@ -174,6 +208,12 @@ const useCodeSubmission = () => {
             memory: r.memory,
           }));
 
+          addVoiceDebugLog('Submission completed', {
+            status: finalStatus,
+            passedCount,
+            totalCount: results.length,
+          });
+
           const updateResponse = await fetch(
             `/api/submissions/update/${latestSubmission.id}`,
             {
@@ -207,11 +247,16 @@ const useCodeSubmission = () => {
 
           if (allPassed) {
             toast.success('Accepted! All test cases passed.');
+            addVoiceDebugLog('All test cases passed! 🎉');
             fireConfettiFireworks();
           } else {
             toast.error(
               `Wrong Answer - ${passedCount}/${results.length} test cases passed`
             );
+            addVoiceDebugLog('Some test cases failed', {
+              passedCount,
+              totalCount: results.length,
+            });
           }
 
           // Stop submit animation after results are processed
@@ -225,10 +270,12 @@ const useCodeSubmission = () => {
         setSubmissionResult(null);
         setRunResults(null);
         toast.error(responseData.message || 'Code submission failed.');
+        addVoiceDebugLog('Submission failed', responseData.message);
         setIsSubmitting(false);
       }
     } catch (error) {
       toast.error('An error occurred during code submission.');
+      addVoiceDebugLog('Submission error', error.message);
       setSubmissionResult(null);
       setRunResults(null);
       setIsSubmitting(false);
@@ -474,6 +521,14 @@ const useCodeSubmission = () => {
   const clearResults = () => {
     setRunResults(null);
     setSubmissionResult(null);
+    addVoiceDebugLog('Results cleared');
+  };
+
+  const getVoiceDebugLogs = () => voiceDebugLogs;
+
+  const clearVoiceDebugLogs = () => {
+    setVoiceDebugLogs([]);
+    addVoiceDebugLog('Voice debug logs cleared');
   };
 
   return {
@@ -486,6 +541,10 @@ const useCodeSubmission = () => {
     runCode,
     clearResults,
     setSubmissionResult,
+    // New voice debugging methods
+    voiceDebugLogs,
+    getVoiceDebugLogs,
+    clearVoiceDebugLogs,
   };
 };
 

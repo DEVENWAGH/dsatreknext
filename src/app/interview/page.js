@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -21,10 +22,19 @@ import SplineModel from '@/components/SplineModel';
 const Interview = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
 
   const { data: userInterviews = [], isLoading } = useInterviews();
   const createInterviewMutation = useCreateInterview();
   const isCreating = createInterviewMutation.isPending;
+
+  // Check if this is a retry from interview details page
+  useEffect(() => {
+    const isRetry = searchParams.get('retry');
+    if (isRetry === 'true') {
+      setIsDialogOpen(true);
+    }
+  }, [searchParams]);
 
   const onSubmit = async data => {
     try {
@@ -75,26 +85,25 @@ const Interview = () => {
       <div className="container mx-auto p-4 max-w-6xl min-h-[calc(100vh-80px)] flex flex-col">
         <div className="flex justify-between items-center mb-6 flex-shrink-0">
           <h1 className="text-2xl font-bold">Interviews</h1>
-          {userInterviews && userInterviews.length > 0 && (
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="flex items-center gap-2">
-                  <PlusCircle className="w-4 h-4" />
-                  Create Interview
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px] overflow-hidden">
-                <DialogHeader>
-                  <DialogTitle className="text-xl font-semibold">
-                    Create New Interview
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="overflow-y-auto pr-1" data-lenis-prevent>
-                  <InterviewForm onSubmit={onSubmit} isCreating={isCreating} />
-                </div>
-              </DialogContent>
-            </Dialog>
-          )}
+          {/* Always show create interview button regardless of existing interviews */}
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="flex items-center gap-2">
+                <PlusCircle className="w-4 h-4" />
+                Create Interview
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px] overflow-hidden">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-semibold">
+                  Create New Interview
+                </DialogTitle>
+              </DialogHeader>
+              <div className="overflow-y-auto pr-1" data-lenis-prevent>
+                <InterviewForm onSubmit={onSubmit} isCreating={isCreating} />
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {isCreating && (

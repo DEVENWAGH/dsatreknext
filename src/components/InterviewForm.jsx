@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useEffect } from 'react';
 import {
   Form,
   FormControl,
@@ -51,6 +52,34 @@ const InterviewForm = ({ onSubmit, isCreating }) => {
       interviewDifficulty: '',
     },
   });
+
+  // Check for retry configuration on component mount
+  useEffect(() => {
+    try {
+      const retryConfig = sessionStorage.getItem('retryInterviewConfig');
+      if (retryConfig) {
+        const config = JSON.parse(retryConfig);
+
+        // Pre-fill the form with the retry configuration
+        if (config.jobPosition)
+          form.setValue('jobPosition', config.jobPosition);
+        if (config.companyName)
+          form.setValue('companyName', config.companyName);
+        if (config.jobDescription)
+          form.setValue('jobDescription', config.jobDescription);
+        if (config.interviewType)
+          form.setValue('interviewType', config.interviewType);
+        if (config.duration) form.setValue('duration', config.duration);
+        if (config.interviewDifficulty)
+          form.setValue('interviewDifficulty', config.interviewDifficulty);
+
+        // Clear the sessionStorage after using it
+        sessionStorage.removeItem('retryInterviewConfig');
+      }
+    } catch (error) {
+      console.error('Error loading retry configuration:', error);
+    }
+  }, [form]);
 
   const interviewTypes = [
     { value: 'Technical Interview', icon: <Target className="w-4 h-4" /> },

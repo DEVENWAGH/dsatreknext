@@ -95,10 +95,7 @@ const UserInterviews = ({ interviews }) => {
             </p>
             <div className="mt-4 flex justify-between items-center">
               <Badge variant="secondary">
-                {interview.generatedQuestions?.length ||
-                  interview.questions?.length ||
-                  0}{' '}
-                Questions
+                {interview.questions?.length || 0} Questions
               </Badge>
               <div className="flex gap-2">
                 <Button
