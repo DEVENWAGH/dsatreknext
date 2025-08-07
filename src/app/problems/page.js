@@ -42,7 +42,9 @@ const DailyChallengeCalendar = dynamic(
 );
 
 const OptimizedProblemSet = () => {
-  const { data: problems = [], isLoading, error } = useProblems();
+  const { data, isLoading, error } = useProblems(1, 10);
+  const problems = data?.problems || [];
+  const pagination = data?.pagination || {};
   const {
     searchQuery,
     selectedDifficulty,
@@ -228,9 +230,7 @@ const OptimizedProblemSet = () => {
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <FileQuestion className="w-4 h-4" />
           <span>
-            {filteredProblemsCount !== problems?.length
-              ? `Showing ${filteredProblemsCount} of ${problems?.length || 0} problems`
-              : `Total ${problems?.length || 0} problems available`}
+            Total {pagination.total || 0} problems available
             {useVirtualization && ' (Virtualized)'}
           </span>
         </div>

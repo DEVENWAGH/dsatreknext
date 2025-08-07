@@ -1,14 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { problemAPI } from '@/api/api';
 
-export const useProblems = () => {
+export const useProblems = (page = 1, limit = 10) => {
   return useQuery({
-    queryKey: ['problems'],
+    queryKey: ['problems', page, limit],
     queryFn: async () => {
       try {
         // Fetch problems and companies in parallel
         const [problemsResponse, companiesResponse] = await Promise.all([
-          problemAPI.getAll(),
+          fetch(`/api/problems?page=${page}&limit=${limit}`).then(res => res.json()),
           fetch('/api/companies')
             .then(res => res.json())
             .catch(() => ({ success: false, data: [] })),
@@ -50,11 +50,24 @@ export const useProblems = () => {
         }
 
         // Enrich problems with company data
-        return problems.map(problem => ({
+        const enrichedProblems = problems.map(problem => ({
           ...problem,
           companyData:
             problem.companies?.map(id => companyMap[id]).filter(Boolean) || [],
         }));
+
+        // Return both problems and pagination info
+        return {
+          problems: enrichedProblems,
+          pagination: problemsResponse.data?.pagination || {
+            page: 1,
+            limit: 10,
+            total: enrichedProblems.length,
+            totalPages: 1,
+            hasNext: false,
+            hasPrev: false,
+          },
+        };
       } catch (error) {
         console.error('Error in useProblems:', error);
         throw error;
@@ -68,13 +81,16 @@ export const useProblem = problemId => {
   return useQuery({
     queryKey: ['problem', problemId],
     queryFn: async () => {
-      const response = await problemAPI.getById(problemId);
-      return response.success
-        ? response.problem
-        : response.data?.problem || response.problem;
+      const response = await fetch(`/api/problems/${problemId}`);
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to fetch problem');
+      }
+      return data.problem;
     },
     enabled: !!problemId,
-    staleTime: 15 * 60 * 1000,
+    staleTime: 30 * 60 * 1000, // 30 minutes cache
+    gcTime: 60 * 60 * 1000, // 1 hour garbage collection
   });
 };
 
@@ -82,15 +98,22 @@ export const usePrefetchProblem = () => {
   const queryClient = useQueryClient();
 
   return problemId => {
+    // Only prefetch if not already cached
+    const existingData = queryClient.getQueryData(['problem', problemId]);
+    if (existingData) return;
+
     queryClient.prefetchQuery({
       queryKey: ['problem', problemId],
       queryFn: async () => {
-        const response = await problemAPI.getById(problemId);
-        return response.success
-          ? response.problem
-          : response.data?.problem || response.problem;
+        const response = await fetch(`/api/problems/${problemId}`);
+        const data = await response.json();
+        if (!data.success) {
+          throw new Error(data.message || 'Failed to fetch problem');
+        }
+        return data.problem;
       },
-      staleTime: 15 * 60 * 1000,
+      staleTime: 30 * 60 * 1000, // 30 minutes cache
+      gcTime: 60 * 60 * 1000, // 1 hour garbage collection
     });
   };
 };

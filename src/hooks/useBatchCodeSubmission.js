@@ -389,6 +389,23 @@ const useBatchCodeSubmission = () => {
     addVoiceDebugLog('Voice debug logs cleared');
   }, []);
 
+  // Get batch statistics
+  const getBatchStats = useCallback(() => {
+    return {
+      queueLength: batchQueue.length,
+      resultsCount: batchResults.length,
+      isProcessing: isBatchProcessing,
+      successCount: batchResults.filter(r => r.success).length,
+      errorCount: batchResults.filter(r => !r.success).length,
+    };
+  }, [batchQueue.length, batchResults, isBatchProcessing]);
+
+  // Update batch configuration
+  const updateBatchConfig = useCallback((newConfig) => {
+    batchConfig.current = { ...batchConfig.current, ...newConfig };
+    addVoiceDebugLog('Batch configuration updated', newConfig);
+  }, []);
+
   return {
     // State
     isLoading,

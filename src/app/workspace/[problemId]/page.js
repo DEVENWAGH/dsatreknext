@@ -54,7 +54,8 @@ import { checkProblemAccess, getRequiredPlan } from '@/utils/premiumUtils';
 const WorkspacePage = () => {
   const { problemId } = useParams();
   const router = useRouter();
-  const { data: problems = [], isLoading: problemsLoading } = useProblems();
+  const { data: problemsData, isLoading: problemsLoading } = useProblems(1, 1000); // Get all problems for navigation
+  const problems = problemsData?.problems || [];
   const { data: problem, isLoading: problemLoading } = useProblem(problemId);
   const prefetchProblem = usePrefetchProblem();
   const { getCompanyFromCache } = useCompanyStore();
