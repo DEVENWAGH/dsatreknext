@@ -28,10 +28,15 @@ const Interview = () => {
   const createInterviewMutation = useCreateInterview();
   const isCreating = createInterviewMutation.isPending;
 
-  // Check if this is a retry from interview details page
+  // Check if this is a retry from interview details page (deprecated)
   useEffect(() => {
     const isRetry = searchParams.get('retry');
     if (isRetry === 'true') {
+      // This approach is now deprecated - interviews are reused directly
+      console.log(
+        '🔄 Detected retry parameter - this is deprecated. New interviews now reuse existing data.'
+      );
+      // Still open dialog for user convenience
       setIsDialogOpen(true);
     }
   }, [searchParams]);
@@ -107,13 +112,23 @@ const Interview = () => {
         </div>
 
         {isCreating && (
-          <Alert className="mb-6 bg-primary/10 border-primary flex-shrink-0">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <AlertTitle>Generating Your Interview</AlertTitle>
-            <AlertDescription>
-              Please wait while we generate your interview questions. This may
-              take a few moments.
-            </AlertDescription>
+          <Alert className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 border-2 border-blue-200 dark:border-blue-800 flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                </div>
+              </div>
+              <div>
+                <AlertTitle className="text-blue-700 dark:text-blue-300 font-semibold">
+                  🤖 Generating Your Interview
+                </AlertTitle>
+                <AlertDescription className="text-blue-600 dark:text-blue-400">
+                  Our AI is creating personalized questions based on your job description. This typically takes 10-30 seconds...
+                </AlertDescription>
+              </div>
+            </div>
           </Alert>
         )}
 
@@ -123,35 +138,56 @@ const Interview = () => {
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
           ) : !userInterviews || userInterviews.length === 0 ? (
-            <div className="flex gap-8 items-center w-full max-h-full">
-              <div className="flex-1 space-y-6">
-                <div className="space-y-4">
-                  <h2 className="text-4xl font-bold text-gray-900 dark:text-white">
-                    Master Your Next Interview
-                  </h2>
-                  <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed">
-                    Practice with AI-powered mock interviews tailored to your
-                    role. Get real-time feedback and boost your confidence.
-                  </p>
+            <div className="flex gap-12 items-center w-full max-h-full">
+              <div className="flex-1 space-y-8">
+                <div className="space-y-6">
+                  <div className="space-y-4">
+                    <h2 className="text-5xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                      Master Your Next Interview
+                    </h2>
+                    <p className="text-xl text-muted-foreground leading-relaxed max-w-2xl">
+                      Practice with AI-powered mock interviews tailored to your role. 
+                      Get real-time feedback and boost your confidence with our advanced voice interview system.
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-sm font-bold">🧠</span>
+                        </div>
+                        <span className="font-semibold text-blue-900 dark:text-blue-100">AI-Powered</span>
+                      </div>
+                      <p className="text-sm text-blue-700 dark:text-blue-300">Personalized questions based on job description</p>
+                    </div>
+                    
+                    <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 p-4 rounded-lg border border-green-200 dark:border-green-800">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-sm font-bold">🎙️</span>
+                        </div>
+                        <span className="font-semibold text-green-900 dark:text-green-100">Voice Interview</span>
+                      </div>
+                      <p className="text-sm text-green-700 dark:text-green-300">Real-time voice interaction with AI interviewer</p>
+                    </div>
+                    
+                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-sm font-bold">📊</span>
+                        </div>
+                        <span className="font-semibold text-purple-900 dark:text-purple-100">Smart Feedback</span>
+                      </div>
+                      <p className="text-sm text-purple-700 dark:text-purple-300">Detailed analysis and improvement suggestions</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                    <span>Personalized questions based on job description</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                    <span>Real-time AI feedback and scoring</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                    <span>Multiple interview types and difficulty levels</span>
-                  </div>
-                </div>
+                
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button size="lg" className="text-lg px-8 py-6">
-                      <PlusCircle className="w-5 h-5 mr-2" />
+                    <Button size="lg" className="text-lg px-12 py-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300">
+                      <PlusCircle className="w-6 h-6 mr-3" />
                       Start Your First Interview
                     </Button>
                   </DialogTrigger>
@@ -161,20 +197,29 @@ const Interview = () => {
                         Create New Interview
                       </DialogTitle>
                     </DialogHeader>
-                    <InterviewForm
-                      onSubmit={onSubmit}
-                      isCreating={isCreating}
-                    />
+                    <InterviewForm onSubmit={onSubmit} isCreating={isCreating} />
                   </DialogContent>
                 </Dialog>
               </div>
+              
               <div className="hidden lg:block flex-1">
                 <SplineModel />
               </div>
             </div>
           ) : (
             <div className="w-full h-full overflow-y-auto">
-              <UserInterviews interviews={userInterviews || []} />
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold">Your Interviews</h2>
+                    <p className="text-muted-foreground">Manage and track your interview progress</p>
+                  </div>
+                  <div className="px-3 py-1 bg-secondary text-secondary-foreground rounded-md text-sm font-medium">
+                    {userInterviews.length} interview{userInterviews.length !== 1 ? 's' : ''}
+                  </div>
+                </div>
+                <UserInterviews interviews={userInterviews || []} />
+              </div>
             </div>
           )}
         </div>

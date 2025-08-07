@@ -53,31 +53,21 @@ const InterviewForm = ({ onSubmit, isCreating }) => {
     },
   });
 
-  // Check for retry configuration on component mount
+  // Check for retry configuration on component mount (deprecated)
   useEffect(() => {
+    // This is now handled by direct interview reset functionality
+    // Old sessionStorage retry approach is deprecated in favor of direct interview reuse
     try {
       const retryConfig = sessionStorage.getItem('retryInterviewConfig');
       if (retryConfig) {
-        const config = JSON.parse(retryConfig);
-
-        // Pre-fill the form with the retry configuration
-        if (config.jobPosition)
-          form.setValue('jobPosition', config.jobPosition);
-        if (config.companyName)
-          form.setValue('companyName', config.companyName);
-        if (config.jobDescription)
-          form.setValue('jobDescription', config.jobDescription);
-        if (config.interviewType)
-          form.setValue('interviewType', config.interviewType);
-        if (config.duration) form.setValue('duration', config.duration);
-        if (config.interviewDifficulty)
-          form.setValue('interviewDifficulty', config.interviewDifficulty);
-
-        // Clear the sessionStorage after using it
+        // Clear the deprecated config
         sessionStorage.removeItem('retryInterviewConfig');
+        console.log(
+          '🗑️ Cleared deprecated retry configuration - now using direct interview reuse'
+        );
       }
     } catch (error) {
-      console.error('Error loading retry configuration:', error);
+      console.error('Error clearing deprecated retry configuration:', error);
     }
   }, [form]);
 

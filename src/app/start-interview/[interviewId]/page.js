@@ -1,78 +1,46 @@
 'use client';
-import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useInterviewStore } from '@/store/interviewStore';
-import jarvisVoiceService from '@/services/jarvisVoiceService';
-import SpeechRecognition, {
-  useSpeechRecognition,
-} from 'react-speech-recognition';
 import { useSession } from 'next-auth/react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Loader2,
-  Mic,
-  MicOff,
   PhoneOff,
   ArrowLeft,
   BarChart2,
   Bot,
+  Volume2,
+  VolumeX,
+  MessageSquare,
+  FileText,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Ripple } from '@/components/magicui/ripple';
+import { useDeepgramVoiceInterview } from '@/hooks/useDeepgramVoiceInterview';
 
 export default function StartInterviewPage() {
   const { interviewId } = useParams();
   const router = useRouter();
   const { data: session } = useSession();
 
-  // Speech recognition hook
-  const {
-    transcript,
-    listening,
-    resetTranscript,
-    browserSupportsSpeechRecognition,
-  } = useSpeechRecognition();
-
   // Interview state
   const [interview, setInterview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Voice interview state
-  const [isVoiceInitialized, setIsVoiceInitialized] = useState(false);
-  const [jarvis, setJarvis] = useState(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
-  const [currentQuestion] = useState(0);
-  const [responses] = useState([]);
-  const [isInterviewActive, setIsInterviewActive] = useState(false);
-  const [progress] = useState(0);
-  const [interviewStartTime, setInterviewStartTime] = useState(null);
+  // Timer state
   const [elapsedTime, setElapsedTime] = useState(0);
   const [remainingTime, setRemainingTime] = useState(0);
   const [totalDuration, setTotalDuration] = useState(0);
-  const [volumeLevel] = useState(0);
-  const [currentQuestionText] = useState('');
-  const [isAISpeaking, setIsAISpeaking] = useState(false);
   const [feedbackSaved, setFeedbackSaved] = useState(false);
-  const [interviewTranscript, setInterviewTranscript] = useState([]);
 
   const { getInterviewById, getInterviewFromCache, updateInterviewStatus } =
     useInterviewStore();
-
-  // Enhanced voice states with real-time feedback
-  const [isListeningActive, setIsListeningActive] = useState(false);
-  const [isSoundDetected, setIsSoundDetected] = useState(false);
-  const [liveTranscript, setLiveTranscript] = useState('');
-  const [interimTranscript, setInterimTranscript] = useState('');
-  const [confidenceLevel, setConfidenceLevel] = useState(0);
-  const [speechProcessingState, setSpeechProcessingState] = useState('idle'); // idle, listening, processing, responding
 
   // Helper function to get questions consistently
   const getQuestions = interviewData => {
@@ -81,341 +49,76 @@ export default function StartInterviewPage() {
     const questions =
       interviewData.questions ||
       interviewData.generatedQuestions ||
-      interviewData.questionsList ||
+      interviewData.interviewQuestions ||
       [];
 
     return Array.isArray(questions) ? questions : [];
   };
 
-  // Handle ending interview
-  const handleInterviewEnd = useCallback(
-    async (finalResponses = null, customFeedback = null) => {
-      if (feedbackSaved) return; // Prevent duplicate saves
-      setFeedbackSaved(true);
-
-      try {
-        const interviewResponses = finalResponses || responses;
-        const questions = getQuestions(interview);
-        const completionRate = Math.round((elapsedTime / totalDuration) * 100);
-
-        // Generate AI-based feedback
-        let feedback = customFeedback;
-        if (!feedback) {
-          try {
-            console.log(
-              '🤖 Generating AI feedback with transcript entries:',
-              interviewTranscript.length
-            );
-
-            const feedbackResponse = await fetch('/api/generate-feedback', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                position: interview?.position || 'N/A',
-                duration: formatTime(elapsedTime),
-                completionRate,
-                interviewType: interview?.interviewType || 'N/A',
-                difficulty: interview?.difficulty || 'medium',
-                questionsCount: questions.length || 0,
-                transcript: interviewTranscript,
-                interviewId: interviewId,
-                language: 'en-IN', // Added language context
-              }),
-            });
-
-            if (feedbackResponse.ok) {
-              const feedbackData = await feedbackResponse.json();
-              feedback = feedbackData.feedback;
-              console.log('✅ AI feedback generated successfully');
-            } else {
-              throw new Error('Feedback generation failed');
-            }
-          } catch (error) {
-            console.error('❌ AI feedback generation failed:', error);
-            feedback = `Interview completed for ${interview?.position || 'position'}. Duration: ${formatTime(elapsedTime)}. The candidate participated in a ${interview?.interviewType || 'interview'} session using Indian English.`;
-          }
-        }
-
-        console.log('💾 Saving feedback to interview record...');
-
-        // Update interview status to completed with feedback
-        const response = await fetch(`/api/interviews/${interviewId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            status: 'completed',
-            feedback: feedback,
-            transcript: interviewTranscript,
-          }),
-        });
-
-        if (response.ok) {
-          console.log('✅ Interview completed and feedback saved');
-          toast.success(
-            'Interview completed and feedback saved! You can start a new interview anytime.'
-          );
-        } else {
-          console.error('❌ Failed to save feedback');
-          toast.error('Interview completed but feedback save failed');
-        }
-
-        // Also update via store for consistency
-        try {
-          await updateInterviewStatus(interviewId, {
-            status: 'completed',
-            responses: interviewResponses,
-            completedAt: new Date().toISOString(),
-            duration: elapsedTime,
-          });
-        } catch (storeError) {
-          console.error('Store update failed:', storeError);
-        }
-
-        // Don't navigate immediately, let user decide
-        toast.success(
-          'Interview completed! You can view results or start a new interview.',
-          {
-            duration: 5000,
-          }
-        );
-      } catch (error) {
-        console.error('❌ Error in handleInterviewEnd:', error);
-        toast.error('Error saving interview results');
-      }
-    },
-    [
-      responses,
-      updateInterviewStatus,
-      interviewId,
-      elapsedTime,
-      interview,
-      totalDuration,
-      feedbackSaved,
-      interviewTranscript,
-    ]
-  );
-
-  // Parse duration to seconds with better handling
+  // Parse duration to seconds
   const parseDurationToSeconds = duration => {
     if (!duration) return 1800; // Default 30 minutes
-
-    // Handle duration in different formats
     if (typeof duration === 'number') return duration;
 
     const durationStr = duration.toString().toLowerCase();
-
-    // Check for common formats
-    if (durationStr.includes('minute') || durationStr.includes('min')) {
-      const match = durationStr.match(/(\d+)\s*(?:minute|min)/i);
-      if (match) {
-        return parseInt(match[1]) * 60;
-      }
+    if (durationStr.includes('min')) {
+      const minutes = parseInt(durationStr.replace(/\D/g, ''));
+      return minutes * 60;
+    }
+    if (durationStr.includes('hour')) {
+      const hours = parseInt(durationStr.replace(/\D/g, ''));
+      return hours * 3600;
     }
 
-    if (durationStr.includes('hour') || durationStr.includes('hr')) {
-      const match = durationStr.match(/(\d+)\s*(?:hour|hr)/i);
-      if (match) {
-        return parseInt(match[1]) * 3600;
-      }
-    }
-
-    // If it's just a number, treat as minutes
-    const numMatch = durationStr.match(/^\d+$/);
-    if (numMatch) {
-      const minutes = parseInt(numMatch[0]);
-      return minutes * 60; // Convert minutes to seconds
-    }
-
-    return 1800; // Default 30 minutes
+    // Try to parse as number (assume minutes)
+    const parsed = parseInt(durationStr);
+    return isNaN(parsed) ? 1800 : parsed * 60;
   };
 
-  // Format time display with proper formatting
-  const formatTime = seconds => {
-    const hours = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
+  // Initialize Custom Voice Interview configuration
+  const interviewConfig = interview
+    ? {
+        position:
+          interview.position || interview.jobPosition || 'Software Developer',
+        interviewType: interview.interviewType || 'Technical Interview',
+        language: 'english', // Can be 'hindi' or 'english'
+        duration: interview.duration || '30 min',
+        difficulty: interview.difficulty || 'medium',
+        questions: getQuestions(interview),
+        candidateName:
+          session?.user?.firstName || session?.user?.name || 'Candidate',
+        companyName: interview.companyName || 'Company',
+      }
+    : null;
 
-    if (hours > 0) {
-      return `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    }
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  // Set total duration when interview loads
-  useEffect(() => {
-    if (interview?.duration) {
-      const duration = parseDurationToSeconds(interview.duration);
-      setTotalDuration(duration);
-      setRemainingTime(duration);
-    }
-  }, [interview]);
-
-  // Timer effect for elapsed time and auto-end
-  useEffect(() => {
-    let interval;
-    if (isInterviewActive && interviewStartTime) {
-      interval = setInterval(() => {
-        const now = new Date();
-        const elapsed = Math.floor((now - interviewStartTime) / 1000);
-        const remaining = Math.max(0, totalDuration - elapsed);
-
-        setElapsedTime(elapsed);
-        setRemainingTime(remaining);
-
-        // Auto-end interview when time is up
-        if (remaining <= 0 && isInterviewActive) {
-          console.log('⏰ Time up - ending interview');
-          toast.success('Interview completed! Time is up.');
-          setIsInterviewActive(false);
-          if (jarvis && isConnected) {
-            try {
-              jarvis.stop();
-            } catch (error) {
-              console.error('Error stopping jarvis:', error);
-            }
-          }
-          handleInterviewEnd();
-        }
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [
-    isInterviewActive,
-    interviewStartTime,
-    totalDuration,
-    jarvis,
+  // Use Deepgram Voice Interview Hook
+  const {
     isConnected,
-    handleInterviewEnd,
-  ]);
+    isListening: isRecording,
+    isSpeaking,
+    conversation,
+    error: voiceError,
+    status: interviewStatus,
+    startInterview,
+    endInterview,
+    getTranscript,
+    getInterviewStats,
+    clearError,
+    testMicrophone,
+    testConfiguration,
+  } = useDeepgramVoiceInterview(interviewConfig);
 
-  // Initialize Jarvis with enhanced callbacks
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    const initJarvis = async () => {
-      if (jarvis || isVoiceInitialized) return;
-
-      try {
-        const jarvisInstance = jarvisVoiceService;
-        setJarvis(jarvisInstance);
-        setIsVoiceInitialized(true);
-
-        // Enhanced event listeners with real-time feedback
-        jarvisInstance.onTranscript = (transcript, role) => {
-          const transcriptEntry = {
-            role: role || 'user',
-            text: transcript,
-            timestamp: new Date().toISOString(),
-          };
-          console.log('📝 Recording transcript:', transcriptEntry);
-          setInterviewTranscript(prev => {
-            const updated = [...prev, transcriptEntry];
-            console.log('📋 Total transcript entries:', updated.length);
-            return updated;
-          });
-
-          // Clear live transcript when final transcript is received
-          if (role === 'user') {
-            setLiveTranscript('');
-            setInterimTranscript('');
-            setSpeechProcessingState('processing');
-          }
-
-          // Check for end phrases
-          const text = transcript?.toLowerCase() || '';
-          const endPhrases = [
-            'goodbye',
-            'good bye',
-            'end interview',
-            'finish interview',
-            'stop interview',
-            'thank you for your time',
-            "that's all",
-            "we're done",
-            'interview complete',
-            "i'm done",
-            'that concludes',
-            'end this',
-          ];
-
-          const foundPhrase = endPhrases.find(phrase => text.includes(phrase));
-          if (foundPhrase) {
-            console.log('✅ End phrase detected:', foundPhrase, 'in:', text);
-            setTimeout(() => {
-              jarvisInstance.stop();
-              handleInterviewEnd();
-            }, 2000);
-          }
-        };
-
-        // Real-time interim transcript handling
-        jarvisInstance.onInterimTranscript = ({ transcript, confidence }) => {
-          setInterimTranscript(transcript);
-          setConfidenceLevel(confidence || 0.8);
-          setSpeechProcessingState('listening');
-          console.log(
-            '🎤 Live transcript:',
-            transcript,
-            'Confidence:',
-            confidence
-          );
-        };
-
-        // Audio detection callbacks for immediate user feedback
-        jarvisInstance.onAudioStart = () => {
-          setIsListeningActive(true);
-          setSpeechProcessingState('listening');
-          console.log('🎧 Microphone activated');
-        };
-
-        jarvisInstance.onSoundStart = () => {
-          setIsSoundDetected(true);
-          setSpeechProcessingState('listening');
-          console.log('🗣️ User speaking detected');
-        };
-
-        jarvisInstance.onSoundEnd = () => {
-          setIsSoundDetected(false);
-          setSpeechProcessingState('processing');
-          console.log('🤫 User stopped speaking');
-        };
-
-        jarvisInstance.onSpeechStart = () => {
-          setIsAISpeaking(true);
-          setSpeechProcessingState('responding');
-          setInterimTranscript('');
-        };
-
-        jarvisInstance.onSpeechEnd = () => {
-          setIsAISpeaking(false);
-          setSpeechProcessingState('listening');
-        };
-
-        jarvisInstance.onError = error => {
-          console.log('Jarvis error - saving feedback:', error);
-          setIsConnected(false);
-          setIsAISpeaking(false);
-          setIsInterviewActive(false);
-          handleInterviewEnd();
-        };
-      } catch (err) {
-        console.error('Failed to initialize Jarvis:', err);
-        setIsVoiceInitialized(false);
+    if (conversation.length > 0) {
+      const chatEnd = document.getElementById('chat-end');
+      if (chatEnd) {
+        chatEnd.scrollIntoView({ behavior: 'smooth' });
       }
-    };
+    }
+  }, [conversation]);
 
-    initJarvis();
-
-    return () => {
-      if (jarvis) {
-        try {
-          jarvis.stop();
-        } catch (e) {
-          // Silent error handling
-        }
-      }
-    };
-  }, []);
-
-  // Fetch interview data
+  // Load interview data
   useEffect(() => {
     const fetchInterview = async () => {
       if (!interviewId) {
@@ -431,6 +134,8 @@ export default function StartInterviewPage() {
         const cachedInterview = getInterviewFromCache(interviewId);
         if (cachedInterview) {
           setInterview(cachedInterview);
+          setTotalDuration(parseDurationToSeconds(cachedInterview.duration));
+          setRemainingTime(parseDurationToSeconds(cachedInterview.duration));
           setLoading(false);
           return;
         }
@@ -440,6 +145,8 @@ export default function StartInterviewPage() {
 
         if (fetchedInterview) {
           setInterview(fetchedInterview);
+          setTotalDuration(parseDurationToSeconds(fetchedInterview.duration));
+          setRemainingTime(parseDurationToSeconds(fetchedInterview.duration));
         } else {
           setError('Interview not found');
         }
@@ -453,17 +160,43 @@ export default function StartInterviewPage() {
     fetchInterview();
   }, [interviewId, getInterviewById, getInterviewFromCache]);
 
-  // Handle starting voice interview
-  const handleStartVoiceInterview = async () => {
-    if (!jarvis) {
-      setError('Interview system is not initialized. Please refresh the page.');
-      toast.error('Voice service not initialized');
-      return;
+  // Timer effect
+  useEffect(() => {
+    let interval;
+    if (isConnected && interviewStatus === 'active') {
+      interval = setInterval(() => {
+        setElapsedTime(prev => {
+          const newElapsed = prev + 1;
+          setRemainingTime(Math.max(0, totalDuration - newElapsed));
+
+          // Auto-end interview when time is up
+          if (newElapsed >= totalDuration) {
+            handleEndInterview();
+          }
+
+          return newElapsed;
+        });
+      }, 1000);
     }
 
+    return () => clearInterval(interval);
+  }, [isConnected, interviewStatus, totalDuration]);
+
+  // Format time helper
+  const formatTime = seconds => {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    if (hrs > 0) {
+      return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Start interview handler
+  const handleStartInterview = async () => {
     if (!interview) {
-      setError('Interview data is not available. Please try again.');
-      toast.error('Interview data not loaded');
+      toast.error('Interview data not available');
       return;
     }
 
@@ -474,90 +207,120 @@ export default function StartInterviewPage() {
     }
 
     try {
-      console.log('🎙️ Starting voice interview...');
-      setError(null);
+      console.log('🎙️ Starting Deepgram voice interview...');
+      toast.info('Testing microphone and Deepgram configuration...');
 
-      // Check if browser supports speech recognition
-      if (!browserSupportsSpeechRecognition) {
-        toast.error(
-          'Speech recognition not supported in this browser. Please use Chrome or Edge.'
-        );
-        setError('Speech recognition not supported in this browser');
+      // Test microphone access first
+      const micTest = await testMicrophone();
+      if (!micTest) {
+        toast.error('Microphone access denied. Please allow microphone access.');
         return;
       }
 
-      const jobPosition =
-        interview.position || interview.jobPosition || 'position';
-      const userName = session?.user?.firstName
-        ? `${session.user.firstName}${session.user.lastName ? ' ' + session.user.lastName : ''}`
-        : session?.user?.name || 'candidate';
-
-      // Start timer immediately
-      const startTime = new Date();
-      setIsInterviewActive(true);
-      setIsConnected(true);
-      setInterviewStartTime(startTime);
-      console.log('⏰ Timer started at:', startTime);
-      toast.success('Interview started! Timer is running.');
-
-      // Initialize Jarvis (will handle microphone internally)
-      try {
-        await jarvis.initialize();
-        console.log('🎤 Jarvis initialized successfully');
-      } catch (initError) {
-        console.error('🎤 Jarvis initialization failed:', initError);
-        toast.error(
-          'Voice system initialization failed. Please try refreshing the page.'
-        );
-        setError('Voice system initialization failed');
+      // Test configuration
+      const configTest = await testConfiguration();
+      if (!configTest) {
+        toast.error('Deepgram/Gemini configuration error. Please check API keys.');
         return;
       }
 
-      // Start Jarvis voice interview
-      await jarvis.startInterview({
-        position: jobPosition,
-        candidateName: userName,
-        questions: questions.map(q => (typeof q === 'string' ? q : q.question)),
-        sessionId: interviewId,
-      });
-
-      console.log('✅ Voice interview started successfully');
+      toast.info('Connecting to Deepgram... Please speak clearly.');
+      const success = await startInterview();
+      
+      if (success) {
+        toast.success('Connected! The Deepgram AI interviewer will greet you shortly.');
+        setElapsedTime(0);
+        setRemainingTime(totalDuration);
+      } else {
+        toast.error('Failed to connect to Deepgram. Please try again.');
+      }
     } catch (error) {
-      console.error('❌ Failed to start voice interview:', error);
-      toast.error(
-        `Failed to start interview: ${error.message || 'Unknown error'}`
-      );
-      setError(error.message || 'Failed to start interview');
+      console.error('❌ Failed to start interview:', error);
+      toast.error('Error starting Deepgram interview: ' + (error.message || 'Unknown error'));
     }
   };
 
-  // Handle stopping interview
-  const handleStopInterview = () => {
-    if (jarvis && isConnected) {
-      jarvis.stop();
-    }
-    setIsInterviewActive(false);
-    setIsConnected(false);
-    handleInterviewEnd();
-  };
+  // End interview handler
+  const handleEndInterview = useCallback(async () => {
+    try {
+      console.log('🛑 Ending interview...');
+      toast.info('Ending interview and generating feedback...');
 
-  // Toggle mute
-  const handleToggleMute = () => {
-    const newMutedState = !isMuted;
-    setIsMuted(newMutedState);
-    if (jarvis) {
-      jarvis.setMuted(newMutedState);
+      const result = await endInterview();
+
+      if (result.success) {
+        // Generate feedback using conversation data
+        const transcript = getTranscript();
+        const stats = getInterviewStats();
+
+        try {
+          const feedbackResponse = await fetch('/api/generate-feedback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              position: interview.position || 'Software Developer',
+              duration: interview.duration || '30 min',
+              completionRate: Math.round((elapsedTime / totalDuration) * 100),
+              interviewType: interview.interviewType || 'Technical Interview',
+              difficulty: interview.difficulty || 'medium',
+              questionsCount: getQuestions(interview).length,
+              transcript: transcript,
+              stats: stats,
+              interviewId: interviewId,
+            }),
+          });
+
+          let feedback = null;
+          if (feedbackResponse.ok) {
+            const feedbackData = await feedbackResponse.json();
+            feedback = feedbackData.feedback;
+            console.log('✅ AI feedback generated successfully');
+          } else {
+            console.error('❌ Feedback generation failed');
+            feedback = `Interview completed for ${interview.position}. Duration: ${formatTime(elapsedTime)}. Total responses: ${stats.candidateResponses}.`;
+          }
+
+          // Update interview status
+          await updateInterviewStatus(interviewId, 'completed', {
+            feedback,
+            transcript,
+            stats,
+            duration: elapsedTime,
+            conversation: conversation,
+          });
+
+          setFeedbackSaved(true);
+          toast.success('Interview completed! Feedback has been generated.');
+        } catch (error) {
+          console.error('❌ Error generating feedback:', error);
+          toast.error('Interview completed but feedback generation failed');
+        }
+      } else {
+        toast.error('Error ending interview properly');
+      }
+    } catch (error) {
+      console.error('❌ Error in handleEndInterview:', error);
+      toast.error('Error ending interview');
     }
-    toast.info(newMutedState ? 'Microphone muted' : 'Microphone unmuted');
-  };
+  }, [
+    endInterview,
+    interview,
+    elapsedTime,
+    totalDuration,
+    interviewId,
+    conversation,
+    updateInterviewStatus,
+    getTranscript,
+    getInterviewStats,
+  ]);
 
   // Handle go back
   const handleGoBack = () => {
-    if (isInterviewActive) {
+    if (isConnected || interviewStatus === 'active') {
       if (
         confirm('Are you sure you want to leave? This will end the interview.')
       ) {
-        handleStopInterview();
+        handleEndInterview();
         router.push(`/interview-details/${interviewId}`);
       }
     } else {
@@ -565,181 +328,16 @@ export default function StartInterviewPage() {
     }
   };
 
-  // Handle page exit - simple and reliable
+  // Clear voice errors
   useEffect(() => {
-    const handlePageExit = () => {
-      if (isInterviewActive) {
-        console.log('🛑 Page exit detected - stopping interview');
-        if (jarvis) {
-          try {
-            jarvis.stop();
-          } catch (e) {}
-        }
-        setIsInterviewActive(false);
-        setIsConnected(false);
-      }
-    };
-
-    // Multiple event listeners for different exit scenarios
-    window.addEventListener('beforeunload', handlePageExit);
-    window.addEventListener('pagehide', handlePageExit);
-
-    return () => {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
-      window.removeEventListener('beforeunload', handlePageExit);
-      window.removeEventListener('pagehide', handlePageExit);
-    };
-  }, [isInterviewActive, jarvis]);
-
-  // Handle transcript from react-speech-recognition with debouncing (Enhanced for Indian English)
-  const [isProcessingTranscript, setIsProcessingTranscript] = useState(false);
-  const debounceTimeoutRef = useRef(null);
-
-  useEffect(() => {
-    if (transcript && isInterviewActive && jarvis && !isProcessingTranscript) {
-      const trimmedTranscript = transcript.trim();
-
-      // Clear existing timeout
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
-
-      // Only process meaningful input (at least 2 words for Indian English, relaxed from 3)
-      const wordCount = trimmedTranscript
-        .split(' ')
-        .filter(word => word.length > 0).length;
-      if (wordCount >= 2 && trimmedTranscript.length >= 5) {
-        // Increased debounce for 4 seconds to ensure user finished speaking (enhanced for Indian English)
-        debounceTimeoutRef.current = setTimeout(() => {
-          if (!isProcessingTranscript) {
-            setIsProcessingTranscript(true);
-            console.log(
-              '🎤 PROCESSING SPEECH (en-IN optimized):',
-              trimmedTranscript
-            );
-
-            // Process the transcript
-            const transcriptEntry = {
-              role: 'user',
-              text: trimmedTranscript,
-              timestamp: new Date().toISOString(),
-            };
-
-            setInterviewTranscript(prev => {
-              const updated = [...prev, transcriptEntry];
-              console.log('📋 Total transcript entries:', updated.length);
-              return updated;
-            });
-
-            // Get AI response with Indian English context
-            console.log(
-              '🤖 Getting AI response for (en-IN):',
-              trimmedTranscript
-            );
-
-            // Prepare comprehensive context for Jarvis
-            const questions = getQuestions(interview);
-            const userName = session?.user?.firstName
-              ? `${session.user.firstName}${session.user.lastName ? ' ' + session.user.lastName : ''}`
-              : session?.user?.name || 'Candidate';
-
-            const context = {
-              position:
-                interview?.position ||
-                interview?.jobPosition ||
-                'Software Developer',
-              candidateName: userName,
-              interviewType:
-                interview?.interviewType || interview?.type || 'technical',
-              difficulty: interview?.difficulty || 'medium',
-              questions: questions.map(q =>
-                typeof q === 'string' ? q : q.question || q
-              ),
-              duration: interview?.duration || '30 min',
-              companyName: interview?.companyName,
-              jobDescription: interview?.jobDescription,
-              language: 'en-IN', // Added language context for Indian English
-            };
-
-            console.log(
-              '📤 Sending context to Jarvis with en-IN support:',
-              context
-            );
-
-            fetch('/api/jarvis/chat', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                message: trimmedTranscript,
-                sessionId: jarvis.sessionId || interviewId,
-                context: context,
-                interviewData: interview,
-                language: 'en-IN', // Specify Indian English support
-              }),
-            })
-              .then(response => {
-                console.log('📞 API Response Status:', response.status);
-                if (!response.ok) {
-                  throw new Error(`API Error: ${response.status}`);
-                }
-                return response.json();
-              })
-              .then(data => {
-                console.log('🤖 API Response Data:', data);
-                if (data.success && data.response) {
-                  // Add AI response to transcript
-                  const aiMessage = {
-                    role: 'assistant',
-                    text: data.response,
-                    timestamp: new Date().toISOString(),
-                  };
-
-                  setInterviewTranscript(prev => {
-                    const updated = [...prev, aiMessage];
-                    console.log(
-                      '📋 AI response added, total entries:',
-                      updated.length
-                    );
-                    return updated;
-                  });
-
-                  jarvis.speak(data.response);
-                } else {
-                  console.error('No response in data:', data);
-                  jarvis.speak(
-                    "I'm having trouble understanding. Could you try speaking again? I'm optimized for Indian English."
-                  );
-                }
-              })
-              .catch(error => {
-                console.error('🚨 API Error:', error);
-                jarvis.speak(
-                  "I'm having trouble understanding. Could you try speaking again? I'm optimized for Indian English."
-                );
-              })
-              .finally(() => {
-                // Reset processing state after 4 seconds for Indian English (increased patience)
-                setTimeout(() => {
-                  setIsProcessingTranscript(false);
-                  resetTranscript();
-                }, 4000);
-              });
-          }
-        }, 4000); // Increased to 4 seconds to be more patient with Indian English speakers
-      }
+    if (voiceError) {
+      setError(voiceError);
+      setTimeout(() => {
+        clearError();
+        setError(null);
+      }, 5000);
     }
-  }, [
-    transcript,
-    isInterviewActive,
-    jarvis,
-    isProcessingTranscript,
-    resetTranscript,
-    interviewId,
-    interview,
-    session,
-  ]);
+  }, [voiceError, clearError]);
 
   // Loading state
   if (loading) {
@@ -774,502 +372,378 @@ export default function StartInterviewPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-background to-accent/5">
+      {/* Header */}
+      <div className="border-b bg-background/80 backdrop-blur-sm">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleGoBack}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <ArrowLeft className="w-4 h-4 mr-1" />
+                Back
+              </Button>
+              <div className="h-4 w-px bg-border" />
+              <div>
+                <h1 className="font-semibold text-lg">{interview.position}</h1>
+                <p className="text-sm text-muted-foreground">{interview.interviewType}</p>
+              </div>
+            </div>
+            {interviewStatus === 'active' && (
+              <div className={`flex items-center gap-2 px-3 py-1 text-sm font-mono rounded-md font-medium ${
+                remainingTime <= 60 ? 'bg-destructive text-destructive-foreground' : 
+                remainingTime <= 300 ? 'bg-primary text-primary-foreground' : 
+                'bg-secondary text-secondary-foreground'
+              }`}>
+                <BarChart2 className="w-4 h-4" />
+                {formatTime(remainingTime)}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Main Content */}
       <div className="flex-1 flex min-h-0">
-        {/* Main Video Area */}
-        <div className="flex-1 p-2">
-          <Card className="h-full flex items-center justify-center relative overflow-hidden">
-            {!isInterviewActive && (
-              <div className="flex items-center justify-center h-full">
-                <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
-                  <div className="text-center lg:text-left space-y-4 relative">
-                    <div className="lg:hidden mb-6">
-                      <Avatar className="w-24 h-24 mx-auto">
-                        <AvatarImage src="/user.png" alt="AI Interviewer" />
-                        <AvatarFallback className="bg-primary/10">
-                          <Bot className="w-12 h-12 text-primary" />
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
-                        <Badge
-                          variant="secondary"
-                          className="px-2 py-0.5 text-xs"
-                        >
-                          AI Interviewer (Indian English Optimized)
-                        </Badge>
+        {/* Main Interview Area */}
+        <div className="flex-1 p-4 lg:p-6">
+          <Card className="h-full flex items-center justify-center relative overflow-hidden border-2">
+            {(interviewStatus === 'idle' || !isConnected) && (
+              <div className="flex items-center justify-center h-full p-8">
+                <div className="text-center space-y-8 max-w-md">
+                  <div className="relative">
+                    <div className="w-40 h-40 mx-auto rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                      <Bot className="w-20 h-20 text-primary" />
+                    </div>
+                    <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2">
+                      <span className="px-3 py-1 text-sm font-medium bg-secondary text-secondary-foreground rounded-md">
+                        🤖 AI Interviewer
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <h2 className="text-2xl font-bold">
+                      {feedbackSaved ? 'Ready for a new interview?' : 'Ready to start your interview?'}
+                    </h2>
+                    
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div className="bg-muted/50 rounded-lg p-3">
+                        <div className="font-medium text-muted-foreground">Position</div>
+                        <div className="font-semibold">{interview.position}</div>
+                      </div>
+                      <div className="bg-muted/50 rounded-lg p-3">
+                        <div className="font-medium text-muted-foreground">Duration</div>
+                        <div className="font-semibold">{formatTime(totalDuration)}</div>
                       </div>
                     </div>
-                    <h2 className="text-xl font-semibold">
-                      {feedbackSaved
-                        ? 'Ready to start a new interview?'
-                        : 'Ready to start your interview?'}
-                    </h2>
-                    <p className="text-muted-foreground">
-                      Position: {interview.position}
-                    </p>
-                    <p className="text-muted-foreground">
-                      Type: {interview.interviewType}
-                    </p>
-                    <p className="text-muted-foreground">
-                      Duration: {formatTime(totalDuration)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      ✓ Optimized for Indian English • Speak naturally and
-                      comfortably
-                    </p>
+                    
+                    <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                      AI-powered voice interview • Speak naturally
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
                     <Button
-                      onClick={handleStartVoiceInterview}
-                      disabled={!isVoiceInitialized || !interview}
+                      onClick={handleStartInterview}
+                      disabled={loading || !interview}
                       size="lg"
-                      className="px-6"
+                      className="w-full py-6 text-lg font-semibold"
                     >
-                      {!isVoiceInitialized ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Initializing...
-                        </>
-                      ) : feedbackSaved ? (
-                        'Start New Interview'
-                      ) : (
-                        'Start Interview'
-                      )}
+                      {feedbackSaved ? '🎯 Start New Interview' : '🎙️ Start Interview'}
                     </Button>
                     {feedbackSaved && (
                       <Button
-                        onClick={() =>
-                          router.push(`/interview-details/${interviewId}`)
-                        }
+                        onClick={() => router.push(`/interview-details/${interviewId}`)}
                         variant="outline"
                         size="lg"
-                        className="px-6 ml-2"
+                        className="w-full py-3"
                       >
-                        View Results
+                        📊 View Results
                       </Button>
                     )}
                   </div>
-                  <div className="hidden lg:block">
-                    <div className="w-64 h-64 flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg">
-                      <Image
-                        src="/user.png"
-                        alt="User"
-                        width={128}
-                        height={128}
-                        className="w-32 h-32 rounded-full"
-                      />
-                    </div>
-                  </div>
                 </div>
               </div>
             )}
 
-            {/* Always show timer when interview is active */}
-            {isInterviewActive && (
-              <div className="absolute top-2 right-2 z-50">
-                <Badge
-                  variant={
-                    remainingTime <= 60
-                      ? 'destructive'
-                      : remainingTime <= 300
-                        ? 'default'
-                        : 'secondary'
-                  }
-                  className={`flex items-center gap-1 px-3 py-1 text-lg font-mono transition-all duration-300 ${
-                    remainingTime <= 60 ? 'animate-pulse' : ''
-                  }`}
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <polyline points="12,6 12,12 16,14" />
-                  </svg>
-                  {formatTime(remainingTime)}
-                </Badge>
-              </div>
-            )}
-
-            {/* Enhanced Status Indicator */}
-            {isInterviewActive && (
-              <div className="absolute top-2 left-2">
-                <Badge
-                  variant="secondary"
-                  className={cn(
-                    'flex items-center gap-2 px-3 py-1 text-sm transition-all duration-300',
-                    speechProcessingState === 'listening' &&
-                      isSoundDetected &&
-                      'bg-green-500 text-white animate-pulse',
-                    speechProcessingState === 'processing' &&
-                      'bg-yellow-500 text-black',
-                    speechProcessingState === 'responding' &&
-                      'bg-blue-500 text-white',
-                    !isListeningActive && 'bg-gray-500 text-white'
-                  )}
-                >
-                  <div
-                    className={cn(
-                      'w-2 h-2 rounded-full transition-colors duration-300',
-                      speechProcessingState === 'listening' && isSoundDetected
-                        ? 'bg-white animate-pulse'
-                        : speechProcessingState === 'processing'
-                          ? 'bg-black animate-spin'
-                          : speechProcessingState === 'responding'
-                            ? 'bg-white'
-                            : 'bg-gray-300'
-                    )}
-                  />
-                  {speechProcessingState === 'listening' && isSoundDetected
-                    ? 'Listening - You are speaking...'
-                    : speechProcessingState === 'processing'
-                      ? 'Processing your response...'
-                      : speechProcessingState === 'responding'
-                        ? 'AI Interviewer speaking...'
-                        : isListeningActive
-                          ? 'Ready - Waiting for you to speak...'
-                          : 'Microphone inactive'}
-                </Badge>
-              </div>
-            )}
-
-            {/* Live Transcript Display */}
-            {(interimTranscript || liveTranscript) && (
-              <div className="absolute bottom-20 left-4 right-4">
-                <Card className="bg-black/80 backdrop-blur-sm text-white border-gray-600">
-                  <CardContent className="p-3">
-                    <div className="flex items-start gap-2">
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse mt-2" />
-                      <div className="flex-1">
-                        <div className="text-xs text-gray-300 mb-1">
-                          Live Speech Recognition{' '}
-                          {confidenceLevel > 0 &&
-                            `(${Math.round(confidenceLevel * 100)}% confidence)`}
-                        </div>
-                        <div className="text-sm font-medium">
-                          {interimTranscript || liveTranscript}
-                          <span className="inline-block w-2 h-4 bg-green-400 ml-1 animate-pulse" />
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {/* Processing Indicator */}
-            {speechProcessingState === 'processing' && !isAISpeaking && (
-              <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2">
-                <Badge
-                  variant="default"
-                  className="flex items-center gap-2 px-3 py-2 text-sm animate-pulse"
-                >
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Analyzing your response...
-                </Badge>
-              </div>
-            )}
-
-            {isInterviewActive && (
-              <>
-                <div className="absolute top-2 right-2 z-50">
-                  <Badge
-                    variant={
-                      remainingTime <= 60
-                        ? 'destructive'
-                        : remainingTime <= 300
-                          ? 'default'
-                          : 'secondary'
-                    }
-                    className={`flex items-center gap-1 px-3 py-1 text-lg font-mono transition-all duration-300 ${
-                      remainingTime <= 60 ? 'animate-pulse' : ''
-                    }`}
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle cx="12" cy="12" r="10" />
-                      <polyline points="12,6 12,12 16,14" />
-                    </svg>
-                    {formatTime(remainingTime)}
-                  </Badge>
-                </div>
-
-                {/* Enhanced Status Indicator */}
-                <div className="absolute top-2 left-2">
-                  <Badge
-                    variant="secondary"
-                    className={cn(
-                      'flex items-center gap-2 px-3 py-1 text-sm transition-all duration-300',
-                      speechProcessingState === 'listening' &&
-                        isSoundDetected &&
-                        'bg-green-500 text-white animate-pulse',
-                      speechProcessingState === 'processing' &&
-                        'bg-yellow-500 text-black',
-                      speechProcessingState === 'responding' &&
-                        'bg-blue-500 text-white',
-                      !isListeningActive && 'bg-gray-500 text-white'
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        'w-2 h-2 rounded-full transition-colors duration-300',
-                        speechProcessingState === 'listening' && isSoundDetected
-                          ? 'bg-white animate-pulse'
-                          : speechProcessingState === 'processing'
-                            ? 'bg-black animate-spin'
-                            : speechProcessingState === 'responding'
-                              ? 'bg-white'
-                              : 'bg-gray-300'
-                      )}
-                    />
-                    {speechProcessingState === 'listening' && isSoundDetected
-                      ? 'Listening - You are speaking...'
-                      : speechProcessingState === 'processing'
-                        ? 'Processing your response...'
-                        : speechProcessingState === 'responding'
-                          ? 'AI Interviewer speaking...'
-                          : isListeningActive
-                            ? 'Ready - Waiting for you to speak...'
-                            : 'Microphone inactive'}
-                  </Badge>
-                </div>
-
-                {/* Live Transcript Display */}
-                {(interimTranscript || liveTranscript) && (
-                  <div className="absolute bottom-20 left-4 right-4">
-                    <Card className="bg-black/80 backdrop-blur-sm text-white border-gray-600">
-                      <CardContent className="p-3">
-                        <div className="flex items-start gap-2">
-                          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse mt-2" />
-                          <div className="flex-1">
-                            <div className="text-xs text-gray-300 mb-1">
-                              Live Speech Recognition{' '}
-                              {confidenceLevel > 0 &&
-                                `(${Math.round(confidenceLevel * 100)}% confidence)`}
-                            </div>
-                            <div className="text-sm font-medium">
-                              {interimTranscript || liveTranscript}
-                              <span className="inline-block w-2 h-4 bg-green-400 ml-1 animate-pulse" />
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
-
-                {/* Processing Indicator */}
-                {speechProcessingState === 'processing' && !isAISpeaking && (
-                  <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2">
-                    <Badge
-                      variant="default"
-                      className="flex items-center gap-2 px-3 py-2 text-sm animate-pulse"
-                    >
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Analyzing your response...
-                    </Badge>
-                  </div>
-                )}
-
-                <div className="text-center space-y-4">
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="relative h-32 w-32 overflow-hidden rounded-full bg-gradient-to-br from-primary/20 to-secondary/20">
-                      {(isAISpeaking || isConnected || isSoundDetected) && (
+            {(interviewStatus === 'connecting' || interviewStatus === 'active' || isConnected) && (
+              <div className="h-full flex flex-col p-4">
+                {/* AI Status Header */}
+                <div className="flex items-center justify-center gap-4 mb-4 p-4 bg-muted/30 rounded-lg">
+                  <div className="relative">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                      {(isRecording || isConnected) && (
                         <Ripple
-                          mainCircleSize={120}
-                          numCircles={
-                            isAISpeaking ? 8 : isSoundDetected ? 6 : 4
-                          }
-                          className={
-                            isAISpeaking
-                              ? 'text-blue-500'
-                              : isSoundDetected
-                                ? 'text-green-500'
-                                : 'text-primary'
-                          }
+                          mainCircleSize={60}
+                          numCircles={isRecording ? 4 : 2}
+                          className={isRecording ? 'text-green-500' : 'text-primary'}
                         />
                       )}
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Bot
-                          className={cn(
-                            'w-12 h-12 z-10 transition-colors duration-300',
-                            isAISpeaking
-                              ? 'text-blue-500'
-                              : isSoundDetected
-                                ? 'text-green-500'
-                                : 'text-primary'
-                          )}
-                        />
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <h3 className="text-lg font-semibold">AI Interviewer</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {isAISpeaking
-                          ? 'Speaking...'
-                          : speechProcessingState === 'processing'
-                            ? 'Thinking...'
-                            : isSoundDetected
-                              ? 'Listening to you...'
-                              : isListeningActive
-                                ? 'Ready to listen...'
-                                : 'Inactive'}
-                      </p>
+                      <Bot className={cn('w-8 h-8 z-10', isRecording ? 'text-green-500' : 'text-primary')} />
                     </div>
                   </div>
-
-                  {/* Current Question Display */}
-                  {currentQuestionText && (
-                    <Card className="max-w-2xl mx-auto p-4">
-                      <p className="text-lg leading-relaxed text-center">
-                        {currentQuestionText}
-                      </p>
-                      <div className="mt-2 text-sm text-muted-foreground text-center">
-                        Question {currentQuestion + 1} of{' '}
-                        {getQuestions(interview).length || 0}
-                      </div>
-                      <Progress value={progress || 0} className="w-full mt-3" />
-                    </Card>
-                  )}
+                  <div>
+                    <h3 className="font-bold">🤖 AI Interviewer</h3>
+                    <div className="flex items-center gap-2">
+                      <div className={cn('w-2 h-2 rounded-full', 
+                        isRecording ? 'bg-green-500 animate-pulse' : 
+                        isSpeaking ? 'bg-blue-500 animate-pulse' : 'bg-gray-400'
+                      )} />
+                      <span className="text-sm">
+                        {isRecording ? '👂 Listening...' : isSpeaking ? '🗣️ Speaking...' : '⏳ Ready'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              </>
+
+                {/* Chat Interface */}
+                <div className="flex-1 flex flex-col min-h-0">
+                  <div className="flex items-center justify-between mb-3 px-2">
+                    <h4 className="font-semibold flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4" />
+                      Interview Chat
+                    </h4>
+                    <span className="text-xs text-muted-foreground">
+                      {conversation.length} messages
+                    </span>
+                  </div>
+                  
+                  <div className="flex-1 bg-muted/20 rounded-lg border overflow-hidden flex flex-col">
+                    <div className="flex-1 overflow-y-auto p-3 space-y-3" id="chat-container">
+                      {conversation.length === 0 ? (
+                        <div className="text-center text-muted-foreground py-8">
+                          <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                          <p className="text-sm">Conversation will appear here...</p>
+                          <p className="text-xs mt-2">Start speaking to begin the interview</p>
+                        </div>
+                      ) : (
+                        <>
+                          {conversation.map((msg, index) => (
+                            <div key={`${msg.timestamp}-${index}`} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-300`}>
+                              <div className={`max-w-[85%] rounded-lg p-3 shadow-sm ${
+                                msg.role === 'user' 
+                                  ? 'bg-primary text-primary-foreground ml-4' 
+                                  : 'bg-background border border-border mr-4'
+                              }`}>
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-xs font-medium">
+                                    {msg.role === 'user' ? '👤 You' : '🤖 AI Interviewer'}
+                                  </span>
+                                  <span className="text-xs opacity-70">
+                                    {new Date(msg.timestamp).toLocaleTimeString()}
+                                  </span>
+                                </div>
+                                <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                                  {msg.content}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                          <div id="chat-end" />
+                        </>
+                      )}
+                    </div>
+                    
+                    {/* Live Status Bar */}
+                    <div className="border-t bg-background/50 p-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2">
+                          {isRecording && (
+                            <>
+                              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                              <span className="text-red-600 font-medium">Recording...</span>
+                            </>
+                          )}
+                          {isSpeaking && (
+                            <>
+                              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                              <span className="text-blue-600 font-medium">AI Speaking...</span>
+                            </>
+                          )}
+                          {!isRecording && !isSpeaking && isConnected && (
+                            <>
+                              <div className="w-2 h-2 bg-green-500 rounded-full" />
+                              <span className="text-green-600 font-medium">Ready to listen</span>
+                            </>
+                          )}
+                        </div>
+                        <span className="text-muted-foreground">
+                          💡 You can interrupt anytime
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
+
+
           </Card>
         </div>
 
-        {/* Sidebar */}
-        <Card className="w-64 border-l rounded-none hidden lg:block">
-          <div className="p-2 space-y-2">
-            <div className="flex items-center justify-between px-2">
-              <h3 className="text-sm font-semibold">Interview Status</h3>
-              <BarChart2 className="w-4 h-4 text-muted-foreground" />
+        {/* Compact Side Panel */}
+        <Card className="w-72 rounded-none border-l-0 hidden lg:block">
+          <div className="p-3 space-y-3">
+            <div className="flex items-center gap-2 pb-2 border-b">
+              <BarChart2 className="w-4 h-4 text-primary" />
+              <h3 className="font-semibold text-sm">Status & Details</h3>
             </div>
 
-            {/* Status Items */}
+            {/* Compact Status */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between p-2 rounded-lg bg-muted">
-                <span className="text-sm">Connection:</span>
-                <Badge
-                  className={
-                    isConnected
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-gray-100 text-gray-800'
-                  }
-                >
-                  {isConnected ? 'Connected' : 'Disconnected'}
-                </Badge>
-              </div>
-
-              <div className="flex items-center justify-between p-2 rounded-lg bg-muted">
-                <span className="text-sm">Microphone:</span>
-                <Badge
-                  className={
-                    isMuted
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-green-100 text-green-800'
-                  }
-                >
-                  {isMuted ? 'Muted' : 'Active'}
-                </Badge>
-              </div>
-
-              {volumeLevel > 0 && (
-                <div className="p-2 rounded-lg bg-muted">
-                  <div className="space-y-1">
-                    <span className="text-sm">Voice Level:</span>
-                    <Progress
-                      value={(volumeLevel || 0) * 100}
-                      className="w-full h-2"
-                    />
-                  </div>
+              <div className="flex items-center justify-between p-2 rounded bg-muted/30">
+                <div className="flex items-center gap-2">
+                  <div className={cn('w-1.5 h-1.5 rounded-full', isConnected ? 'bg-green-500' : 'bg-gray-400')} />
+                  <span className="text-xs">Connection</span>
                 </div>
-              )}
+                <span className="text-xs font-medium">{isConnected ? '✓ Connected' : '✗ Disconnected'}</span>
+              </div>
+
+              <div className="flex items-center justify-between p-2 rounded bg-muted/30">
+                <div className="flex items-center gap-2">
+                  <div className={cn('w-1.5 h-1.5 rounded-full', isRecording ? 'bg-red-500 animate-pulse' : 'bg-gray-400')} />
+                  <span className="text-xs">Recording</span>
+                </div>
+                <span className="text-xs font-medium">{isRecording ? '🔴 Active' : '⚫ Inactive'}</span>
+              </div>
+
+              <div className="flex items-center justify-between p-2 rounded bg-muted/30">
+                <div className="flex items-center gap-2">
+                  <div className={cn('w-1.5 h-1.5 rounded-full', 
+                    interviewStatus === 'active' ? 'bg-blue-500' : 
+                    interviewStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' : 'bg-gray-400'
+                  )} />
+                  <span className="text-xs">Status</span>
+                </div>
+                <span className="text-xs font-medium capitalize">{interviewStatus}</span>
+              </div>
             </div>
 
-            {/* Interview Details */}
-            <div className="pt-4">
-              <div className="flex items-center justify-between px-2 mb-2">
-                <h3 className="text-sm font-semibold">Details</h3>
-              </div>
-              <div className="space-y-1 text-xs">
-                <div className="p-2 rounded-lg bg-muted">
-                  <div className="font-medium">
-                    Duration: {interview.duration}
-                  </div>
-                  {isInterviewActive && (
-                    <div
-                      className={`mt-1 text-xs ${
-                        remainingTime <= 60
-                          ? 'text-red-500 font-semibold'
-                          : 'text-muted-foreground'
-                      }`}
-                    >
-                      Remaining: {formatTime(remainingTime)}
+            {/* Interview Info */}
+            <div className="space-y-2 pt-2 border-t">
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="p-2 rounded bg-primary/5">
+                  <div className="font-medium text-primary">Duration</div>
+                  <div className="text-muted-foreground">{interview.duration}</div>
+                  {interviewStatus === 'active' && (
+                    <div className={cn('text-xs font-medium mt-1',
+                      remainingTime <= 60 ? 'text-red-500' : 'text-muted-foreground'
+                    )}>
+                      {formatTime(remainingTime)} left
                     </div>
                   )}
                 </div>
-                <div className="p-2 rounded-lg bg-muted">
-                  <div className="font-medium">
-                    Questions: {getQuestions(interview).length || 0}
-                  </div>
-                </div>
-                <div className="p-2 rounded-lg bg-muted">
-                  <div className="font-medium">
-                    Type: {interview.interviewType}
-                  </div>
-                </div>
-                <div className="p-2 rounded-lg bg-muted">
-                  <div className="font-medium capitalize">
-                    Difficulty: {interview.difficulty}
-                  </div>
+                
+                <div className="p-2 rounded bg-muted/30">
+                  <div className="font-medium">Questions</div>
+                  <div className="text-muted-foreground">{getQuestions(interview).length || 0}</div>
                 </div>
               </div>
+              
+              <div className="p-2 rounded bg-muted/30 text-xs">
+                <div className="font-medium mb-1">{interview.interviewType}</div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground capitalize">Difficulty: {interview.difficulty}</span>
+                  <span className="text-muted-foreground">Messages: {conversation.length}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Voice Tips */}
+            <div className="p-2 rounded bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800">
+              <div className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">💡 Voice Tips</div>
+              <ul className="text-xs text-blue-600 dark:text-blue-400 space-y-1">
+                <li>• Speak clearly and naturally</li>
+                <li>• You can interrupt the AI anytime</li>
+                <li>• Pause briefly between thoughts</li>
+              </ul>
             </div>
           </div>
         </Card>
       </div>
 
-      {/* Controls */}
-      <Card className="rounded-none border-x-0 border-b-0 h-16">
-        <div className="flex items-center justify-center h-full space-x-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn(
-              'rounded-full h-10 w-10',
-              isMuted &&
-                'bg-destructive text-destructive-foreground hover:bg-destructive/90'
-            )}
-            onClick={handleToggleMute}
-          >
-            {isMuted ? (
-              <MicOff className="w-5 h-5" />
-            ) : (
-              <Mic className="w-5 h-5" />
-            )}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full h-10 w-10 bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            onClick={handleStopInterview}
-          >
-            <PhoneOff className="w-5 h-5" />
-          </Button>
+      {/* Mobile Status Bar */}
+      <div className="lg:hidden border-t bg-background/80 backdrop-blur-sm">
+        <div className="container mx-auto px-4 py-2">
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <div className={cn('w-2 h-2 rounded-full', isConnected ? 'bg-green-500' : 'bg-gray-400')} />
+                <span className="text-xs">{isConnected ? 'Connected' : 'Disconnected'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className={cn('w-2 h-2 rounded-full', isRecording ? 'bg-green-500 animate-pulse' : 'bg-gray-400')} />
+                <span className="text-xs">{isRecording ? 'Recording' : 'Idle'}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs px-2 py-0.5 bg-muted text-muted-foreground rounded border">
+                {conversation.length} msgs
+              </span>
+              {interviewStatus === 'active' && (
+                <span className={`text-xs px-2 py-0.5 rounded font-medium ${
+                  remainingTime <= 60 ? 'bg-destructive text-destructive-foreground' : 'bg-secondary text-secondary-foreground'
+                }`}>
+                  {formatTime(remainingTime)}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
-      </Card>
+      </div>
+
+      {/* Controls */}
+      <div className="border-t bg-background/80 backdrop-blur-sm">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-center space-x-4">
+            {interviewStatus === 'active' ? (
+              <>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={handleGoBack}
+                  className="px-6"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Leave Interview
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="lg"
+                  onClick={handleEndInterview}
+                  className="px-8 py-3 text-lg font-semibold"
+                >
+                  <PhoneOff className="w-5 h-5 mr-2" />
+                  End Interview
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={handleGoBack}
+                className="px-6"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Details
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Error Message */}
       {error && (
         <div className="fixed top-2 left-1/2 transform -translate-x-1/2 z-50">
-          <Badge variant="destructive" className="px-3 py-1 text-xs">
+          <div className="px-3 py-1 text-xs bg-destructive text-destructive-foreground rounded-md font-medium">
             {error}
-          </Badge>
+          </div>
         </div>
       )}
     </div>

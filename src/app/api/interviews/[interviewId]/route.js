@@ -54,7 +54,16 @@ export async function PUT(request, { params }) {
 
     const { interviewId } = await params;
     const body = await request.json();
-    const { status, feedback, rating, completedAt, duration } = body;
+    const {
+      status,
+      feedback,
+      rating,
+      completedAt,
+      duration,
+      transcript,
+      conversation,
+      stats,
+    } = body;
 
     const validStatuses = ['scheduled', 'pending', 'in_progress', 'completed'];
     if (status && !validStatuses.includes(status)) {
@@ -63,10 +72,13 @@ export async function PUT(request, { params }) {
 
     const updateData = {};
     if (status) updateData.status = status;
-    if (feedback) updateData.feedback = feedback; // Store feedback as text
+    if (feedback !== undefined) updateData.feedback = feedback; // Store feedback as text
     if (rating) updateData.rating = rating;
     if (completedAt) updateData.completedAt = new Date(completedAt);
     if (duration !== undefined) updateData.duration = duration;
+    if (transcript !== undefined) updateData.transcript = transcript;
+    if (conversation !== undefined) updateData.conversation = conversation;
+    if (stats !== undefined) updateData.stats = stats;
     updateData.updatedAt = new Date();
 
     const updatedInterview = await db

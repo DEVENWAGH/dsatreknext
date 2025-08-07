@@ -22,7 +22,7 @@ DSATrek is a cutting-edge platform for mastering Data Structures & Algorithms, a
 ## 🚀 What DSATrek Offers
 
 - **DSA Problem Solving**: Hundreds of curated problems with step-by-step visualizations (Array, String, Tree, Graph, DP, Greedy, Backtracking, and more)
-- **AI-Powered Interviews**: Generate and practice coding interviews with OpenAI, Gemini, and Vapi AI. Includes voice interview support.
+- **AI-Powered Interviews**: Generate and practice coding interviews with Deepgram STT/TTS and Gemini LLM. Real-time voice interview support.
 - **Advanced Analytics**: Track your streaks, acceptance rates, skill level, and more with interactive dashboards and heatmaps.
 - **Real-Time Collaboration**: Code together, join rooms, and share solutions with others using Liveblocks.io and Yjs.
 - **Rich Community**: Post, discuss, and learn with other users. Community features for sharing, voting, and commenting.

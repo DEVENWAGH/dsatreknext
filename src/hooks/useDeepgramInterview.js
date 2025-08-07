@@ -187,7 +187,13 @@ export const useDeepgramInterview = (interviewConfig) => {
   useEffect(() => {
     return () => {
       if (voiceAgentRef.current) {
-        voiceAgentRef.current.endInterview().catch(console.error);
+        voiceAgentRef.current.endInterview()
+          .catch(error => {
+            console.error('Failed to end interview cleanly:', error);
+            // Ensure we still reset the state even if ending the interview fails
+            setIsConnected(false);
+            setInterviewStatus('ended');
+          });
       }
       stopRecording();
     };

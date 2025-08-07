@@ -13,6 +13,8 @@ These variables are only accessible on the server-side and are not exposed to th
 - `AWS_SECRET_ACCESS_KEY` - AWS secret access key
 - `RAZORPAY_KEY_SECRET` - Razorpay secret key
 - `OPEN_ROUTER_API` - OpenRouter AI API key
+- `DEEPGRAM_API_KEY` - Deepgram voice agent API key for STT/TTS
+- `GEMINI_API_KEY` - Google Gemini AI API key for conversation AI
 
 ### 2. Client-Side Variables (NEXT*PUBLIC*\*)
 
