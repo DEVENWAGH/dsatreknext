@@ -188,6 +188,12 @@ export default function AdminDashboard() {
                 Manage Feedback
               </Link>
             </Button>
+            <Button variant="outline" asChild>
+              <Link href="/admin/interviews">
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Manage Interviews
+              </Link>
+            </Button>
           </div>
         </CardContent>
       </Card>

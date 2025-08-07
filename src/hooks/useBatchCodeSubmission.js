@@ -9,8 +9,21 @@ const useBatchCodeSubmission = () => {
   const [submissionResult, setSubmissionResult] = useState(null);
   const [batchQueue, setBatchQueue] = useState([]);
   const [isBatchProcessing, setIsBatchProcessing] = useState(false);
+  const [voiceDebugLogs, setVoiceDebugLogs] = useState([]); // New: voice debug logs
 
   const { getLanguageIdByDisplayName } = useLanguageStore();
+
+  // Add voice debug logging
+  const addVoiceDebugLog = (message, data = null) => {
+    const logEntry = {
+      timestamp: new Date().toISOString(),
+      message,
+      data,
+      source: 'batch-submission',
+    };
+    setVoiceDebugLogs(prev => [...prev.slice(-29), logEntry]); // Keep last 30 logs
+    console.log(`🔊 [Batch] ${message}`, data || '');
+  };
 
   // Batch configuration
   const batchConfig = useRef({
@@ -275,17 +288,24 @@ const useBatchCodeSubmission = () => {
     }
   }, [batchQueue, isBatchProcessing, processBatchOperations]);
 
-  // Enhanced submit code function with batching
+  // Enhanced submit code function with voice debugging
   const submitCode = useCallback(
     async ({ problem, selectedLanguage, sourceCode }) => {
+      addVoiceDebugLog('Adding submission to batch queue', {
+        problem: problem?.title,
+        language: selectedLanguage,
+      });
+
       if (!problem?.testCases || problem.testCases.length === 0) {
         toast.warning('No test cases available for this problem.');
+        addVoiceDebugLog('No test cases available for batch submission');
         return;
       }
 
       if (!problem?.id) {
         console.error('Problem ID not available.');
         toast.error('Problem information is missing.');
+        addVoiceDebugLog('Problem ID missing for batch submission');
         return;
       }
 
@@ -298,15 +318,22 @@ const useBatchCodeSubmission = () => {
       });
 
       toast.info('Added submission to batch queue');
+      addVoiceDebugLog('Submission added to batch queue successfully');
     },
     [addToBatch]
   );
 
-  // Enhanced run code function with batching
+  // Enhanced run code function with voice debugging
   const runCode = useCallback(
     async ({ problem, selectedLanguage, sourceCode }) => {
+      addVoiceDebugLog('Adding code run to batch queue', {
+        problem: problem?.title,
+        language: selectedLanguage,
+      });
+
       if (!problem?.testCases || problem.testCases.length === 0) {
         toast.warning('No test cases available for this problem.');
+        addVoiceDebugLog('No test cases available for batch run');
         return;
       }
 
@@ -319,50 +346,64 @@ const useBatchCodeSubmission = () => {
       });
 
       toast.info('Added code run to batch queue');
+      addVoiceDebugLog('Code run added to batch queue successfully');
     },
     [addToBatch]
   );
 
-  // Execute batch immediately
+  // Execute batch immediately with voice feedback
   const executeBatch = useCallback(() => {
     if (batchQueue.length === 0) {
       toast.warning('No operations in batch queue');
+      addVoiceDebugLog('Attempted to execute empty batch queue');
       return;
     }
 
+    addVoiceDebugLog('Executing batch', { queueLength: batchQueue.length });
     processBatch();
   }, [processBatch, batchQueue.length]);
 
-  // Clear batch queue
+  // Clear batch queue with voice feedback
   const clearBatch = useCallback(() => {
     setBatchQueue([]);
     setBatchResults([]);
     toast.info('Batch queue cleared');
+    addVoiceDebugLog('Batch queue cleared');
   }, []);
 
-  // Clear all results
+  // Clear all results with voice feedback
   const clearResults = useCallback(() => {
     setRunResults(null);
     setSubmissionResult(null);
     setBatchResults([]);
+    addVoiceDebugLog('All results cleared');
+  }, []);
+
+  // Voice debug methods
+  const getVoiceDebugLogs = useCallback(() => {
+    return voiceDebugLogs;
+  }, [voiceDebugLogs]);
+
+  const clearVoiceDebugLogs = useCallback(() => {
+    setVoiceDebugLogs([]);
+    addVoiceDebugLog('Voice debug logs cleared');
   }, []);
 
   // Get batch statistics
   const getBatchStats = useCallback(() => {
     return {
       queueLength: batchQueue.length,
-      completedBatches: batchResults.length,
+      resultsCount: batchResults.length,
       isProcessing: isBatchProcessing,
-      types: {
-        submissions: batchQueue.filter(op => op.type === 'submission').length,
-        runs: batchQueue.filter(op => op.type === 'run').length,
-      },
+      successCount: batchResults.filter(r => r.success).length,
+      errorCount: batchResults.filter(r => !r.success).length,
     };
-  }, [batchQueue, batchResults, isBatchProcessing]);
+  }, [batchQueue.length, batchResults, isBatchProcessing]);
 
   // Update batch configuration
-  const updateBatchConfig = useCallback(newConfig => {
+  const updateBatchConfig = useCallback((newConfig) => {
     batchConfig.current = { ...batchConfig.current, ...newConfig };
+    addVoiceDebugLog('Batch configuration updated', newConfig);
   }, []);
 
   return {
@@ -373,6 +414,7 @@ const useBatchCodeSubmission = () => {
     batchQueue,
     batchResults,
     isBatchProcessing,
+    voiceDebugLogs,
 
     // Actions
     submitCode,
@@ -390,6 +432,10 @@ const useBatchCodeSubmission = () => {
 
     // Configuration
     batchConfig: batchConfig.current,
+
+    // Voice debugging methods
+    getVoiceDebugLogs,
+    clearVoiceDebugLogs,
   };
 };
 

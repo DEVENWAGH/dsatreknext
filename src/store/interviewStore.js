@@ -20,7 +20,7 @@ export const useInterviewStore = create(
         set(state => ({
           interviews: Array.isArray(state.interviews) ? state.interviews : [],
           userInterviews: Array.isArray(state.userInterviews)
-            ? state.userInterviews
+            ? state.userInterViews
             : [],
         }));
       },
@@ -44,13 +44,13 @@ export const useInterviewStore = create(
               interviews: Array.isArray(state.interviews)
                 ? state.interviews
                 : [],
-              userInterviews: Array.isArray(state.userInterviews)
-                ? state.userInterviews
+              userInterviews: Array.isArray(state.userInterViews)
+                ? state.userInterViews
                 : [],
             };
 
             const currentInterviews = safeState.interviews;
-            const currentUserInterviews = safeState.userInterviews;
+            const currentUserInterviews = safeState.userInterViews;
 
             return {
               interviews: [...currentInterviews, newInterview],
@@ -113,10 +113,69 @@ export const useInterviewStore = create(
             isLoading: false,
           });
 
+          // Also update the interview in the arrays if it exists
+          set(state => {
+            const currentInterviews = Array.isArray(state.interviews)
+              ? state.interviews
+              : [];
+            const currentUserInterviews = Array.isArray(state.userInterViews)
+              ? state.userInterViews
+              : [];
+
+            return {
+              interviews: currentInterviews.map(int =>
+                int.id === interviewId ? interview : int
+              ),
+              userInterviews: currentUserInterviews.map(int =>
+                int.id === interviewId ? interview : int
+              ),
+            };
+          });
+
           return interview;
         } catch (error) {
           set({ error: error.message, isLoading: false });
           return null;
+        }
+      },
+
+      // Update interview with feedback
+      updateInterviewFeedback: async (interviewId, feedbackData) => {
+        set({ isUpdating: true, error: null });
+        try {
+          const response = await InterviewAPI.updateInterviewStatus(
+            interviewId,
+            { ...feedbackData, status: 'completed' }
+          );
+          const updatedInterview = response?.data;
+
+          set(state => {
+            const currentInterviews = Array.isArray(state.interviews)
+              ? state.interviews
+              : [];
+            const currentUserInterviews = Array.isArray(state.userInterViews)
+              ? state.userInterViews
+              : [];
+
+            return {
+              interviews: currentInterviews.map(interview =>
+                interview.id === interviewId ? updatedInterview : interview
+              ),
+              userInterviews: currentUserInterviews.map(interview =>
+                interview.id === interviewId ? updatedInterview : interview
+              ),
+              currentInterview:
+                state.currentInterview?.id === interviewId
+                  ? updatedInterview
+                  : state.currentInterview,
+              isUpdating: false,
+            };
+          });
+
+          return updatedInterview;
+        } catch (error) {
+          set({ error: error.message, isUpdating: false });
+          throw error;
         }
       },
 
@@ -134,8 +193,8 @@ export const useInterviewStore = create(
             const currentInterviews = Array.isArray(state.interviews)
               ? state.interviews
               : [];
-            const currentUserInterviews = Array.isArray(state.userInterviews)
-              ? state.userInterviews
+            const currentUserInterviews = Array.isArray(state.userInterViews)
+              ? state.userInterViews
               : [];
 
             return {
@@ -204,7 +263,7 @@ export const useInterviewStore = create(
       name: 'interview-storage',
       partialize: state => ({
         interviews: Array.isArray(state.interviews) ? state.interviews : [],
-        userInterviews: Array.isArray(state.userInterviews)
+        userInterviews: Array.isArray(state.userInterViews)
           ? state.userInterViews
           : [],
       }),

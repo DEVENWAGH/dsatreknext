@@ -169,6 +169,13 @@
       "when": 1754165458739,
       "tag": "0023_tiresome_pyro",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1754308012797,
+      "tag": "0024_free_madame_masque",
+      "breakpoints": true
     }
   ]
 }

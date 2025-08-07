@@ -140,17 +140,18 @@ export default function InterviewDetailsPage() {
             <p className="text-muted-foreground mt-1">Interview Details</p>
           </div>
 
-          {interview.status !== 'completed' && (
-            <Button
-              onClick={handleStartInterview}
-              className="flex items-center gap-2"
-            >
-              <Mic className="w-4 h-4" />
-              {interview.status === 'in-progress'
+          {/* Always show start interview button */}
+          <Button
+            onClick={handleStartInterview}
+            className="flex items-center gap-2"
+          >
+            <Mic className="w-4 h-4" />
+            {interview.status === 'completed'
+              ? 'Practice Again'
+              : interview.status === 'in-progress'
                 ? 'Resume Interview'
                 : 'Start Interview'}
-            </Button>
-          )}
+          </Button>
         </div>
       </div>
 

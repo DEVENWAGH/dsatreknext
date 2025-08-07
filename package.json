@@ -30,6 +30,12 @@
     "@google/generative-ai": "^0.24.1",
     "@gsap/react": "^2.1.2",
     "@hookform/resolvers": "^5.2.1",
+<<<<<<< HEAD
+=======
+    "@langchain/core": "^0.3.12",
+    "@langchain/google-genai": "^0.1.2",
+    "langchain": "^0.3.6",
+>>>>>>> voice
     "@liveblocks/client": "^3.2.1",
     "@liveblocks/node": "^3.2.1",
     "@liveblocks/react": "^3.2.1",
@@ -102,7 +108,6 @@
     "@udecode/plate-alignment": "^49.0.0",
     "@udecode/plate-toggle": "^49.0.0",
     "@uploadthing/react": "7.3.2",
-    "@vapi-ai/web": "^2.3.8",
     "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.2.0",
     "ai": "^4.3.19",

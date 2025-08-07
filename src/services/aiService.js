@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import { INTERVIEW_MODELS, DEFAULT_INTERVIEW_MODEL } from '@/utils/aiModels';
 import { generateInterviewQuestionsWithGemini } from './geminiService';
+import { getRefererUrl } from '@/utils/environmentUtils';
 
 const openai = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
@@ -76,7 +77,6 @@ Job Description: ${jobData.jobDescription}
 Interview Type: ${jobData.interviewType}
 Difficulty: ${jobData.difficulty}
 Duration: ${jobData.duration}
-
 IMPORTANT: Generate EXACTLY ${questionCount} questions. No more, no less.
 
 Question Distribution Guidelines:

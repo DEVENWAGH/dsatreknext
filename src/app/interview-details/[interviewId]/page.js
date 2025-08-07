@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useInterviewStore } from '@/store/interviewStore';
 import {
   Card,
@@ -12,6 +12,11 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+<<<<<<< HEAD
+=======
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { toast } from 'sonner';
+>>>>>>> voice
 import {
   Loader2,
   Clock,
@@ -22,6 +27,14 @@ import {
   Mic,
   MessageSquare,
   Calendar,
+<<<<<<< HEAD
+=======
+  Brain,
+  CheckCircle,
+  AlertCircle,
+  RotateCcw,
+  RefreshCw,
+>>>>>>> voice
 } from 'lucide-react';
 
 export default function InterviewDetailsPage() {
@@ -31,11 +44,95 @@ export default function InterviewDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Add ref to prevent multiple feedback generation attempts
+  const feedbackGenerationRef = useRef(false);
+  const feedbackTimeoutRef = useRef(null);
+
   const { getInterviewById, getInterviewFromCache } = useInterviewStore();
 
   console.log(`🎯 Interview Details Page loaded for ID: ${interviewId}`);
 
   useEffect(() => {
+<<<<<<< HEAD
+=======
+    const checkAndGenerateFeedback = async interviewData => {
+      // Prevent multiple simultaneous feedback generation
+      if (feedbackGenerationRef.current || isGeneratingFeedback) {
+        console.log('🚫 Feedback generation already in progress, skipping...');
+        return;
+      }
+
+      if (interviewData.status === 'completed' && !interviewData.feedback) {
+        console.log(
+          '🤖 Generating missing feedback for completed interview...'
+        );
+
+        feedbackGenerationRef.current = true;
+        setIsGeneratingFeedback(true);
+
+        // Set a timeout to prevent indefinite loading
+        feedbackTimeoutRef.current = setTimeout(() => {
+          console.log('⏰ Feedback generation timeout');
+          setIsGeneratingFeedback(false);
+          feedbackGenerationRef.current = false;
+        }, 30000); // 30 second timeout
+
+        try {
+          const feedbackResponse = await fetch('/api/generate-feedback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              position: interviewData.position || 'Software Developer',
+              duration: interviewData.duration || '30 min',
+              completionRate: 100,
+              interviewType:
+                interviewData.interviewType || 'Technical Interview',
+              difficulty: interviewData.difficulty || 'medium',
+              questionsCount: (interviewData.questions || []).length,
+              transcript: interviewData.transcript || [], // Use stored transcript
+              interviewId: interviewId, // Add for caching
+            }),
+          });
+
+          if (feedbackResponse.ok) {
+            const feedbackData = await feedbackResponse.json();
+            console.log('✅ Feedback generated successfully');
+
+            // Update interview with feedback
+            const updateResponse = await fetch(
+              `/api/interviews/${interviewId}`,
+              {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ feedback: feedbackData.feedback }),
+              }
+            );
+
+            if (updateResponse.ok) {
+              const updatedInterview = await updateResponse.json();
+              setInterview(updatedInterview.interview);
+              console.log('💾 Feedback saved to database');
+            }
+          } else {
+            console.error(
+              '❌ Failed to generate feedback:',
+              await feedbackResponse.text()
+            );
+          }
+        } catch (error) {
+          console.error('❌ Error generating feedback:', error);
+        } finally {
+          // Clear timeout and reset flags
+          if (feedbackTimeoutRef.current) {
+            clearTimeout(feedbackTimeoutRef.current);
+          }
+          setIsGeneratingFeedback(false);
+          feedbackGenerationRef.current = false;
+        }
+      }
+    };
+
+>>>>>>> voice
     const fetchInterview = async () => {
       if (!interviewId) {
         console.error('❌ No interview ID provided');
@@ -51,21 +148,33 @@ export default function InterviewDetailsPage() {
         // First try to get from cache
         const cachedInterview = getInterviewFromCache(interviewId);
         if (cachedInterview) {
-          console.log('✅ Using cached interview:', cachedInterview);
+          console.log('✅ Using cached interview');
           setInterview(cachedInterview);
           setLoading(false);
+<<<<<<< HEAD
+=======
+
+          // Only generate feedback if needed, with a small delay to prevent race conditions
+          setTimeout(() => checkAndGenerateFeedback(cachedInterview), 500);
+>>>>>>> voice
           return;
         }
 
         // If not in cache, fetch from API
-        console.log('📡 Fetching interview from API:', interviewId);
+        console.log('📡 Fetching interview from API');
         const fetchedInterview = await getInterviewById(interviewId);
 
         if (fetchedInterview) {
-          console.log('✅ Fetched interview successfully:', fetchedInterview);
+          console.log('✅ Fetched interview successfully');
           setInterview(fetchedInterview);
+<<<<<<< HEAD
+=======
+
+          // Only generate feedback if needed, with a small delay
+          setTimeout(() => checkAndGenerateFeedback(fetchedInterview), 500);
+>>>>>>> voice
         } else {
-          console.error('❌ Interview not found in API response');
+          console.error('❌ Interview not found');
           setError('Interview not found');
         }
       } catch (error) {
@@ -77,7 +186,20 @@ export default function InterviewDetailsPage() {
     };
 
     fetchInterview();
-  }, [interviewId, getInterviewById, getInterviewFromCache]);
+
+    // Cleanup function
+    return () => {
+      if (feedbackTimeoutRef.current) {
+        clearTimeout(feedbackTimeoutRef.current);
+      }
+      feedbackGenerationRef.current = false;
+    };
+  }, [
+    interviewId,
+    getInterviewById,
+    getInterviewFromCache,
+    isGeneratingFeedback,
+  ]);
 
   const getDifficultyColor = difficulty => {
     switch (difficulty) {
@@ -108,6 +230,43 @@ export default function InterviewDetailsPage() {
 
   const handleStartInterview = () => {
     router.push(`/start-interview/${interviewId}`);
+  };
+
+  const handleTryAgain = async () => {
+    try {
+      console.log(
+        '🔄 Reusing existing interview for retry - saving Gemini API calls'
+      );
+
+      // Reset interview status to pending to allow restart
+      const response = await fetch(`/api/interviews/${interviewId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: 'pending',
+          feedback: null, // Clear previous feedback
+          transcript: [], // Clear previous transcript
+          conversation: [], // Clear previous conversation
+          stats: null, // Clear previous stats
+        }),
+      });
+
+      if (response.ok) {
+        console.log('✅ Interview reset successfully');
+        toast.success(
+          'Interview reset! You can try again with the same questions.'
+        );
+
+        // Navigate directly to start interview page with existing data
+        router.push(`/start-interview/${interviewId}`);
+      } else {
+        console.error('❌ Failed to reset interview');
+        toast.error('Failed to reset interview. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error resetting interview:', error);
+      toast.error('Error resetting interview. Please try again.');
+    }
   };
 
   const handleGoBack = () => {
@@ -193,6 +352,7 @@ export default function InterviewDetailsPage() {
               </Badge>
             </div>
 
+<<<<<<< HEAD
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">Type:</span>
               <span className="font-medium">
@@ -325,6 +485,81 @@ export default function InterviewDetailsPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Company:</span>
                   <span className="font-medium">{interview.companyName}</span>
+=======
+            <div className="flex items-center gap-3">
+              {interview.status === 'completed' && (
+                <Button
+                  onClick={handleTryAgain}
+                  className="flex items-center gap-2"
+                  variant="outline"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Retry Same Interview
+                </Button>
+              )}
+
+              {interview.status !== 'completed' && (
+                <Button
+                  onClick={handleStartInterview}
+                  className="flex items-center gap-2"
+                >
+                  <Mic className="w-4 h-4" />
+                  {interview.status === 'in-progress'
+                    ? 'Resume Interview'
+                    : 'Start Interview'}
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* AI Interview Feedback - Shows feedback from interview record */}
+        {interview.status === 'completed' && (
+          <Card className="mb-6 flex-1 min-h-0 border-2">
+            <CardHeader className="pb-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950">
+              <CardTitle className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                  <Brain className="w-4 h-4 text-white" />
+                </div>
+                AI Interview Feedback
+                {isGeneratingFeedback && (
+                  <Badge variant="secondary" className="ml-2 animate-pulse">
+                    🤖 Generating...
+                  </Badge>
+                )}
+              </CardTitle>
+              <CardDescription className="text-blue-700 dark:text-blue-300">
+                Professional feedback generated by AI based on your interview performance
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="h-[calc(100vh-280px)] overflow-hidden flex flex-col p-0">
+              {isGeneratingFeedback ? (
+                <div className="flex items-center justify-center py-16">
+                  <div className="text-center space-y-6 max-w-md">
+                    <div className="relative">
+                      <div className="w-20 h-20 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Brain className="w-8 h-8 text-blue-500" />
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <h3 className="font-bold text-xl text-blue-600 dark:text-blue-400">
+                        🤖 Analyzing Your Interview
+                      </h3>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Our advanced AI is carefully reviewing your responses and generating personalized feedback. This process typically takes 5-15 seconds...
+                      </p>
+                      <div className="flex items-center justify-center gap-2 mt-6">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                        <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                        <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce"></div>
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-4 bg-blue-50 dark:bg-blue-950 p-3 rounded-lg">
+                        💡 Tip: Your feedback will include strengths, areas for improvement, and actionable recommendations
+                      </div>
+                    </div>
+                  </div>
+>>>>>>> voice
                 </div>
               )}
               {interview.interviewerName && (
@@ -334,6 +569,7 @@ export default function InterviewDetailsPage() {
                     {interview.interviewerName}
                   </span>
                 </div>
+<<<<<<< HEAD
               )}
               {interview.scheduledAt && (
                 <div className="flex justify-between items-center">
@@ -341,6 +577,26 @@ export default function InterviewDetailsPage() {
                   <span className="font-medium">
                     {new Date(interview.scheduledAt).toLocaleString()}
                   </span>
+=======
+              ) : (
+                <div className="text-center py-16 text-muted-foreground">
+                  <div className="space-y-6">
+                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
+                      <AlertCircle className="w-8 h-8 text-muted-foreground/50" />
+                    </div>
+                    <div className="space-y-3">
+                      <h3 className="font-semibold text-lg">No Feedback Available Yet</h3>
+                      <p className="text-sm max-w-md mx-auto leading-relaxed">
+                        Complete your interview to receive detailed AI-powered feedback and performance analysis
+                      </p>
+                      <div className="bg-muted/50 p-4 rounded-lg max-w-sm mx-auto">
+                        <p className="text-xs text-muted-foreground">
+                          💡 Feedback includes: Performance scoring, strengths analysis, improvement suggestions, and interview tips
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+>>>>>>> voice
                 </div>
               )}
             </CardContent>
@@ -351,7 +607,23 @@ export default function InterviewDetailsPage() {
         {interview.status === 'completed' && interview.feedback && (
           <Card className="md:col-span-2">
             <CardHeader>
+<<<<<<< HEAD
               <CardTitle>Interview Feedback</CardTitle>
+=======
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="w-5 h-5" />
+                Interview Questions ({(interview.questions || []).length})
+              </CardTitle>
+              <CardDescription>
+                These questions will be covered during your interview
+                {interview.status === 'completed' && (
+                  <span className="block mt-1 text-blue-600 dark:text-blue-400 font-medium">
+                    💡 Clicking "Retry Same Interview" will use the exact same
+                    questions - no new API calls needed!
+                  </span>
+                )}
+              </CardDescription>
+>>>>>>> voice
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -373,7 +645,71 @@ export default function InterviewDetailsPage() {
               </div>
             </CardContent>
           </Card>
+<<<<<<< HEAD
         )}
+=======
+        </div>
+
+        {/* Action Buttons Section */}
+        <Card className="border-dashed">
+          <CardContent className="pt-6">
+            <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
+              {interview.status === 'completed' ? (
+                <>
+                  <Button
+                    onClick={handleTryAgain}
+                    size="lg"
+                    className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Retry Same Interview
+                  </Button>
+                  <Button
+                    onClick={handleGoBack}
+                    variant="outline"
+                    size="lg"
+                    className="w-full sm:w-auto"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back to Interviews
+                  </Button>
+                </>
+              ) : interview.status === 'pending' ||
+                interview.status === 'scheduled' ? (
+                <>
+                  <Button
+                    onClick={handleStartInterview}
+                    size="lg"
+                    className="w-full sm:w-auto"
+                  >
+                    <Mic className="w-4 h-4 mr-2" />
+                    Start Interview
+                  </Button>
+                  <Button
+                    onClick={handleGoBack}
+                    variant="outline"
+                    size="lg"
+                    className="w-full sm:w-auto"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back to Interviews
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  onClick={handleGoBack}
+                  variant="outline"
+                  size="lg"
+                  className="w-full sm:w-auto"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Interviews
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+>>>>>>> voice
       </div>
     </div>
   );

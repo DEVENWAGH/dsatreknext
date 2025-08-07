@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useEffect } from 'react';
 import {
   Form,
   FormControl,
@@ -51,6 +52,24 @@ const InterviewForm = ({ onSubmit, isCreating }) => {
       interviewDifficulty: '',
     },
   });
+
+  // Check for retry configuration on component mount (deprecated)
+  useEffect(() => {
+    // This is now handled by direct interview reset functionality
+    // Old sessionStorage retry approach is deprecated in favor of direct interview reuse
+    try {
+      const retryConfig = sessionStorage.getItem('retryInterviewConfig');
+      if (retryConfig) {
+        // Clear the deprecated config
+        sessionStorage.removeItem('retryInterviewConfig');
+        console.log(
+          '🗑️ Cleared deprecated retry configuration - now using direct interview reuse'
+        );
+      }
+    } catch (error) {
+      console.error('Error clearing deprecated retry configuration:', error);
+    }
+  }, [form]);
 
   const interviewTypes = [
     { value: 'Technical Interview', icon: <Target className="w-4 h-4" /> },

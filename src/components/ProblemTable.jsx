@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useProblems } from '@/hooks/useProblems';
+import { useProblems, usePrefetchProblem } from '@/hooks/useProblems';
 import { useUIStore, useCompanyStore, useUserStore } from '@/store';
 
 import { Badge } from '@/components/ui/badge';
@@ -18,17 +18,20 @@ import { Button } from '@/components/ui/button';
 const ProblemTable = () => {
   const router = useRouter();
 
-  // TanStack Query for problems data
-  const { data: problems = [], isLoading } = useProblems();
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const ITEMS_PER_PAGE = 10;
+
+  // TanStack Query for problems data with pagination
+  const { data, isLoading } = useProblems(currentPage, ITEMS_PER_PAGE);
+  const problems = data?.problems || [];
+  const pagination = data?.pagination || {};
+  
+  // Prefetch hook for hover functionality
+  const prefetchProblem = usePrefetchProblem();
 
   const {
     searchQuery,
     selectedDifficulty,
-    // selectedTags,
-    // currentPage,
-    // setSearchQuery,
-    // setSelectedDifficulty,
-    // setCurrentPage,
   } = useUIStore();
 
   const { getCompanyFromCache } = useCompanyStore();
@@ -61,6 +64,14 @@ const ProblemTable = () => {
     [router]
   );
 
+  const handleProblemHover = useCallback(
+    problemId => {
+      // Prefetch problem data on hover
+      prefetchProblem(problemId);
+    },
+    [prefetchProblem]
+  );
+
   // Memoized difficulty color function
   const getDifficultyColorMemo = useCallback(difficulty => {
     switch (difficulty?.toLowerCase()) {
@@ -75,73 +86,8 @@ const ProblemTable = () => {
     }
   }, []);
 
-  // Filter and sort problems with better performance
-  const filteredProblems = useMemo(() => {
-    if (!problems || problems.length === 0) return [];
-
-    const filtered = problems.filter(problem => {
-      // Search in title, tags, and company names
-      const matchesSearch =
-        !searchQuery ||
-        problem.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (problem.tags || []).some(tag =>
-          tag.toLowerCase().includes(searchQuery.toLowerCase())
-        ) ||
-        (problem.companies || []).some(companyId => {
-          const company = getCompanyFromCache(companyId);
-          return company?.name
-            ?.toLowerCase()
-            .includes(searchQuery.toLowerCase());
-        });
-
-      // Filter by difficulty
-      const matchesDifficulty =
-        selectedDifficulty === 'all' ||
-        problem.difficulty.toLowerCase() === selectedDifficulty.toLowerCase();
-
-      return matchesSearch && matchesDifficulty;
-    });
-
-    // Sort problems
-    return filtered.sort((a, b) => {
-      let aValue, bValue;
-      if (sortBy === 'number') {
-        aValue = parseInt(a.title.match(/\d+/)?.[0] || '0');
-        bValue = parseInt(b.title.match(/\d+/)?.[0] || '0');
-      } else if (sortBy === 'acceptance') {
-        const aTotal = parseInt(a.totalSubmissions) || 0;
-        const aAccepted = parseInt(a.acceptedSubmissions) || 0;
-        const bTotal = parseInt(b.totalSubmissions) || 0;
-        const bAccepted = parseInt(b.acceptedSubmissions) || 0;
-        aValue = aTotal > 0 ? (aAccepted / aTotal) * 100 : 0;
-        bValue = bTotal > 0 ? (bAccepted / bTotal) * 100 : 0;
-      } else if (sortBy === 'difficulty') {
-        // Easy < Medium < Hard
-        const diffRank = d => {
-          if (!d) return 0;
-          const val = d.toLowerCase();
-          if (val === 'easy') return 1;
-          if (val === 'medium') return 2;
-          if (val === 'hard') return 3;
-          return 0;
-        };
-        aValue = diffRank(a.difficulty);
-        bValue = diffRank(b.difficulty);
-      }
-      if (sortOrder === 'asc') {
-        return aValue - bValue;
-      } else {
-        return bValue - aValue;
-      }
-    });
-  }, [
-    problems,
-    searchQuery,
-    selectedDifficulty,
-    getCompanyFromCache,
-    sortBy,
-    sortOrder,
-  ]);
+  // Use problems directly from server (already paginated)
+  const displayProblems = problems || [];
 
   // Fetch all companies once on mount
   useEffect(() => {
@@ -160,7 +106,15 @@ const ProblemTable = () => {
     );
   }
 
-  const displayProblems = filteredProblems;
+  // Server-side pagination info
+  const totalPages = pagination.totalPages || 1;
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE + 1;
+  const endIndex = Math.min(currentPage * ITEMS_PER_PAGE, pagination.total || 0);
+
+  // Reset to first page when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedDifficulty, sortBy, sortOrder]);
 
   return (
     <div className="space-y-6">
@@ -223,6 +177,7 @@ const ProblemTable = () => {
                     <div
                       className="cursor-pointer hover:text-primary transition-colors"
                       onClick={() => handleProblemClick(problem.id)}
+                      onMouseEnter={() => handleProblemHover(problem.id)}
                     >
                       <div className="flex items-center gap-2">
                         {solvedProblems?.includes(problem.id) && (
@@ -300,6 +255,63 @@ const ProblemTable = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            Showing {startIndex}-{endIndex} of {pagination.total || 0} problems
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </Button>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const pageNum = currentPage <= 3 ? i + 1 : currentPage - 2 + i;
+                if (pageNum > totalPages) return null;
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={currentPage === pageNum ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCurrentPage(pageNum)}
+                    className="w-8 h-8 p-0"
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              })}
+              {totalPages > 5 && currentPage < totalPages - 2 && (
+                <span className="text-muted-foreground">...</span>
+              )}
+              {totalPages > 5 && currentPage < totalPages - 1 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(totalPages)}
+                  className="w-8 h-8 p-0"
+                >
+                  {totalPages}
+                </Button>
+              )}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

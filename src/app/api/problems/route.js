@@ -10,6 +10,9 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const fields = searchParams.get('fields');
     const showAll = searchParams.get('showAll') === 'true';
+    const page = parseInt(searchParams.get('page')) || 1;
+    const limit = parseInt(searchParams.get('limit')) || 10;
+    const offset = (page - 1) * limit;
 
     // Select fields based on request
     let query = db.select();
@@ -29,16 +32,28 @@ export async function GET(request) {
       query = db.select(selectFields);
     }
 
+    // Get total count first
+    const totalCountQuery = showAll 
+      ? db.select({ count: count() }).from(Problem)
+      : db.select({ count: count() }).from(Problem).where(eq(Problem.isActive, true));
+    
+    const [{ count: totalCount }] = await totalCountQuery;
+
+    // Get paginated problems
     let problems;
     if (showAll) {
       problems = await query
         .from(Problem)
-        .orderBy(sql`CAST(SUBSTRING(${Problem.title} FROM '[0-9]+') AS INTEGER)`);
+        .orderBy(sql`CAST(SUBSTRING(${Problem.title} FROM '[0-9]+') AS INTEGER)`)
+        .limit(limit)
+        .offset(offset);
     } else {
       problems = await query
         .from(Problem)
         .where(eq(Problem.isActive, true))
-        .orderBy(sql`CAST(SUBSTRING(${Problem.title} FROM '[0-9]+') AS INTEGER)`);
+        .orderBy(sql`CAST(SUBSTRING(${Problem.title} FROM '[0-9]+') AS INTEGER)`)
+        .limit(limit)
+        .offset(offset);
     }
 
     // Get submission statistics for each problem
@@ -77,6 +92,14 @@ export async function GET(request) {
         success: true,
         data: {
           problems: problemsWithStats,
+          pagination: {
+            page,
+            limit,
+            total: totalCount,
+            totalPages: Math.ceil(totalCount / limit),
+            hasNext: page < Math.ceil(totalCount / limit),
+            hasPrev: page > 1,
+          },
         },
       },
       {
