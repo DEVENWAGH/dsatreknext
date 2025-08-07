@@ -1,0 +1,1044 @@
+[
+  {
+    "id": "9e8h1hh4-c014-803j-f82g-hehig2i32097",
+    "title": "9. Climbing Stairs",
+    "description": [
+      {
+        "id": "d1",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "text": "You are climbing a staircase. It takes "
+          },
+          {
+            "code": true,
+            "text": "n"
+          },
+          {
+            "text": " steps to reach the top."
+          }
+        ]
+      },
+      {
+        "id": "d2",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "text": "Each time you can either climb "
+          },
+          {
+            "bold": true,
+            "text": "1 or 2 steps"
+          },
+          {
+            "text": ". In how many distinct ways can you climb to the top?"
+          }
+        ]
+      },
+      {
+        "id": "d3",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "d4",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "bold": true,
+            "text": "Example 1:"
+          }
+        ]
+      },
+      {
+        "id": "d5",
+        "type": "code_block",
+        "children": [
+          {
+            "id": "d5-1",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Input: n = 2"
+              }
+            ]
+          },
+          {
+            "id": "d5-2",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Output: 2"
+              }
+            ]
+          },
+          {
+            "id": "d5-3",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Explanation: There are two ways to climb to the top."
+              }
+            ]
+          },
+          {
+            "id": "d5-4",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "1. 1 step + 1 step"
+              }
+            ]
+          },
+          {
+            "id": "d5-5",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "2. 2 steps"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "d6",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "bold": true,
+            "text": "Example 2:"
+          }
+        ]
+      },
+      {
+        "id": "d7",
+        "type": "code_block",
+        "children": [
+          {
+            "id": "d7-1",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Input: n = 3"
+              }
+            ]
+          },
+          {
+            "id": "d7-2",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Output: 3"
+              }
+            ]
+          },
+          {
+            "id": "d7-3",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Explanation: There are three ways to climb to the top."
+              }
+            ]
+          },
+          {
+            "id": "d7-4",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "1. 1 step + 1 step + 1 step"
+              }
+            ]
+          },
+          {
+            "id": "d7-5",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "2. 1 step + 2 steps"
+              }
+            ]
+          },
+          {
+            "id": "d7-6",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "3. 2 steps + 1 step"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "d8",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "bold": true,
+            "text": "Constraints:"
+          }
+        ]
+      },
+      {
+        "id": "d9",
+        "type": "p",
+        "indent": 0,
+        "children": [
+          {
+            "code": true,
+            "text": "1 <= n <= 45"
+          }
+        ],
+        "listStyleType": ""
+      }
+    ],
+    "difficulty": "easy",
+    "tags": [
+      "Math",
+      "Dynamic Programming",
+      "Memoization"
+    ],
+    "starter_code": {
+      "C": "int climbStairs(int n) {\n  // Write your solution here\n  return 0;\n}",
+      "GO": "func climbStairs(n int) int {\n  // Write your solution here\n  return 0\n}",
+      "CPP": "int climbStairs(int n) {\n  // Write your solution here\n  return 0;\n}",
+      "JAVA": "public int climbStairs(int n) {\n  // Write your solution here\n  return 0;\n}",
+      "RUBY": "def climb_stairs(n)\n  # Write your solution here\n  0\nend",
+      "RUST": "fn climb_stairs(n: i32) -> i32 {\n  // Write your solution here\n  0\n}",
+      "CSHARP": "public int ClimbStairs(int n) {\n  // Write your solution here\n  return 0;\n}",
+      "PYTHON": "def climb_stairs(n):\n  # Write your solution here\n  return 0",
+      "JAVASCRIPT": "function climbStairs(n) {\n  // Write your solution here\n  return 0;\n}",
+      "TYPESCRIPT": "function climbStairs(n: number): number {\n  // Write your solution here\n  return 0;\n}"
+    },
+    "solution": {
+      "C": "int climbStairs(int n) {\n  if (n <= 2) return n;\n  \n  int prev2 = 1, prev1 = 2;\n  \n  for (int i = 3; i <= n; i++) {\n    int current = prev1 + prev2;\n    prev2 = prev1;\n    prev1 = current;\n  }\n  \n  return prev1;\n}",
+      "GO": "func climbStairs(n int) int {\n  if n <= 2 {\n    return n\n  }\n  \n  prev2, prev1 := 1, 2\n  \n  for i := 3; i <= n; i++ {\n    current := prev1 + prev2\n    prev2 = prev1\n    prev1 = current\n  }\n  \n  return prev1\n}",
+      "CPP": "int climbStairs(int n) {\n  if (n <= 2) return n;\n  \n  int prev2 = 1, prev1 = 2;\n  \n  for (int i = 3; i <= n; i++) {\n    int current = prev1 + prev2;\n    prev2 = prev1;\n    prev1 = current;\n  }\n  \n  return prev1;\n}",
+      "JAVA": "public int climbStairs(int n) {\n  if (n <= 2) return n;\n  \n  int prev2 = 1, prev1 = 2;\n  \n  for (int i = 3; i <= n; i++) {\n    int current = prev1 + prev2;\n    prev2 = prev1;\n    prev1 = current;\n  }\n  \n  return prev1;\n}",
+      "RUBY": "def climb_stairs(n)\n  return n if n <= 2\n  \n  prev2, prev1 = 1, 2\n  \n  (3..n).each do\n    current = prev1 + prev2\n    prev2 = prev1\n    prev1 = current\n  end\n  \n  prev1\nend",
+      "RUST": "fn climb_stairs(n: i32) -> i32 {\n  if n <= 2 {\n    return n;\n  }\n  \n  let mut prev2 = 1;\n  let mut prev1 = 2;\n  \n  for _ in 3..=n {\n    let current = prev1 + prev2;\n    prev2 = prev1;\n    prev1 = current;\n  }\n  \n  prev1\n}",
+      "CSHARP": "public int ClimbStairs(int n) {\n  if (n <= 2) return n;\n  \n  int prev2 = 1, prev1 = 2;\n  \n  for (int i = 3; i <= n; i++) {\n    int current = prev1 + prev2;\n    prev2 = prev1;\n    prev1 = current;\n  }\n  \n  return prev1;\n}",
+      "PYTHON": "def climb_stairs(n):\n  if n <= 2:\n    return n\n  \n  prev2, prev1 = 1, 2\n  \n  for i in range(3, n + 1):\n    current = prev1 + prev2\n    prev2 = prev1\n    prev1 = current\n  \n  return prev1",
+      "JAVASCRIPT": "function climbStairs(n) {\n  if (n <= 2) return n;\n  \n  let prev2 = 1, prev1 = 2;\n  \n  for (let i = 3; i <= n; i++) {\n    const current = prev1 + prev2;\n    prev2 = prev1;\n    prev1 = current;\n  }\n  \n  return prev1;\n}",
+      "TYPESCRIPT": "function climbStairs(n: number): number {\n  if (n <= 2) return n;\n  \n  let prev2 = 1, prev1 = 2;\n  \n  for (let i = 3; i <= n; i++) {\n    const current = prev1 + prev2;\n    prev2 = prev1;\n    prev1 = current;\n  }\n  \n  return prev1;\n}"
+    },
+    "test_cases": [
+      {
+        "input": "2",
+        "output": "2"
+      },
+      {
+        "input": "3",
+        "output": "3"
+      },
+      {
+        "input": "4",
+        "output": "5"
+      }
+    ],
+    "hints": [
+      "This is a Fibonacci sequence problem",
+      "Use dynamic programming with O(1) space"
+    ],
+    "created_at": "2025-08-03 10:47:10.17675",
+    "updated_at": "2025-08-03 10:47:10.17675",
+    "companies": [
+      "407ec9ad-ffc5-4b8f-b962-0a60cb624a74",
+      "202a36bd-2095-4d13-a8be-e6df6ef32f8a",
+      "ab07275c-4a93-4bf6-9b6a-1f04ab5c06ac",
+      "48133990-7a31-4831-a7dc-112842fcf416"
+    ],
+    "editorial": [
+      {
+        "id": "e1",
+        "type": "p",
+        "children": [
+          {
+            "bold": true,
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e2",
+        "url": "https://www.youtube.com/watch?v=Y0lT9Fck7qI",
+        "type": "video",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e3",
+        "type": "p",
+        "children": [
+          {
+            "bold": true,
+            "text": "Difficulty"
+          },
+          {
+            "text": ": Easy\n "
+          },
+          {
+            "bold": true,
+            "text": "Time Complexity"
+          },
+          {
+            "text": ": "
+          },
+          {
+            "code": true,
+            "text": "O(n)"
+          },
+          {
+            "text": "\n "
+          },
+          {
+            "bold": true,
+            "text": "Space Complexity"
+          },
+          {
+            "text": ": "
+          },
+          {
+            "code": true,
+            "text": "O(1)"
+          }
+        ]
+      },
+      {
+        "id": "e4",
+        "type": "hr",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e5",
+        "type": "h2",
+        "children": [
+          {
+            "text": "📌 Problem Summary"
+          }
+        ]
+      },
+      {
+        "id": "e6",
+        "type": "p",
+        "children": [
+          {
+            "text": "Count distinct ways to climb n stairs taking 1 or 2 steps at a time."
+          }
+        ]
+      },
+      {
+        "id": "e7",
+        "type": "hr",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e8",
+        "type": "h2",
+        "children": [
+          {
+            "text": "💡 Intuition"
+          }
+        ]
+      },
+      {
+        "id": "e9",
+        "type": "p",
+        "children": [
+          {
+            "text": "This follows Fibonacci sequence: f(n) = f(n-1) + f(n-2)."
+          }
+        ]
+      },
+      {
+        "id": "e10",
+        "type": "hr",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e11",
+        "type": "h2",
+        "children": [
+          {
+            "text": "✅ Dynamic Programming (Optimal)"
+          }
+        ]
+      },
+      {
+        "id": "e12",
+        "type": "p",
+        "children": [
+          {
+            "text": "Use two variables to track previous two values, iterate from 3 to n."
+          }
+        ]
+      },
+      {
+        "id": "e13",
+        "type": "code_block",
+        "children": [
+          {
+            "id": "e13-1",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "def climb_stairs(n):"
+              }
+            ]
+          },
+          {
+            "id": "e13-2",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "  if n <= 2: return n"
+              }
+            ]
+          },
+          {
+            "id": "e13-3",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "  prev2, prev1 = 1, 2"
+              }
+            ]
+          },
+          {
+            "id": "e13-4",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "  for i in range(3, n + 1):"
+              }
+            ]
+          },
+          {
+            "id": "e13-5",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "    current = prev1 + prev2"
+              }
+            ]
+          },
+          {
+            "id": "e13-6",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "    prev2, prev1 = prev1, current"
+              }
+            ]
+          },
+          {
+            "id": "e13-7",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "  return prev1"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "top_code": {
+      "C": "#include <stdio.h>",
+      "GO": "package main\nimport \"fmt\"",
+      "CPP": "#include <iostream>\nusing namespace std;",
+      "JAVA": "import java.util.*;\nclass Solution {",
+      "RUBY": "",
+      "RUST": "use std::io;",
+      "CSHARP": "using System;\nclass Solution {",
+      "PYTHON": "import sys",
+      "JAVASCRIPT": "",
+      "TYPESCRIPT": ""
+    },
+    "bottom_code": {
+      "C": "int main() {\n  int n;\n  scanf(\"%d\", &n);\n  \n  int result = climbStairs(n);\n  printf(\"%d\\n\", result);\n  return 0;\n}",
+      "GO": "func main() {\n  var n int\n  fmt.Scan(&n)\n  \n  result := climbStairs(n)\n  fmt.Println(result)\n}",
+      "CPP": "int main() {\n  int n;\n  cin >> n;\n  \n  int result = climbStairs(n);\n  cout << result << endl;\n  \n  return 0;\n}",
+      "JAVA": "}\n\nclass Main {\n  public static void main(String[] args) {\n    Scanner sc = new Scanner(System.in);\n    int n = sc.nextInt();\n    \n    Solution sol = new Solution();\n    int result = sol.climbStairs(n);\n    System.out.println(result);\n  }\n}",
+      "RUBY": "n = gets.to_i\nresult = climb_stairs(n)\nputs result",
+      "RUST": "fn main() {\n  let mut input = String::new();\n  io::stdin().read_line(&mut input).unwrap();\n  \n  let n: i32 = input.trim().parse().unwrap();\n  let result = climb_stairs(n);\n  println!(\"{}\", result);\n}",
+      "CSHARP": "}\n\nclass Program {\n  static void Main() {\n    int n = int.Parse(Console.ReadLine());\n    \n    Solution sol = new Solution();\n    int result = sol.ClimbStairs(n);\n    Console.WriteLine(result);\n  }\n}",
+      "PYTHON": "n = int(sys.stdin.read().strip())\nresult = climb_stairs(n)\nprint(result)",
+      "JAVASCRIPT": "const readline = require('readline');\nconst rl = readline.createInterface({\n  input: process.stdin,\n  output: process.stdout\n});\n\nrl.on('line', (input) => {\n  const n = parseInt(input);\n  const result = climbStairs(n);\n  console.log(result);\n  rl.close();\n});",
+      "TYPESCRIPT": "declare var require: any;\ndeclare var process: any;\n\nconst fs = require('fs');\nconst n = parseInt(fs.readFileSync(0, 'utf-8').trim());\nconst result = climbStairs(n);\nconsole.log(result);"
+    },
+    "is_premium": false
+  },
+  {
+    "id": "19f9i2ii5-d125-914k-g93h-ifjij3j43208",
+    "title": "19. Valid Parentheses",
+    "description": [
+      {
+        "id": "d1",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "text": "Given a string "
+          },
+          {
+            "code": true,
+            "text": "s"
+          },
+          {
+            "text": " containing just the characters "
+          },
+          {
+            "code": true,
+            "text": "'('"
+          },
+          {
+            "text": ", "
+          },
+          {
+            "code": true,
+            "text": "')'"
+          },
+          {
+            "text": ", "
+          },
+          {
+            "code": true,
+            "text": "'{'"
+          },
+          {
+            "text": ", "
+          },
+          {
+            "code": true,
+            "text": "'}'"
+          },
+          {
+            "text": ", "
+          },
+          {
+            "code": true,
+            "text": "'['"
+          },
+          {
+            "text": " and "
+          },
+          {
+            "code": true,
+            "text": "']'"
+          },
+          {
+            "text": ", determine if the input string is valid."
+          }
+        ]
+      },
+      {
+        "id": "d2",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "text": "An input string is valid if:"
+          }
+        ]
+      },
+      {
+        "id": "d3",
+        "type": "p",
+        "indent": 0,
+        "children": [
+          {
+            "text": "Open brackets must be closed by the same type of brackets."
+          }
+        ],
+        "listStyleType": ""
+      },
+      {
+        "id": "d4",
+        "type": "p",
+        "indent": 0,
+        "children": [
+          {
+            "text": "Open brackets must be closed in the correct order."
+          }
+        ],
+        "listStyleType": ""
+      },
+      {
+        "id": "d5",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "d6",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "bold": true,
+            "text": "Example 1:"
+          }
+        ]
+      },
+      {
+        "id": "d7",
+        "type": "code_block",
+        "children": [
+          {
+            "id": "d7-1",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Input: s = \"()\""
+              }
+            ]
+          },
+          {
+            "id": "d7-2",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Output: true"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "d8",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "bold": true,
+            "text": "Example 2:"
+          }
+        ]
+      },
+      {
+        "id": "d9",
+        "type": "code_block",
+        "children": [
+          {
+            "id": "d9-1",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Input: s = \"()[]{}\""
+              }
+            ]
+          },
+          {
+            "id": "d9-2",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Output: true"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "d10",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "bold": true,
+            "text": "Example 3:"
+          }
+        ]
+      },
+      {
+        "id": "d11",
+        "type": "code_block",
+        "children": [
+          {
+            "id": "d11-1",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Input: s = \"(]\""
+              }
+            ]
+          },
+          {
+            "id": "d11-2",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Output: false"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "d12",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "bold": true,
+            "text": "Constraints:"
+          }
+        ]
+      },
+      {
+        "id": "d13",
+        "type": "p",
+        "indent": 0,
+        "children": [
+          {
+            "code": true,
+            "text": "1 <= s.length <= 10^4"
+          }
+        ],
+        "listStyleType": ""
+      },
+      {
+        "id": "d14",
+        "type": "p",
+        "indent": 0,
+        "children": [
+          {
+            "code": true,
+            "text": "s consists of parentheses only '()[]{}'."
+          }
+        ],
+        "listStyleType": ""
+      }
+    ],
+    "difficulty": "easy",
+    "tags": [
+      "String",
+      "Stack"
+    ],
+    "starter_code": {
+      "C": "bool isValid(char* s) {\n  // Write your solution here\n  return false;\n}",
+      "GO": "func isValid(s string) bool {\n  // Write your solution here\n  return false\n}",
+      "CPP": "bool isValid(string s) {\n  // Write your solution here\n  return false;\n}",
+      "JAVA": "public boolean isValid(String s) {\n  // Write your solution here\n  return false;\n}",
+      "RUBY": "def is_valid(s)\n  # Write your solution here\n  false\nend",
+      "RUST": "fn is_valid(s: String) -> bool {\n  // Write your solution here\n  false\n}",
+      "CSHARP": "public bool IsValid(string s) {\n  // Write your solution here\n  return false;\n}",
+      "PYTHON": "def is_valid(s):\n  # Write your solution here\n  return False",
+      "JAVASCRIPT": "function isValid(s) {\n  // Write your solution here\n  return false;\n}",
+      "TYPESCRIPT": "function isValid(s: string): boolean {\n  // Write your solution here\n  return false;\n}"
+    },
+    "solution": {
+      "C": "bool isValid(char* s) {\n  int len = strlen(s);\n  char stack[len];\n  int top = -1;\n  \n  for (int i = 0; i < len; i++) {\n    char c = s[i];\n    if (c == '(' || c == '{' || c == '[') {\n      stack[++top] = c;\n    } else {\n      if (top == -1) return false;\n      char open = stack[top--];\n      if ((c == ')' && open != '(') ||\n          (c == '}' && open != '{') ||\n          (c == ']' && open != '[')) {\n        return false;\n      }\n    }\n  }\n  \n  return top == -1;\n}",
+      "GO": "func isValid(s string) bool {\n  stack := []rune{}\n  pairs := map[rune]rune{')': '(', '}': '{', ']': '['}\n  \n  for _, c := range s {\n    if c == '(' || c == '{' || c == '[' {\n      stack = append(stack, c)\n    } else {\n      if len(stack) == 0 || stack[len(stack)-1] != pairs[c] {\n        return false\n      }\n      stack = stack[:len(stack)-1]\n    }\n  }\n  \n  return len(stack) == 0\n}",
+      "CPP": "bool isValid(string s) {\n  stack<char> st;\n  \n  for (char c : s) {\n    if (c == '(' || c == '{' || c == '[') {\n      st.push(c);\n    } else {\n      if (st.empty()) return false;\n      char top = st.top();\n      st.pop();\n      if ((c == ')' && top != '(') ||\n          (c == '}' && top != '{') ||\n          (c == ']' && top != '[')) {\n        return false;\n      }\n    }\n  }\n  \n  return st.empty();\n}",
+      "JAVA": "public boolean isValid(String s) {\n  Stack<Character> stack = new Stack<>();\n  \n  for (char c : s.toCharArray()) {\n    if (c == '(' || c == '{' || c == '[') {\n      stack.push(c);\n    } else {\n      if (stack.isEmpty()) return false;\n      char top = stack.pop();\n      if ((c == ')' && top != '(') ||\n          (c == '}' && top != '{') ||\n          (c == ']' && top != '[')) {\n        return false;\n      }\n    }\n  }\n  \n  return stack.isEmpty();\n}",
+      "RUBY": "def is_valid(s)\n  stack = []\n  pairs = {')' => '(', '}' => '{', ']' => '['}\n  \n  s.each_char do |c|\n    if ['(', '{', '['].include?(c)\n      stack.push(c)\n    else\n      return false if stack.empty? || stack.pop != pairs[c]\n    end\n  end\n  \n  stack.empty?\nend",
+      "RUST": "fn is_valid(s: String) -> bool {\n  let mut stack = Vec::new();\n  \n  for c in s.chars() {\n    match c {\n      '(' | '{' | '[' => stack.push(c),\n      ')' => {\n        if stack.pop() != Some('(') { return false; }\n      },\n      '}' => {\n        if stack.pop() != Some('{') { return false; }\n      },\n      ']' => {\n        if stack.pop() != Some('[') { return false; }\n      },\n      _ => {}\n    }\n  }\n  \n  stack.is_empty()\n}",
+      "CSHARP": "public bool IsValid(string s) {\n  Stack<char> stack = new Stack<char>();\n  \n  foreach (char c in s) {\n    if (c == '(' || c == '{' || c == '[') {\n      stack.Push(c);\n    } else {\n      if (stack.Count == 0) return false;\n      char top = stack.Pop();\n      if ((c == ')' && top != '(') ||\n          (c == '}' && top != '{') ||\n          (c == ']' && top != '[')) {\n        return false;\n      }\n    }\n  }\n  \n  return stack.Count == 0;\n}",
+      "PYTHON": "def is_valid(s):\n  stack = []\n  pairs = {')': '(', '}': '{', ']': '['}\n  \n  for c in s:\n    if c in '({[':\n      stack.append(c)\n    else:\n      if not stack or stack.pop() != pairs[c]:\n        return False\n  \n  return len(stack) == 0",
+      "JAVASCRIPT": "function isValid(s) {\n  const stack = [];\n  const pairs = {')': '(', '}': '{', ']': '['};\n  \n  for (const c of s) {\n    if (c === '(' || c === '{' || c === '[') {\n      stack.push(c);\n    } else {\n      if (stack.length === 0 || stack.pop() !== pairs[c]) {\n        return false;\n      }\n    }\n  }\n  \n  return stack.length === 0;\n}",
+      "TYPESCRIPT": "function isValid(s: string): boolean {\n  const stack: string[] = [];\n  const pairs: {[key: string]: string} = {')': '(', '}': '{', ']': '['};\n  \n  for (const c of s) {\n    if (c === '(' || c === '{' || c === '[') {\n      stack.push(c);\n    } else {\n      if (stack.length === 0 || stack.pop() !== pairs[c]) {\n        return false;\n      }\n    }\n  }\n  \n  return stack.length === 0;\n}"
+    },
+    "test_cases": [
+      {
+        "input": "\"()\"",
+        "output": "true"
+      },
+      {
+        "input": "\"()[]{}\"",
+        "output": "true"
+      },
+      {
+        "input": "\"(]\"",
+        "output": "false"
+      }
+    ],
+    "hints": [
+      "Use a stack to keep track of opening brackets",
+      "When you see a closing bracket, check if it matches the most recent opening bracket"
+    ],
+    "created_at": "2025-08-03 10:47:10.17675",
+    "updated_at": "2025-08-03 10:47:10.17675",
+    "companies": [
+      "407ec9ad-ffc5-4b8f-b962-0a60cb624a74",
+      "202a36bd-2095-4d13-a8be-e6df6ef32f8a",
+      "ab07275c-4a93-4bf6-9b6a-1f04ab5c06ac",
+      "48133990-7a31-4831-a7dc-112842fcf416"
+    ],
+    "editorial": [
+      {
+        "id": "e1",
+        "type": "p",
+        "children": [
+          {
+            "bold": true,
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e2",
+        "url": "https://www.youtube.com/watch?v=WTzjTskDFMg",
+        "type": "video",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e3",
+        "type": "p",
+        "children": [
+          {
+            "bold": true,
+            "text": "Difficulty"
+          },
+          {
+            "text": ": Easy\n "
+          },
+          {
+            "bold": true,
+            "text": "Time Complexity"
+          },
+          {
+            "text": ": "
+          },
+          {
+            "code": true,
+            "text": "O(n)"
+          },
+          {
+            "text": "\n "
+          },
+          {
+            "bold": true,
+            "text": "Space Complexity"
+          },
+          {
+            "text": ": "
+          },
+          {
+            "code": true,
+            "text": "O(n)"
+          }
+        ]
+      },
+      {
+        "id": "e4",
+        "type": "hr",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e5",
+        "type": "h2",
+        "children": [
+          {
+            "text": "📌 Problem Summary"
+          }
+        ]
+      },
+      {
+        "id": "e6",
+        "type": "p",
+        "children": [
+          {
+            "text": "Check if parentheses are properly matched using a stack."
+          }
+        ]
+      },
+      {
+        "id": "e7",
+        "type": "hr",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e8",
+        "type": "h2",
+        "children": [
+          {
+            "text": "💡 Intuition"
+          }
+        ]
+      },
+      {
+        "id": "e9",
+        "type": "p",
+        "children": [
+          {
+            "text": "Use a stack to track opening brackets and match them with closing brackets."
+          }
+        ]
+      },
+      {
+        "id": "e10",
+        "type": "hr",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e11",
+        "type": "h2",
+        "children": [
+          {
+            "text": "✅ Stack Approach (Optimal)"
+          }
+        ]
+      },
+      {
+        "id": "e12",
+        "type": "p",
+        "children": [
+          {
+            "text": "Push opening brackets onto stack, pop and match with closing brackets."
+          }
+        ]
+      },
+      {
+        "id": "e13",
+        "type": "code_block",
+        "children": [
+          {
+            "id": "e13-1",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "def is_valid(s):"
+              }
+            ]
+          },
+          {
+            "id": "e13-2",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "  stack = []"
+              }
+            ]
+          },
+          {
+            "id": "e13-3",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "  pairs = {')': '(', '}': '{', ']': '['}"
+              }
+            ]
+          },
+          {
+            "id": "e13-4",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "  for c in s:"
+              }
+            ]
+          },
+          {
+            "id": "e13-5",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "    if c in '({[': stack.append(c)"
+              }
+            ]
+          },
+          {
+            "id": "e13-6",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "    else:"
+              }
+            ]
+          },
+          {
+            "id": "e13-7",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "      if not stack or stack.pop() != pairs[c]: return False"
+              }
+            ]
+          },
+          {
+            "id": "e13-8",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "  return len(stack) == 0"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "top_code": {
+      "C": "#include <stdio.h>\n#include <stdbool.h>\n#include <string.h>",
+      "GO": "package main\nimport \"fmt\"",
+      "CPP": "#include <iostream>\n#include <stack>\n#include <string>\nusing namespace std;",
+      "JAVA": "import java.util.*;\nclass Solution {",
+      "RUBY": "",
+      "RUST": "use std::io;",
+      "CSHARP": "using System;\nusing System.Collections.Generic;\nclass Solution {",
+      "PYTHON": "import sys",
+      "JAVASCRIPT": "",
+      "TYPESCRIPT": ""
+    },
+    "bottom_code": {
+      "C": "int main() {\n  char s[10001];\n  scanf(\"\\\"%[^\\\"]\\\"\", s);\n  \n  bool result = isValid(s);\n  printf(\"%s\\n\", result ? \"true\" : \"false\");\n  return 0;\n}",
+      "GO": "func main() {\n  var input string\n  fmt.Scanln(&input)\n  \n  s := input[1:len(input)-1]\n  result := isValid(s)\n  fmt.Println(result)\n}",
+      "CPP": "int main() {\n  string input;\n  getline(cin, input);\n  \n  string s = input.substr(1, input.length() - 2);\n  bool result = isValid(s);\n  cout << (result ? \"true\" : \"false\") << endl;\n  \n  return 0;\n}",
+      "JAVA": "}\n\nclass Main {\n  public static void main(String[] args) {\n    Scanner sc = new Scanner(System.in);\n    String input = sc.nextLine();\n    \n    String s = input.substring(1, input.length() - 1);\n    \n    Solution sol = new Solution();\n    boolean result = sol.isValid(s);\n    System.out.println(result);\n  }\n}",
+      "RUBY": "input = gets.strip\ns = input[1..-2]\nresult = is_valid(s)\nputs result",
+      "RUST": "fn main() {\n  let mut input = String::new();\n  io::stdin().read_line(&mut input).unwrap();\n  \n  let input = input.trim();\n  let s = input[1..input.len()-1].to_string();\n  \n  let result = is_valid(s);\n  println!(\"{}\", result);\n}",
+      "CSHARP": "}\n\nclass Program {\n  static void Main() {\n    string input = Console.ReadLine();\n    \n    string s = input.Substring(1, input.Length - 2);\n    \n    Solution sol = new Solution();\n    bool result = sol.IsValid(s);\n    Console.WriteLine(result.ToString().ToLower());\n  }\n}",
+      "PYTHON": "input_data = sys.stdin.read().strip()\ns = input_data[1:-1]\nresult = is_valid(s)\nprint(str(result).lower())",
+      "JAVASCRIPT": "const readline = require('readline');\nconst rl = readline.createInterface({\n  input: process.stdin,\n  output: process.stdout\n});\n\nlet input = '';\nrl.on('line', line => input += line.trim());\nrl.on('close', () => {\n  const s = input.slice(1, -1);\n  const result = isValid(s);\n  console.log(result);\n});",
+      "TYPESCRIPT": "declare var require: any;\ndeclare var process: any;\n\nconst fs = require('fs');\nconst input = fs.readFileSync(0, 'utf-8').trim();\nconst s = input.slice(1, -1);\nconst result = isValid(s);\nconsole.log(result);"
+    },
+    "is_premium": false
+  }

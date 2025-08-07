@@ -1,0 +1,1115 @@
+[
+  {
+    "id": "15a4f7ee0-8670-469f-b48c-dafcd8e98653",
+    "title": "15. Contains Duplicate",
+    "description": [
+      {
+        "id": "d1",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "text": "Given an integer array "
+          },
+          {
+            "code": true,
+            "text": "nums"
+          },
+          {
+            "text": ", return "
+          },
+          {
+            "code": true,
+            "text": "true"
+          },
+          {
+            "text": " if any value appears "
+          },
+          {
+            "bold": true,
+            "text": "at least twice"
+          },
+          {
+            "text": " in the array, and return "
+          },
+          {
+            "code": true,
+            "text": "false"
+          },
+          {
+            "text": " if every element is distinct."
+          }
+        ]
+      },
+      {
+        "id": "d2",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "d3",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "bold": true,
+            "text": "Example 1:"
+          }
+        ]
+      },
+      {
+        "id": "d4",
+        "type": "code_block",
+        "children": [
+          {
+            "id": "d4-1",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Input: nums = [1,2,3,1]"
+              }
+            ]
+          },
+          {
+            "id": "d4-2",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Output: true"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "d5",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "bold": true,
+            "text": "Example 2:"
+          }
+        ]
+      },
+      {
+        "id": "d6",
+        "type": "code_block",
+        "children": [
+          {
+            "id": "d6-1",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Input: nums = [1,2,3,4]"
+              }
+            ]
+          },
+          {
+            "id": "d6-2",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Output: false"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "d7",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "bold": true,
+            "text": "Constraints:"
+          }
+        ]
+      },
+      {
+        "id": "d8",
+        "type": "p",
+        "indent": 0,
+        "children": [
+          {
+            "code": true,
+            "text": "1 <= nums.length <= 10^5"
+          }
+        ],
+        "listStyleType": ""
+      },
+      {
+        "id": "d9",
+        "type": "p",
+        "indent": 0,
+        "children": [
+          {
+            "code": true,
+            "text": "-10^9 <= nums[i] <= 10^9"
+          }
+        ],
+        "listStyleType": ""
+      }
+    ],
+    "difficulty": "easy",
+    "tags": [
+      "Array",
+      "Hash Table",
+      "Sorting"
+    ],
+    "starter_code": {
+      "C": "bool containsDuplicate(int* nums, int numsSize) {\n  // Write your solution here\n  return false;\n}",
+      "GO": "func containsDuplicate(nums []int) bool {\n  // Write your solution here\n  return false\n}",
+      "CPP": "bool containsDuplicate(vector<int>& nums) {\n  // Write your solution here\n  return false;\n}",
+      "JAVA": "public boolean containsDuplicate(int[] nums) {\n  // Write your solution here\n  return false;\n}",
+      "RUBY": "def contains_duplicate(nums)\n  # Write your solution here\n  false\nend",
+      "RUST": "fn contains_duplicate(nums: Vec<i32>) -> bool {\n  // Write your solution here\n  false\n}",
+      "CSHARP": "public bool ContainsDuplicate(int[] nums) {\n  // Write your solution here\n  return false;\n}",
+      "PYTHON": "def contains_duplicate(nums):\n  # Write your solution here\n  return False",
+      "JAVASCRIPT": "function containsDuplicate(nums) {\n  // Write your solution here\n  return false;\n}",
+      "TYPESCRIPT": "function containsDuplicate(nums: number[]): boolean {\n  // Write your solution here\n  return false;\n}"
+    },
+    "solution": {
+      "C": "bool containsDuplicate(int* nums, int numsSize) {\n  for (int i = 0; i < numsSize; i++) {\n    for (int j = i + 1; j < numsSize; j++) {\n      if (nums[i] == nums[j]) {\n        return true;\n      }\n    }\n  }\n  return false;\n}",
+      "GO": "func containsDuplicate(nums []int) bool {\n  seen := make(map[int]bool)\n  for _, num := range nums {\n    if seen[num] {\n      return true\n    }\n    seen[num] = true\n  }\n  return false\n}",
+      "CPP": "bool containsDuplicate(vector<int>& nums) {\n  unordered_set<int> seen;\n  for (int num : nums) {\n    if (seen.count(num)) {\n      return true;\n    }\n    seen.insert(num);\n  }\n  return false;\n}",
+      "JAVA": "public boolean containsDuplicate(int[] nums) {\n  Set<Integer> seen = new HashSet<>();\n  for (int num : nums) {\n    if (seen.contains(num)) {\n      return true;\n    }\n    seen.add(num);\n  }\n  return false;\n}",
+      "RUBY": "def contains_duplicate(nums)\n  seen = Set.new\n  nums.each do |num|\n    return true if seen.include?(num)\n    seen.add(num)\n  end\n  false\nend",
+      "RUST": "fn contains_duplicate(nums: Vec<i32>) -> bool {\n  let mut seen = HashSet::new();\n  for num in nums {\n    if !seen.insert(num) {\n      return true;\n    }\n  }\n  false\n}",
+      "CSHARP": "public bool ContainsDuplicate(int[] nums) {\n  HashSet<int> seen = new HashSet<int>();\n  foreach (int num in nums) {\n    if (seen.Contains(num)) {\n      return true;\n    }\n    seen.Add(num);\n  }\n  return false;\n}",
+      "PYTHON": "def contains_duplicate(nums):\n  seen = set()\n  for num in nums:\n    if num in seen:\n      return True\n    seen.add(num)\n  return False",
+      "JAVASCRIPT": "function containsDuplicate(nums) {\n  const seen = new Set();\n  for (const num of nums) {\n    if (seen.has(num)) {\n      return true;\n    }\n    seen.add(num);\n  }\n  return false;\n}",
+      "TYPESCRIPT": "function containsDuplicate(nums: number[]): boolean {\n  const seen: {[key: number]: boolean} = {};\n  for (const num of nums) {\n    if (seen[num]) {\n      return true;\n    }\n    seen[num] = true;\n  }\n  return false;\n}"
+    },
+    "test_cases": [
+      {
+        "input": "[1,2,3,1]",
+        "output": "true"
+      },
+      {
+        "input": "[1,2,3,4]",
+        "output": "false"
+      },
+      {
+        "input": "[1,1,1,3,3,4,3,2,4,2]",
+        "output": "true"
+      }
+    ],
+    "hints": [
+      "Use a hash set to keep track of seen elements",
+      "Return true as soon as you find a duplicate"
+    ],
+    "created_at": "2025-08-03 10:47:10.17675",
+    "updated_at": "2025-08-03 10:47:10.17675",
+    "companies": [
+      "407ec9ad-ffc5-4b8f-b962-0a60cb624a74",
+      "202a36bd-2095-4d13-a8be-e6df6ef32f8a",
+      "ab07275c-4a93-4bf6-9b6a-1f04ab5c06ac",
+      "48133990-7a31-4831-a7dc-112842fcf416"
+    ],
+    "editorial": [
+      {
+        "id": "e1",
+        "type": "p",
+        "children": [
+          {
+            "bold": true,
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e2",
+        "url": "https://www.youtube.com/watch?v=3OamzN90kPg",
+        "type": "video",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e3",
+        "type": "p",
+        "children": [
+          {
+            "bold": true,
+            "text": "Difficulty"
+          },
+          {
+            "text": ": Easy\n "
+          },
+          {
+            "bold": true,
+            "text": "Time Complexity"
+          },
+          {
+            "text": ": "
+          },
+          {
+            "code": true,
+            "text": "O(n)"
+          },
+          {
+            "text": "\n "
+          },
+          {
+            "bold": true,
+            "text": "Space Complexity"
+          },
+          {
+            "text": ": "
+          },
+          {
+            "code": true,
+            "text": "O(n)"
+          }
+        ]
+      },
+      {
+        "id": "e4",
+        "type": "hr",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e5",
+        "type": "h2",
+        "children": [
+          {
+            "text": "📌 Problem Summary"
+          }
+        ]
+      },
+      {
+        "id": "e6",
+        "type": "p",
+        "children": [
+          {
+            "text": "Check if any element appears more than once in the array."
+          }
+        ]
+      },
+      {
+        "id": "e7",
+        "type": "hr",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e8",
+        "type": "h2",
+        "children": [
+          {
+            "text": "⚠️ Constraints & Goals"
+          }
+        ]
+      },
+      {
+        "id": "e9",
+        "type": "p",
+        "indent": 0,
+        "children": [
+          {
+            "text": "Must run in linear time for optimal solution."
+          }
+        ],
+        "listStyleType": ""
+      },
+      {
+        "id": "e10",
+        "type": "p",
+        "indent": 0,
+        "children": [
+          {
+            "text": "Input size up to 100,000 elements."
+          }
+        ],
+        "listStyleType": ""
+      },
+      {
+        "id": "e11",
+        "type": "hr",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e12",
+        "type": "h2",
+        "children": [
+          {
+            "text": "💡 Intuition"
+          }
+        ]
+      },
+      {
+        "id": "e13",
+        "type": "p",
+        "children": [
+          {
+            "text": "Use a hash set to track seen elements. Return true immediately when a duplicate is found."
+          }
+        ]
+      },
+      {
+        "id": "e14",
+        "type": "hr",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e15",
+        "type": "h2",
+        "children": [
+          {
+            "text": "✅ Hash Set Approach (Optimal)"
+          }
+        ]
+      },
+      {
+        "id": "e16",
+        "type": "p",
+        "children": [
+          {
+            "text": "Iterate through the array and check if each element exists in the hash set. If yes, return true. Otherwise, add it to the set."
+          }
+        ]
+      },
+      {
+        "id": "e17",
+        "type": "hr",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e18",
+        "type": "h3",
+        "children": [
+          {
+            "text": "📄 Code (Python-style pseudocode)"
+          }
+        ]
+      },
+      {
+        "id": "e19",
+        "type": "code_block",
+        "children": [
+          {
+            "id": "e19-1",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "def contains_duplicate(nums):"
+              }
+            ]
+          },
+          {
+            "id": "e19-2",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "  seen = set()"
+              }
+            ]
+          },
+          {
+            "id": "e19-3",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "  for num in nums:"
+              }
+            ]
+          },
+          {
+            "id": "e19-4",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "    if num in seen:"
+              }
+            ]
+          },
+          {
+            "id": "e19-5",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "      return True"
+              }
+            ]
+          },
+          {
+            "id": "e19-6",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "    seen.add(num)"
+              }
+            ]
+          },
+          {
+            "id": "e19-7",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "  return False"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "top_code": {
+      "C": "#include <stdio.h>\n#include <stdbool.h>\n#include <stdlib.h>\n#include <string.h>",
+      "GO": "package main\nimport (\n  \"fmt\"\n  \"strings\"\n  \"strconv\"\n)",
+      "CPP": "#include <iostream>\n#include <vector>\n#include <unordered_set>\n#include <sstream>\nusing namespace std;",
+      "JAVA": "import java.util.*;\nclass Solution {",
+      "RUBY": "require 'set'",
+      "RUST": "use std::collections::HashSet;\nuse std::io;",
+      "CSHARP": "using System;\nusing System.Collections.Generic;\nusing System.Linq;\nclass Solution {",
+      "PYTHON": "import sys",
+      "JAVASCRIPT": "",
+      "TYPESCRIPT": ""
+    },
+    "bottom_code": {
+      "C": "int main() {\n  char input[1000];\n  fgets(input, sizeof(input), stdin);\n  \n  input[strcspn(input, \"\\n\")] = 0;\n  char* start = strchr(input, '[') + 1;\n  char* end = strrchr(input, ']');\n  *end = '\\0';\n  \n  int nums[1000];\n  int numsSize = 0;\n  char* token = strtok(start, \",\");\n  while (token != NULL) {\n    nums[numsSize++] = atoi(token);\n    token = strtok(NULL, \",\");\n  }\n  \n  bool result = containsDuplicate(nums, numsSize);\n  printf(\"%s\\n\", result ? \"true\" : \"false\");\n  return 0;\n}",
+      "GO": "func main() {\n  var input string\n  fmt.Scanln(&input)\n  \n  input = input[1:len(input)-1]\n  parts := strings.Split(input, \",\")\n  nums := make([]int, len(parts))\n  for i, s := range parts {\n    nums[i], _ = strconv.Atoi(s)\n  }\n  \n  result := containsDuplicate(nums)\n  fmt.Println(result)\n}",
+      "CPP": "int main() {\n  string input;\n  getline(cin, input);\n  \n  input = input.substr(1, input.size() - 2);\n  stringstream ss(input);\n  vector<int> nums;\n  string token;\n  \n  while (getline(ss, token, ',')) {\n    nums.push_back(stoi(token));\n  }\n  \n  bool result = containsDuplicate(nums);\n  cout << (result ? \"true\" : \"false\") << endl;\n  \n  return 0;\n}",
+      "JAVA": "}\n\nclass Main {\n  public static void main(String[] args) {\n    Scanner sc = new Scanner(System.in);\n    String input = sc.nextLine();\n    \n    input = input.substring(1, input.length() - 1);\n    String[] parts = input.split(\",\");\n    int[] nums = new int[parts.length];\n    for (int i = 0; i < parts.length; i++) {\n      nums[i] = Integer.parseInt(parts[i]);\n    }\n    \n    Solution sol = new Solution();\n    boolean result = sol.containsDuplicate(nums);\n    System.out.println(result);\n  }\n}",
+      "RUBY": "input = gets.strip\nnums = eval(input)\nresult = contains_duplicate(nums)\nputs result",
+      "RUST": "fn main() {\n  let mut input = String::new();\n  io::stdin().read_line(&mut input).unwrap();\n  \n  let input = input.trim();\n  let input = &input[1..input.len()-1];\n  let nums: Vec<i32> = input.split(',').map(|s| s.parse().unwrap()).collect();\n  \n  let result = contains_duplicate(nums);\n  println!(\"{}\", result);\n}",
+      "CSHARP": "}\n\nclass Program {\n  static void Main() {\n    string input = Console.ReadLine();\n    \n    input = input.Substring(1, input.Length - 2);\n    int[] nums = input.Split(',').Select(int.Parse).ToArray();\n    \n    Solution sol = new Solution();\n    bool result = sol.ContainsDuplicate(nums);\n    Console.WriteLine(result.ToString().ToLower());\n  }\n}",
+      "PYTHON": "input_data = sys.stdin.read().strip()\nnums = eval(input_data)\nresult = contains_duplicate(nums)\nprint(str(result).lower())",
+      "JAVASCRIPT": "const readline = require('readline');\nconst rl = readline.createInterface({\n  input: process.stdin,\n  output: process.stdout\n});\n\nlet input = '';\nrl.on('line', line => input += line.trim());\nrl.on('close', () => {\n  const nums = JSON.parse(input);\n  const result = containsDuplicate(nums);\n  console.log(result);\n});",
+      "TYPESCRIPT": "declare var require: any;\ndeclare var process: any;\n\nconst fs = require('fs');\nconst input = fs.readFileSync(0, 'utf-8').trim();\nconst nums = JSON.parse(input);\nconst result = containsDuplicate(nums);\nconsole.log(result);"
+    },
+    "is_premium": false
+  },
+  {
+    "id": "16b5f8ee1-9781-570g-c59d-ebfde9f09764",
+    "title": "16. Product of Array Except Self",
+    "description": [
+      {
+        "id": "d1",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "text": "Given an integer array "
+          },
+          {
+            "code": true,
+            "text": "nums"
+          },
+          {
+            "text": ", return "
+          },
+          {
+            "italic": true,
+            "text": "an array"
+          },
+          {
+            "text": " "
+          },
+          {
+            "code": true,
+            "text": "answer"
+          },
+          {
+            "text": " such that "
+          },
+          {
+            "code": true,
+            "text": "answer[i]"
+          },
+          {
+            "text": " is equal to the product of all the elements of "
+          },
+          {
+            "code": true,
+            "text": "nums"
+          },
+          {
+            "text": " except "
+          },
+          {
+            "code": true,
+            "text": "nums[i]"
+          },
+          {
+            "text": "."
+          }
+        ]
+      },
+      {
+        "id": "d2",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "text": "The product of any prefix or suffix of "
+          },
+          {
+            "code": true,
+            "text": "nums"
+          },
+          {
+            "text": " is "
+          },
+          {
+            "bold": true,
+            "text": "guaranteed"
+          },
+          {
+            "text": " to fit in a "
+          },
+          {
+            "bold": true,
+            "text": "32-bit"
+          },
+          {
+            "text": " integer."
+          }
+        ]
+      },
+      {
+        "id": "d3",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "text": "You must write an algorithm that runs in "
+          },
+          {
+            "code": true,
+            "text": "O(n)"
+          },
+          {
+            "text": " time and without using the division operation."
+          }
+        ]
+      },
+      {
+        "id": "d4",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "d5",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "bold": true,
+            "text": "Example 1:"
+          }
+        ]
+      },
+      {
+        "id": "d6",
+        "type": "code_block",
+        "children": [
+          {
+            "id": "d6-1",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Input: nums = [1,2,3,4]"
+              }
+            ]
+          },
+          {
+            "id": "d6-2",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Output: [24,12,8,6]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "d7",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "bold": true,
+            "text": "Example 2:"
+          }
+        ]
+      },
+      {
+        "id": "d8",
+        "type": "code_block",
+        "children": [
+          {
+            "id": "d8-1",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Input: nums = [-1,1,0,-3,3]"
+              }
+            ]
+          },
+          {
+            "id": "d8-2",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Output: [0,0,9,0,0]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "d9",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "bold": true,
+            "text": "Constraints:"
+          }
+        ]
+      },
+      {
+        "id": "d10",
+        "type": "p",
+        "indent": 0,
+        "children": [
+          {
+            "code": true,
+            "text": "2 <= nums.length <= 10^5"
+          }
+        ],
+        "listStyleType": ""
+      },
+      {
+        "id": "d11",
+        "type": "p",
+        "indent": 0,
+        "children": [
+          {
+            "code": true,
+            "text": "-30 <= nums[i] <= 30"
+          }
+        ],
+        "listStyleType": ""
+      }
+    ],
+    "difficulty": "medium",
+    "tags": [
+      "Array",
+      "Prefix Sum"
+    ],
+    "starter_code": {
+      "C": "int* productExceptSelf(int* nums, int numsSize, int* returnSize) {\n  // Write your solution here\n  *returnSize = numsSize;\n  int* result = (int*)malloc(numsSize * sizeof(int));\n  return result;\n}",
+      "GO": "func productExceptSelf(nums []int) []int {\n  // Write your solution here\n  return nil\n}",
+      "CPP": "vector<int> productExceptSelf(vector<int>& nums) {\n  // Write your solution here\n  return {};\n}",
+      "JAVA": "public int[] productExceptSelf(int[] nums) {\n  // Write your solution here\n  return new int[]{};\n}",
+      "RUBY": "def product_except_self(nums)\n  # Write your solution here\n  []\nend",
+      "RUST": "fn product_except_self(nums: Vec<i32>) -> Vec<i32> {\n  // Write your solution here\n  vec![]\n}",
+      "CSHARP": "public int[] ProductExceptSelf(int[] nums) {\n  // Write your solution here\n  return new int[]{};\n}",
+      "PYTHON": "def product_except_self(nums):\n  # Write your solution here\n  return []",
+      "JAVASCRIPT": "function productExceptSelf(nums) {\n  // Write your solution here\n  return [];\n}",
+      "TYPESCRIPT": "function productExceptSelf(nums: number[]): number[] {\n  // Write your solution here\n  return [];\n}"
+    },
+    "solution": {
+      "C": "int* productExceptSelf(int* nums, int numsSize, int* returnSize) {\n  *returnSize = numsSize;\n  int* result = (int*)malloc(numsSize * sizeof(int));\n  \n  // Left pass\n  result[0] = 1;\n  for (int i = 1; i < numsSize; i++) {\n    result[i] = result[i-1] * nums[i-1];\n  }\n  \n  // Right pass\n  int right = 1;\n  for (int i = numsSize - 1; i >= 0; i--) {\n    result[i] *= right;\n    right *= nums[i];\n  }\n  \n  return result;\n}",
+      "GO": "func productExceptSelf(nums []int) []int {\n  n := len(nums)\n  result := make([]int, n)\n  \n  // Left pass\n  result[0] = 1\n  for i := 1; i < n; i++ {\n    result[i] = result[i-1] * nums[i-1]\n  }\n  \n  // Right pass\n  right := 1\n  for i := n - 1; i >= 0; i-- {\n    result[i] *= right\n    right *= nums[i]\n  }\n  \n  return result\n}",
+      "CPP": "vector<int> productExceptSelf(vector<int>& nums) {\n  int n = nums.size();\n  vector<int> result(n);\n  \n  // Left pass\n  result[0] = 1;\n  for (int i = 1; i < n; i++) {\n    result[i] = result[i-1] * nums[i-1];\n  }\n  \n  // Right pass\n  int right = 1;\n  for (int i = n - 1; i >= 0; i--) {\n    result[i] *= right;\n    right *= nums[i];\n  }\n  \n  return result;\n}",
+      "JAVA": "public int[] productExceptSelf(int[] nums) {\n  int n = nums.length;\n  int[] result = new int[n];\n  \n  // Left pass\n  result[0] = 1;\n  for (int i = 1; i < n; i++) {\n    result[i] = result[i-1] * nums[i-1];\n  }\n  \n  // Right pass\n  int right = 1;\n  for (int i = n - 1; i >= 0; i--) {\n    result[i] *= right;\n    right *= nums[i];\n  }\n  \n  return result;\n}",
+      "RUBY": "def product_except_self(nums)\n  n = nums.length\n  result = Array.new(n)\n  \n  # Left pass\n  result[0] = 1\n  (1...n).each do |i|\n    result[i] = result[i-1] * nums[i-1]\n  end\n  \n  # Right pass\n  right = 1\n  (n-1).downto(0) do |i|\n    result[i] *= right\n    right *= nums[i]\n  end\n  \n  result\nend",
+      "RUST": "fn product_except_self(nums: Vec<i32>) -> Vec<i32> {\n  let n = nums.len();\n  let mut result = vec![0; n];\n  \n  // Left pass\n  result[0] = 1;\n  for i in 1..n {\n    result[i] = result[i-1] * nums[i-1];\n  }\n  \n  // Right pass\n  let mut right = 1;\n  for i in (0..n).rev() {\n    result[i] *= right;\n    right *= nums[i];\n  }\n  \n  result\n}",
+      "CSHARP": "public int[] ProductExceptSelf(int[] nums) {\n  int n = nums.Length;\n  int[] result = new int[n];\n  \n  // Left pass\n  result[0] = 1;\n  for (int i = 1; i < n; i++) {\n    result[i] = result[i-1] * nums[i-1];\n  }\n  \n  // Right pass\n  int right = 1;\n  for (int i = n - 1; i >= 0; i--) {\n    result[i] *= right;\n    right *= nums[i];\n  }\n  \n  return result;\n}",
+      "PYTHON": "def product_except_self(nums):\n  n = len(nums)\n  result = [0] * n\n  \n  # Left pass\n  result[0] = 1\n  for i in range(1, n):\n    result[i] = result[i-1] * nums[i-1]\n  \n  # Right pass\n  right = 1\n  for i in range(n-1, -1, -1):\n    result[i] *= right\n    right *= nums[i]\n  \n  return result",
+      "JAVASCRIPT": "function productExceptSelf(nums) {\n  const n = nums.length;\n  const result = new Array(n);\n  \n  // Left pass\n  result[0] = 1;\n  for (let i = 1; i < n; i++) {\n    result[i] = result[i-1] * nums[i-1];\n  }\n  \n  // Right pass\n  let right = 1;\n  for (let i = n - 1; i >= 0; i--) {\n    result[i] *= right;\n    right *= nums[i];\n  }\n  \n  return result;\n}",
+      "TYPESCRIPT": "function productExceptSelf(nums: number[]): number[] {\n  const n = nums.length;\n  const result = new Array(n);\n  \n  // Left pass\n  result[0] = 1;\n  for (let i = 1; i < n; i++) {\n    result[i] = result[i-1] * nums[i-1];\n  }\n  \n  // Right pass\n  let right = 1;\n  for (let i = n - 1; i >= 0; i--) {\n    result[i] *= right;\n    right *= nums[i];\n  }\n  \n  return result;\n}"
+    },
+    "test_cases": [
+      {
+        "input": "[1,2,3,4]",
+        "output": "[24,12,8,6]"
+      },
+      {
+        "input": "[-1,1,0,-3,3]",
+        "output": "[0,0,9,0,0]"
+      },
+      {
+        "input": "[2,3,4,5]",
+        "output": "[60,40,30,24]"
+      }
+    ],
+    "hints": [
+      "Think about using left and right product arrays",
+      "You can optimize space by using the result array for left products and a variable for right products"
+    ],
+    "created_at": "2025-08-03 10:47:10.17675",
+    "updated_at": "2025-08-03 10:47:10.17675",
+    "companies": [
+      "407ec9ad-ffc5-4b8f-b962-0a60cb624a74",
+      "202a36bd-2095-4d13-a8be-e6df6ef32f8a",
+      "ab07275c-4a93-4bf6-9b6a-1f04ab5c06ac",
+      "48133990-7a31-4831-a7dc-112842fcf416"
+    ],
+    "editorial": [
+      {
+        "id": "e1",
+        "type": "p",
+        "children": [
+          {
+            "bold": true,
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e2",
+        "url": "https://www.youtube.com/watch?v=bNvIQI2wAjk",
+        "type": "video",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e3",
+        "type": "p",
+        "children": [
+          {
+            "bold": true,
+            "text": "Difficulty"
+          },
+          {
+            "text": ": Medium\n "
+          },
+          {
+            "bold": true,
+            "text": "Time Complexity"
+          },
+          {
+            "text": ": "
+          },
+          {
+            "code": true,
+            "text": "O(n)"
+          },
+          {
+            "text": "\n "
+          },
+          {
+            "bold": true,
+            "text": "Space Complexity"
+          },
+          {
+            "text": ": "
+          },
+          {
+            "code": true,
+            "text": "O(1)"
+          }
+        ]
+      },
+      {
+        "id": "e4",
+        "type": "hr",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e5",
+        "type": "h2",
+        "children": [
+          {
+            "text": "📌 Problem Summary"
+          }
+        ]
+      },
+      {
+        "id": "e6",
+        "type": "p",
+        "children": [
+          {
+            "text": "For each element, calculate the product of all other elements without using division."
+          }
+        ]
+      },
+      {
+        "id": "e7",
+        "type": "hr",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e8",
+        "type": "h2",
+        "children": [
+          {
+            "text": "⚠️ Constraints & Goals"
+          }
+        ]
+      },
+      {
+        "id": "e9",
+        "type": "p",
+        "indent": 0,
+        "children": [
+          {
+            "text": "Must run in O(n) time without division operation."
+          }
+        ],
+        "listStyleType": ""
+      },
+      {
+        "id": "e10",
+        "type": "p",
+        "indent": 0,
+        "children": [
+          {
+            "text": "Input size up to 100,000 elements."
+          }
+        ],
+        "listStyleType": ""
+      },
+      {
+        "id": "e11",
+        "type": "hr",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e12",
+        "type": "h2",
+        "children": [
+          {
+            "text": "💡 Intuition"
+          }
+        ]
+      },
+      {
+        "id": "e13",
+        "type": "p",
+        "children": [
+          {
+            "text": "Use two passes: first calculate left products, then multiply with right products."
+          }
+        ]
+      },
+      {
+        "id": "e14",
+        "type": "hr",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e15",
+        "type": "h2",
+        "children": [
+          {
+            "text": "✅ Two-Pass Approach (Optimal)"
+          }
+        ]
+      },
+      {
+        "id": "e16",
+        "type": "p",
+        "children": [
+          {
+            "text": "First pass: store left products in result array. Second pass: multiply with right products using a variable."
+          }
+        ]
+      },
+      {
+        "id": "e17",
+        "type": "hr",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e18",
+        "type": "h3",
+        "children": [
+          {
+            "text": "📄 Code (Python-style pseudocode)"
+          }
+        ]
+      },
+      {
+        "id": "e19",
+        "type": "code_block",
+        "children": [
+          {
+            "id": "e19-1",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "def product_except_self(nums):"
+              }
+            ]
+          },
+          {
+            "id": "e19-2",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "  n = len(nums)"
+              }
+            ]
+          },
+          {
+            "id": "e19-3",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "  result = [0] * n"
+              }
+            ]
+          },
+          {
+            "id": "e19-4",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "  result[0] = 1"
+              }
+            ]
+          },
+          {
+            "id": "e19-5",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "  for i in range(1, n):"
+              }
+            ]
+          },
+          {
+            "id": "e19-6",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "    result[i] = result[i-1] * nums[i-1]"
+              }
+            ]
+          },
+          {
+            "id": "e19-7",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "  right = 1"
+              }
+            ]
+          },
+          {
+            "id": "e19-8",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "  for i in range(n-1, -1, -1):"
+              }
+            ]
+          },
+          {
+            "id": "e19-9",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "    result[i] *= right"
+              }
+            ]
+          },
+          {
+            "id": "e19-10",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "    right *= nums[i]"
+              }
+            ]
+          },
+          {
+            "id": "e19-11",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "  return result"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "top_code": {
+      "C": "#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>",
+      "GO": "package main\nimport (\n  \"fmt\"\n  \"strings\"\n  \"strconv\"\n)",
+      "CPP": "#include <iostream>\n#include <vector>\n#include <sstream>\nusing namespace std;",
+      "JAVA": "import java.util.*;\nclass Solution {",
+      "RUBY": "",
+      "RUST": "use std::io;",
+      "CSHARP": "using System;\nusing System.Linq;\nclass Solution {",
+      "PYTHON": "import sys",
+      "JAVASCRIPT": "",
+      "TYPESCRIPT": ""
+    },
+    "bottom_code": {
+      "C": "int main() {\n  char input[1000];\n  fgets(input, sizeof(input), stdin);\n  \n  input[strcspn(input, \"\\n\")] = 0;\n  char* start = strchr(input, '[') + 1;\n  char* end = strrchr(input, ']');\n  *end = '\\0';\n  \n  int nums[1000];\n  int numsSize = 0;\n  char* token = strtok(start, \",\");\n  while (token != NULL) {\n    nums[numsSize++] = atoi(token);\n    token = strtok(NULL, \",\");\n  }\n  \n  int returnSize;\n  int* result = productExceptSelf(nums, numsSize, &returnSize);\n  \n  printf(\"[\");\n  for (int i = 0; i < returnSize; i++) {\n    printf(\"%d\", result[i]);\n    if (i < returnSize - 1) printf(\",\");\n  }\n  printf(\"]\\n\");\n  \n  free(result);\n  return 0;\n}",
+      "GO": "func main() {\n  var input string\n  fmt.Scanln(&input)\n  \n  input = input[1:len(input)-1]\n  parts := strings.Split(input, \",\")\n  nums := make([]int, len(parts))\n  for i, s := range parts {\n    nums[i], _ = strconv.Atoi(s)\n  }\n  \n  result := productExceptSelf(nums)\n  fmt.Print(\"[\")\n  for i, val := range result {\n    fmt.Print(val)\n    if i < len(result)-1 {\n      fmt.Print(\",\")\n    }\n  }\n  fmt.Println(\"]\")\n}",
+      "CPP": "int main() {\n  string input;\n  getline(cin, input);\n  \n  input = input.substr(1, input.size() - 2);\n  stringstream ss(input);\n  vector<int> nums;\n  string token;\n  \n  while (getline(ss, token, ',')) {\n    nums.push_back(stoi(token));\n  }\n  \n  vector<int> result = productExceptSelf(nums);\n  cout << \"[\";\n  for (int i = 0; i < result.size(); i++) {\n    cout << result[i];\n    if (i < result.size() - 1) cout << \",\";\n  }\n  cout << \"]\" << endl;\n  \n  return 0;\n}",
+      "JAVA": "}\n\nclass Main {\n  public static void main(String[] args) {\n    Scanner sc = new Scanner(System.in);\n    String input = sc.nextLine();\n    \n    input = input.substring(1, input.length() - 1);\n    String[] parts = input.split(\",\");\n    int[] nums = new int[parts.length];\n    for (int i = 0; i < parts.length; i++) {\n      nums[i] = Integer.parseInt(parts[i]);\n    }\n    \n    Solution sol = new Solution();\n    int[] result = sol.productExceptSelf(nums);\n    System.out.print(\"[\");\n    for (int i = 0; i < result.length; i++) {\n      System.out.print(result[i]);\n      if (i < result.length - 1) System.out.print(\",\");\n    }\n    System.out.println(\"]\");\n  }\n}",
+      "RUBY": "input = gets.strip\nnums = eval(input)\nresult = product_except_self(nums)\nputs result.to_s.gsub(' ', '')",
+      "RUST": "fn main() {\n  let mut input = String::new();\n  io::stdin().read_line(&mut input).unwrap();\n  \n  let input = input.trim();\n  let input = &input[1..input.len()-1];\n  let nums: Vec<i32> = input.split(',').map(|s| s.parse().unwrap()).collect();\n  \n  let result = product_except_self(nums);\n  print!(\"[\");\n  for (i, val) in result.iter().enumerate() {\n    print!(\"{}\", val);\n    if i < result.len() - 1 {\n      print!(\",\");\n    }\n  }\n  println!(\"]\");\n}",
+      "CSHARP": "}\n\nclass Program {\n  static void Main() {\n    string input = Console.ReadLine();\n    \n    input = input.Substring(1, input.Length - 2);\n    int[] nums = input.Split(',').Select(int.Parse).ToArray();\n    \n    Solution sol = new Solution();\n    int[] result = sol.ProductExceptSelf(nums);\n    Console.Write(\"[\");\n    for (int i = 0; i < result.Length; i++) {\n      Console.Write(result[i]);\n      if (i < result.Length - 1) Console.Write(\",\");\n    }\n    Console.WriteLine(\"]\");\n  }\n}",
+      "PYTHON": "input_data = sys.stdin.read().strip()\nnums = eval(input_data)\nresult = product_except_self(nums)\nprint(str(result).replace(' ', ''))",
+      "JAVASCRIPT": "const readline = require('readline');\nconst rl = readline.createInterface({\n  input: process.stdin,\n  output: process.stdout\n});\n\nlet input = '';\nrl.on('line', line => input += line.trim());\nrl.on('close', () => {\n  const nums = JSON.parse(input);\n  const result = productExceptSelf(nums);\n  console.log(JSON.stringify(result));\n});",
+      "TYPESCRIPT": "declare var require: any;\ndeclare var process: any;\n\nconst fs = require('fs');\nconst input = fs.readFileSync(0, 'utf-8').trim();\nconst nums = JSON.parse(input);\nconst result = productExceptSelf(nums);\nconsole.log(JSON.stringify(result));"
+    },
+    "is_premium": false
+  }
+]

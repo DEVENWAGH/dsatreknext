@@ -1,13 +1,13 @@
 <div align="center">
-  <span style="display:inline-flex; align-items:center; gap:16px;">
-    <img src="public/dsaD.svg" alt="DSATrek Logo" width="80" style="vertical-align:middle;" />
+  <span style="display:inline-flex; align-items:center;">
+    <span style="font-size:6.2em; font-weight:bold; vertical-align:middle; color:#000;">D</span>
     <span style="font-size:6.2em; font-weight:bold; vertical-align:middle; color:#FFD700;">SATrek</span>
   </span>
 </div>
 
 **Status:** Active  
 **License:** MIT  
-**Frameworks:** Next.js 14, React, Tailwind CSS
+**Frameworks:** Next.js 15, React, Tailwind CSS
 
 [dsatrek.com](https://dsatrek.com)
 
@@ -149,36 +149,6 @@ The main issue was "window is not defined" error during server-side rendering. T
 - **Debounced Functions**: Utility functions for performance optimization
 - **Proper Image Handling**: Optimized logo loading based on theme
 
----
-
-## 🔮 Future Enhancements
-
-### Algorithm Features
-
-- Additional algorithm types (Graph, Tree, DP, Greedy, Backtracking)
-- Custom algorithm submission
-- Algorithm explanation tooltips
-- Code viewing for each algorithm
-- Step-by-step execution mode
-
-### User Experience
-
-- User accounts
-- Save favorite algorithms
-- Create custom races
-- Share race results
-- Community leaderboards
-
-### Technical Improvements
-
-- Improved visualization options
-- More detailed performance metrics
-- Algorithm complexity estimator
-- Educational resources integration
-- API for algorithm submission
-
----
-
 ## 🤝 Contributing
 
 1. Fork the repo
@@ -192,155 +162,6 @@ See `docs/AI_INTERVIEW_README.md` and other docs for guidelines.
 ---
 
 ## 📷 Project Screenshots
-
-_Add screenshots here_
-
----
-
-## 📄 License
-
-MIT © License
-
----
-
-Made with ❤️ by DEVEN WAGH
-
-- Responsive design for all devices
-- Clean, intuitive interface with animated transitions
-- Dark mode optimized
-
----
-
-## � Future Enhancements
-
-### Algorithm Features
-
-- Additional algorithm types (Graph, Tree, DP, Greedy, Backtracking)
-- Custom algorithm submission
-- Algorithm explanation tooltips
-- Code viewing for each algorithm
-- Step-by-step execution mode
-
-### User Experience
-
-- User accounts
-- Save favorite algorithms
-- Create custom races
-- Share race results
-- Community leaderboards
-
-### Technical Improvements
-
-- Improved visualization options
-- More detailed performance metrics
-- Algorithm complexity estimator
-- Educational resources integration
-- API for algorithm submission
-
----
-
-## 🤝 Contributing
-
-1. Fork the repo
-2. Create feature branch: `git checkout -b feature/amazing`
-3. Commit: `git commit -m "Add amazing feature"`
-4. Push: `git push origin feature/amazing`
-5. Open pull request
-
-See `docs/AI_INTERVIEW_README.md` and other docs for guidelines.
-
----
-
-## 📷 Project Screenshots
-
-_Add screenshots here_
-
----
-
-## 📄 License
-
-MIT © License
-
----
-
-Made with ❤️ by DEVEN WAGH
-
-- Review step count for each algorithm
-- See time elapsed for all competitors
-- Identify the most efficient solution
-- Learn about algorithm performance characteristics
-
-### Learning From Races
-
-- Read the "Interpreting Results" section
-- Compare algorithms with similar functions
-- Observe how input size affects performance
-- Experiment with edge cases
-- Challenge yourself to optimize algorithms
-
----
-
-## 🔧 Technical Details
-
-- **Next.js** (App Router)
-- **React 18** (Client Components)
-- **Tailwind CSS** (Styling)
-- **Plate.js** (Rich Text Editor)
-- **Drizzle ORM** (Database)
-- **Zustand** (State Management)
-- **OpenAI, Gemini, Vapi** (AI/Voice Services)
-- **Lenis** (Smooth Scrolling)
-- **GSAP** (Animations)
-- **Google Analytics**
-- **Vercel Analytics**
-- **Auth.js v5** (Authentication)
-- **Google & GitHub** (Auth Providers)
-
----
-
-## 🔮 Future Enhancements
-
-### Algorithm Features
-
-- Additional algorithm types (Graph, Tree, DP, Greedy, Backtracking)
-- Custom algorithm submission
-- Algorithm explanation tooltips
-- Code viewing for each algorithm
-- Step-by-step execution mode
-
-### User Experience
-
-- User accounts
-- Save favorite algorithms
-- Create custom races
-- Share race results
-- Community leaderboards
-
-### Technical Improvements
-
-- Improved visualization options
-- More detailed performance metrics
-- Algorithm complexity estimator
-- Educational resources integration
-- API for algorithm submission
-
----
-
-## 🤝 Contributing
-
-1. Fork the repo
-2. Create feature branch: `git checkout -b feature/amazing`
-3. Commit: `git commit -m "Add amazing feature"`
-4. Push: `git push origin feature/amazing`
-5. Open pull request
-
-See `docs/AI_INTERVIEW_README.md` and other docs for guidelines.
-
----
-
-## 📷 Project Screenshots
-
-_Add screenshots here_
 
 ---
 

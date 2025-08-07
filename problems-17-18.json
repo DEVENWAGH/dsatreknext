@@ -1,0 +1,1118 @@
+[
+  {
+    "id": "17c6f9ff2-a892-681h-d60e-fcgef0g10875",
+    "title": "17. Valid Anagram",
+    "description": [
+      {
+        "id": "d1",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "text": "Given two strings "
+          },
+          {
+            "code": true,
+            "text": "s"
+          },
+          {
+            "text": " and "
+          },
+          {
+            "code": true,
+            "text": "t"
+          },
+          {
+            "text": ", return "
+          },
+          {
+            "code": true,
+            "text": "true"
+          },
+          {
+            "text": " if "
+          },
+          {
+            "code": true,
+            "text": "t"
+          },
+          {
+            "text": " is an anagram of "
+          },
+          {
+            "code": true,
+            "text": "s"
+          },
+          {
+            "text": ", and "
+          },
+          {
+            "code": true,
+            "text": "false"
+          },
+          {
+            "text": " otherwise."
+          }
+        ]
+      },
+      {
+        "id": "d2",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "text": "An "
+          },
+          {
+            "bold": true,
+            "text": "Anagram"
+          },
+          {
+            "text": " is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once."
+          }
+        ]
+      },
+      {
+        "id": "d3",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "d4",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "bold": true,
+            "text": "Example 1:"
+          }
+        ]
+      },
+      {
+        "id": "d5",
+        "type": "code_block",
+        "children": [
+          {
+            "id": "d5-1",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Input: s = \"anagram\", t = \"nagaram\""
+              }
+            ]
+          },
+          {
+            "id": "d5-2",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Output: true"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "d6",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "bold": true,
+            "text": "Example 2:"
+          }
+        ]
+      },
+      {
+        "id": "d7",
+        "type": "code_block",
+        "children": [
+          {
+            "id": "d7-1",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Input: s = \"rat\", t = \"car\""
+              }
+            ]
+          },
+          {
+            "id": "d7-2",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Output: false"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "d8",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "bold": true,
+            "text": "Constraints:"
+          }
+        ]
+      },
+      {
+        "id": "d9",
+        "type": "p",
+        "indent": 0,
+        "children": [
+          {
+            "code": true,
+            "text": "1 <= s.length, t.length <= 5 * 10^4"
+          }
+        ],
+        "listStyleType": ""
+      },
+      {
+        "id": "d10",
+        "type": "p",
+        "indent": 0,
+        "children": [
+          {
+            "code": true,
+            "text": "s and t consist of lowercase English letters."
+          }
+        ],
+        "listStyleType": ""
+      }
+    ],
+    "difficulty": "easy",
+    "tags": [
+      "Hash Table",
+      "String",
+      "Sorting"
+    ],
+    "starter_code": {
+      "C": "bool isAnagram(char* s, char* t) {\n  // Write your solution here\n  return false;\n}",
+      "GO": "func isAnagram(s string, t string) bool {\n  // Write your solution here\n  return false\n}",
+      "CPP": "bool isAnagram(string s, string t) {\n  // Write your solution here\n  return false;\n}",
+      "JAVA": "public boolean isAnagram(String s, String t) {\n  // Write your solution here\n  return false;\n}",
+      "RUBY": "def is_anagram(s, t)\n  # Write your solution here\n  false\nend",
+      "RUST": "fn is_anagram(s: String, t: String) -> bool {\n  // Write your solution here\n  false\n}",
+      "CSHARP": "public bool IsAnagram(string s, string t) {\n  // Write your solution here\n  return false;\n}",
+      "PYTHON": "def is_anagram(s, t):\n  # Write your solution here\n  return False",
+      "JAVASCRIPT": "function isAnagram(s, t) {\n  // Write your solution here\n  return false;\n}",
+      "TYPESCRIPT": "function isAnagram(s: string, t: string): boolean {\n  // Write your solution here\n  return false;\n}"
+    },
+    "solution": {
+      "C": "bool isAnagram(char* s, char* t) {\n  int len_s = strlen(s);\n  int len_t = strlen(t);\n  \n  if (len_s != len_t) return false;\n  \n  int count[26] = {0};\n  \n  for (int i = 0; i < len_s; i++) {\n    count[s[i] - 'a']++;\n    count[t[i] - 'a']--;\n  }\n  \n  for (int i = 0; i < 26; i++) {\n    if (count[i] != 0) return false;\n  }\n  \n  return true;\n}",
+      "GO": "func isAnagram(s string, t string) bool {\n  if len(s) != len(t) {\n    return false\n  }\n  \n  count := make(map[rune]int)\n  \n  for _, char := range s {\n    count[char]++\n  }\n  \n  for _, char := range t {\n    count[char]--\n    if count[char] < 0 {\n      return false\n    }\n  }\n  \n  return true\n}",
+      "CPP": "bool isAnagram(string s, string t) {\n  if (s.length() != t.length()) return false;\n  \n  unordered_map<char, int> count;\n  \n  for (char c : s) {\n    count[c]++;\n  }\n  \n  for (char c : t) {\n    count[c]--;\n    if (count[c] < 0) return false;\n  }\n  \n  return true;\n}",
+      "JAVA": "public boolean isAnagram(String s, String t) {\n  if (s.length() != t.length()) return false;\n  \n  Map<Character, Integer> count = new HashMap<>();\n  \n  for (char c : s.toCharArray()) {\n    count.put(c, count.getOrDefault(c, 0) + 1);\n  }\n  \n  for (char c : t.toCharArray()) {\n    count.put(c, count.getOrDefault(c, 0) - 1);\n    if (count.get(c) < 0) return false;\n  }\n  \n  return true;\n}",
+      "RUBY": "def is_anagram(s, t)\n  return false if s.length != t.length\n  \n  count = Hash.new(0)\n  \n  s.each_char { |c| count[c] += 1 }\n  t.each_char { |c| count[c] -= 1 }\n  \n  count.values.all?(&:zero?)\nend",
+      "RUST": "fn is_anagram(s: String, t: String) -> bool {\n  if s.len() != t.len() {\n    return false;\n  }\n  \n  let mut count = std::collections::HashMap::new();\n  \n  for c in s.chars() {\n    *count.entry(c).or_insert(0) += 1;\n  }\n  \n  for c in t.chars() {\n    let counter = count.entry(c).or_insert(0);\n    *counter -= 1;\n    if *counter < 0 {\n      return false;\n    }\n  }\n  \n  true\n}",
+      "CSHARP": "public bool IsAnagram(string s, string t) {\n  if (s.Length != t.Length) return false;\n  \n  Dictionary<char, int> count = new Dictionary<char, int>();\n  \n  foreach (char c in s) {\n    count[c] = count.GetValueOrDefault(c, 0) + 1;\n  }\n  \n  foreach (char c in t) {\n    count[c] = count.GetValueOrDefault(c, 0) - 1;\n    if (count[c] < 0) return false;\n  }\n  \n  return true;\n}",
+      "PYTHON": "def is_anagram(s, t):\n  if len(s) != len(t):\n    return False\n  \n  count = {}\n  \n  for c in s:\n    count[c] = count.get(c, 0) + 1\n  \n  for c in t:\n    count[c] = count.get(c, 0) - 1\n    if count[c] < 0:\n      return False\n  \n  return True",
+      "JAVASCRIPT": "function isAnagram(s, t) {\n  if (s.length !== t.length) return false;\n  \n  const count = {};\n  \n  for (const c of s) {\n    count[c] = (count[c] || 0) + 1;\n  }\n  \n  for (const c of t) {\n    count[c] = (count[c] || 0) - 1;\n    if (count[c] < 0) return false;\n  }\n  \n  return true;\n}",
+      "TYPESCRIPT": "function isAnagram(s: string, t: string): boolean {\n  if (s.length !== t.length) return false;\n  \n  const count: {[key: string]: number} = {};\n  \n  for (const c of s) {\n    count[c] = (count[c] || 0) + 1;\n  }\n  \n  for (const c of t) {\n    count[c] = (count[c] || 0) - 1;\n    if (count[c] < 0) return false;\n  }\n  \n  return true;\n}"
+    },
+    "test_cases": [
+      {
+        "input": "\"anagram\",\"nagaram\"",
+        "output": "true"
+      },
+      {
+        "input": "\"rat\",\"car\"",
+        "output": "false"
+      },
+      {
+        "input": "\"listen\",\"silent\"",
+        "output": "true"
+      }
+    ],
+    "hints": [
+      "Use a hash map to count character frequencies",
+      "Two strings are anagrams if they have the same character counts"
+    ],
+    "created_at": "2025-08-03 10:47:10.17675",
+    "updated_at": "2025-08-03 10:47:10.17675",
+    "companies": [
+      "407ec9ad-ffc5-4b8f-b962-0a60cb624a74",
+      "202a36bd-2095-4d13-a8be-e6df6ef32f8a",
+      "ab07275c-4a93-4bf6-9b6a-1f04ab5c06ac",
+      "48133990-7a31-4831-a7dc-112842fcf416"
+    ],
+    "editorial": [
+      {
+        "id": "e1",
+        "type": "p",
+        "children": [
+          {
+            "bold": true,
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e2",
+        "url": "https://www.youtube.com/watch?v=9UtInBqnCgA",
+        "type": "video",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e3",
+        "type": "p",
+        "children": [
+          {
+            "bold": true,
+            "text": "Difficulty"
+          },
+          {
+            "text": ": Easy\n "
+          },
+          {
+            "bold": true,
+            "text": "Time Complexity"
+          },
+          {
+            "text": ": "
+          },
+          {
+            "code": true,
+            "text": "O(n)"
+          },
+          {
+            "text": "\n "
+          },
+          {
+            "bold": true,
+            "text": "Space Complexity"
+          },
+          {
+            "text": ": "
+          },
+          {
+            "code": true,
+            "text": "O(1)"
+          }
+        ]
+      },
+      {
+        "id": "e4",
+        "type": "hr",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e5",
+        "type": "h2",
+        "children": [
+          {
+            "text": "📌 Problem Summary"
+          }
+        ]
+      },
+      {
+        "id": "e6",
+        "type": "p",
+        "children": [
+          {
+            "text": "Check if two strings are anagrams by comparing character frequencies."
+          }
+        ]
+      },
+      {
+        "id": "e7",
+        "type": "hr",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e8",
+        "type": "h2",
+        "children": [
+          {
+            "text": "⚠️ Constraints & Goals"
+          }
+        ]
+      },
+      {
+        "id": "e9",
+        "type": "p",
+        "indent": 0,
+        "children": [
+          {
+            "text": "Must run in linear time."
+          }
+        ],
+        "listStyleType": ""
+      },
+      {
+        "id": "e10",
+        "type": "p",
+        "indent": 0,
+        "children": [
+          {
+            "text": "Only lowercase English letters."
+          }
+        ],
+        "listStyleType": ""
+      },
+      {
+        "id": "e11",
+        "type": "hr",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e12",
+        "type": "h2",
+        "children": [
+          {
+            "text": "💡 Intuition"
+          }
+        ]
+      },
+      {
+        "id": "e13",
+        "type": "p",
+        "children": [
+          {
+            "text": "Count character frequencies in both strings and compare them."
+          }
+        ]
+      },
+      {
+        "id": "e14",
+        "type": "hr",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e15",
+        "type": "h2",
+        "children": [
+          {
+            "text": "✅ Hash Map Approach (Optimal)"
+          }
+        ]
+      },
+      {
+        "id": "e16",
+        "type": "p",
+        "children": [
+          {
+            "text": "Use a hash map to count characters in first string, then decrement for second string."
+          }
+        ]
+      },
+      {
+        "id": "e17",
+        "type": "hr",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e18",
+        "type": "h3",
+        "children": [
+          {
+            "text": "📄 Code (Python-style pseudocode)"
+          }
+        ]
+      },
+      {
+        "id": "e19",
+        "type": "code_block",
+        "children": [
+          {
+            "id": "e19-1",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "def is_anagram(s, t):"
+              }
+            ]
+          },
+          {
+            "id": "e19-2",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "  if len(s) != len(t): return False"
+              }
+            ]
+          },
+          {
+            "id": "e19-3",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "  count = {}"
+              }
+            ]
+          },
+          {
+            "id": "e19-4",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "  for c in s: count[c] = count.get(c, 0) + 1"
+              }
+            ]
+          },
+          {
+            "id": "e19-5",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "  for c in t:"
+              }
+            ]
+          },
+          {
+            "id": "e19-6",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "    count[c] = count.get(c, 0) - 1"
+              }
+            ]
+          },
+          {
+            "id": "e19-7",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "    if count[c] < 0: return False"
+              }
+            ]
+          },
+          {
+            "id": "e19-8",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "  return True"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "top_code": {
+      "C": "#include <stdio.h>\n#include <stdbool.h>\n#include <string.h>",
+      "GO": "package main\nimport (\n  \"fmt\"\n  \"strings\"\n)",
+      "CPP": "#include <iostream>\n#include <string>\n#include <unordered_map>\nusing namespace std;",
+      "JAVA": "import java.util.*;\nclass Solution {",
+      "RUBY": "",
+      "RUST": "use std::collections::HashMap;\nuse std::io;",
+      "CSHARP": "using System;\nusing System.Collections.Generic;\nclass Solution {",
+      "PYTHON": "import sys",
+      "JAVASCRIPT": "",
+      "TYPESCRIPT": ""
+    },
+    "bottom_code": {
+      "C": "int main() {\n  char s[50001], t[50001];\n  scanf(\"\\\"%[^\\\"]\\\",\\\"%[^\\\"]\\\"]\", s, t);\n  \n  bool result = isAnagram(s, t);\n  printf(\"%s\\n\", result ? \"true\" : \"false\");\n  return 0;\n}",
+      "GO": "func main() {\n  var input string\n  fmt.Scanln(&input)\n  \n  parts := strings.Split(input, \",\")\n  s := strings.Trim(parts[0], \"\\\"\")\n  t := strings.Trim(parts[1], \"\\\"\")\n  \n  result := isAnagram(s, t)\n  fmt.Println(result)\n}",
+      "CPP": "int main() {\n  string input;\n  getline(cin, input);\n  \n  size_t comma = input.find(',');\n  string s = input.substr(1, comma - 2);\n  string t = input.substr(comma + 2, input.length() - comma - 3);\n  \n  bool result = isAnagram(s, t);\n  cout << (result ? \"true\" : \"false\") << endl;\n  \n  return 0;\n}",
+      "JAVA": "}\n\nclass Main {\n  public static void main(String[] args) {\n    Scanner sc = new Scanner(System.in);\n    String input = sc.nextLine();\n    \n    String[] parts = input.split(\",\");\n    String s = parts[0].substring(1, parts[0].length() - 1);\n    String t = parts[1].substring(1, parts[1].length() - 1);\n    \n    Solution sol = new Solution();\n    boolean result = sol.isAnagram(s, t);\n    System.out.println(result);\n  }\n}",
+      "RUBY": "input = gets.strip\nparts = input.split(',')\ns = parts[0][1..-2]\nt = parts[1][1..-2]\nresult = is_anagram(s, t)\nputs result",
+      "RUST": "fn main() {\n  let mut input = String::new();\n  io::stdin().read_line(&mut input).unwrap();\n  \n  let input = input.trim();\n  let parts: Vec<&str> = input.split(',').collect();\n  let s = parts[0][1..parts[0].len()-1].to_string();\n  let t = parts[1][1..parts[1].len()-1].to_string();\n  \n  let result = is_anagram(s, t);\n  println!(\"{}\", result);\n}",
+      "CSHARP": "}\n\nclass Program {\n  static void Main() {\n    string input = Console.ReadLine();\n    \n    string[] parts = input.Split(',');\n    string s = parts[0].Substring(1, parts[0].Length - 2);\n    string t = parts[1].Substring(1, parts[1].Length - 2);\n    \n    Solution sol = new Solution();\n    bool result = sol.IsAnagram(s, t);\n    Console.WriteLine(result.ToString().ToLower());\n  }\n}",
+      "PYTHON": "input_data = sys.stdin.read().strip()\nparts = input_data.split(',')\ns = parts[0][1:-1]\nt = parts[1][1:-1]\nresult = is_anagram(s, t)\nprint(str(result).lower())",
+      "JAVASCRIPT": "const readline = require('readline');\nconst rl = readline.createInterface({\n  input: process.stdin,\n  output: process.stdout\n});\n\nlet input = '';\nrl.on('line', line => input += line.trim());\nrl.on('close', () => {\n  const parts = input.split(',');\n  const s = parts[0].slice(1, -1);\n  const t = parts[1].slice(1, -1);\n  const result = isAnagram(s, t);\n  console.log(result);\n});",
+      "TYPESCRIPT": "declare var require: any;\ndeclare var process: any;\n\nconst fs = require('fs');\nconst input = fs.readFileSync(0, 'utf-8').trim();\nconst parts = input.split(',');\nconst s = parts[0].slice(1, -1);\nconst t = parts[1].slice(1, -1);\nconst result = isAnagram(s, t);\nconsole.log(result);"
+    },
+    "is_premium": false
+  },
+  {
+    "id": "18d7g0gg3-b903-792i-e71f-gdghf1h21986",
+    "title": "18. Group Anagrams",
+    "description": [
+      {
+        "id": "d1",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "text": "Given an array of strings "
+          },
+          {
+            "code": true,
+            "text": "strs"
+          },
+          {
+            "text": ", group the anagrams together. You can return the answer in "
+          },
+          {
+            "bold": true,
+            "text": "any order"
+          },
+          {
+            "text": "."
+          }
+        ]
+      },
+      {
+        "id": "d2",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "text": "An "
+          },
+          {
+            "bold": true,
+            "text": "Anagram"
+          },
+          {
+            "text": " is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once."
+          }
+        ]
+      },
+      {
+        "id": "d3",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "d4",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "bold": true,
+            "text": "Example 1:"
+          }
+        ]
+      },
+      {
+        "id": "d5",
+        "type": "code_block",
+        "children": [
+          {
+            "id": "d5-1",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Input: strs = [\"eat\",\"tea\",\"tan\",\"ate\",\"nat\",\"bat\"]"
+              }
+            ]
+          },
+          {
+            "id": "d5-2",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Output: [[\"bat\"],[\"nat\",\"tan\"],[\"ate\",\"eat\",\"tea\"]]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "d6",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "bold": true,
+            "text": "Example 2:"
+          }
+        ]
+      },
+      {
+        "id": "d7",
+        "type": "code_block",
+        "children": [
+          {
+            "id": "d7-1",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Input: strs = [\"\"]\""
+              }
+            ]
+          },
+          {
+            "id": "d7-2",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Output: [[\"\"]]\""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "d8",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "bold": true,
+            "text": "Example 3:"
+          }
+        ]
+      },
+      {
+        "id": "d9",
+        "type": "code_block",
+        "children": [
+          {
+            "id": "d9-1",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Input: strs = [\"a\"]\""
+              }
+            ]
+          },
+          {
+            "id": "d9-2",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "Output: [[\"a\"]]\""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "d10",
+        "type": "p",
+        "align": "start",
+        "children": [
+          {
+            "bold": true,
+            "text": "Constraints:"
+          }
+        ]
+      },
+      {
+        "id": "d11",
+        "type": "p",
+        "indent": 0,
+        "children": [
+          {
+            "code": true,
+            "text": "1 <= strs.length <= 10^4"
+          }
+        ],
+        "listStyleType": ""
+      },
+      {
+        "id": "d12",
+        "type": "p",
+        "indent": 0,
+        "children": [
+          {
+            "code": true,
+            "text": "0 <= strs[i].length <= 100"
+          }
+        ],
+        "listStyleType": ""
+      },
+      {
+        "id": "d13",
+        "type": "p",
+        "indent": 0,
+        "children": [
+          {
+            "code": true,
+            "text": "strs[i] consists of lowercase English letters only."
+          }
+        ],
+        "listStyleType": ""
+      }
+    ],
+    "difficulty": "medium",
+    "tags": [
+      "Array",
+      "Hash Table",
+      "String",
+      "Sorting"
+    ],
+    "starter_code": {
+      "C": "char*** groupAnagrams(char** strs, int strsSize, int* returnSize, int** returnColumnSizes) {\n  // Write your solution here\n  *returnSize = 0;\n  return NULL;\n}",
+      "GO": "func groupAnagrams(strs []string) [][]string {\n  // Write your solution here\n  return nil\n}",
+      "CPP": "vector<vector<string>> groupAnagrams(vector<string>& strs) {\n  // Write your solution here\n  return {};\n}",
+      "JAVA": "public List<List<String>> groupAnagrams(String[] strs) {\n  // Write your solution here\n  return new ArrayList<>();\n}",
+      "RUBY": "def group_anagrams(strs)\n  # Write your solution here\n  []\nend",
+      "RUST": "fn group_anagrams(strs: Vec<String>) -> Vec<Vec<String>> {\n  // Write your solution here\n  vec![]\n}",
+      "CSHARP": "public IList<IList<string>> GroupAnagrams(string[] strs) {\n  // Write your solution here\n  return new List<IList<string>>();\n}",
+      "PYTHON": "def group_anagrams(strs):\n  # Write your solution here\n  return []",
+      "JAVASCRIPT": "function groupAnagrams(strs) {\n  // Write your solution here\n  return [];\n}",
+      "TYPESCRIPT": "function groupAnagrams(strs: string[]): string[][] {\n  // Write your solution here\n  return [];\n}"
+    },
+    "solution": {
+      "C": "char*** groupAnagrams(char** strs, int strsSize, int* returnSize, int** returnColumnSizes) {\n  // Simple approach using sorting\n  char*** result = (char***)malloc(strsSize * sizeof(char**));\n  *returnColumnSizes = (int*)malloc(strsSize * sizeof(int));\n  *returnSize = 0;\n  \n  bool* used = (bool*)calloc(strsSize, sizeof(bool));\n  \n  for (int i = 0; i < strsSize; i++) {\n    if (used[i]) continue;\n    \n    result[*returnSize] = (char**)malloc(strsSize * sizeof(char*));\n    int groupSize = 0;\n    \n    for (int j = i; j < strsSize; j++) {\n      if (used[j]) continue;\n      \n      // Check if anagrams by sorting\n      char* s1 = strdup(strs[i]);\n      char* s2 = strdup(strs[j]);\n      \n      // Simple bubble sort\n      int len1 = strlen(s1), len2 = strlen(s2);\n      if (len1 == len2) {\n        for (int x = 0; x < len1-1; x++) {\n          for (int y = 0; y < len1-x-1; y++) {\n            if (s1[y] > s1[y+1]) {\n              char temp = s1[y]; s1[y] = s1[y+1]; s1[y+1] = temp;\n            }\n            if (s2[y] > s2[y+1]) {\n              char temp = s2[y]; s2[y] = s2[y+1]; s2[y+1] = temp;\n            }\n          }\n        }\n        \n        if (strcmp(s1, s2) == 0) {\n          result[*returnSize][groupSize] = strdup(strs[j]);\n          groupSize++;\n          used[j] = true;\n        }\n      }\n      \n      free(s1);\n      free(s2);\n    }\n    \n    (*returnColumnSizes)[*returnSize] = groupSize;\n    (*returnSize)++;\n  }\n  \n  free(used);\n  return result;\n}",
+      "GO": "func groupAnagrams(strs []string) [][]string {\n  groups := make(map[string][]string)\n  \n  for _, str := range strs {\n    // Sort the string to use as key\n    chars := []rune(str)\n    sort.Slice(chars, func(i, j int) bool {\n      return chars[i] < chars[j]\n    })\n    key := string(chars)\n    \n    groups[key] = append(groups[key], str)\n  }\n  \n  result := make([][]string, 0, len(groups))\n  for _, group := range groups {\n    result = append(result, group)\n  }\n  \n  return result\n}",
+      "CPP": "vector<vector<string>> groupAnagrams(vector<string>& strs) {\n  unordered_map<string, vector<string>> groups;\n  \n  for (const string& str : strs) {\n    string key = str;\n    sort(key.begin(), key.end());\n    groups[key].push_back(str);\n  }\n  \n  vector<vector<string>> result;\n  for (auto& pair : groups) {\n    result.push_back(pair.second);\n  }\n  \n  return result;\n}",
+      "JAVA": "public List<List<String>> groupAnagrams(String[] strs) {\n  Map<String, List<String>> groups = new HashMap<>();\n  \n  for (String str : strs) {\n    char[] chars = str.toCharArray();\n    Arrays.sort(chars);\n    String key = new String(chars);\n    \n    groups.computeIfAbsent(key, k -> new ArrayList<>()).add(str);\n  }\n  \n  return new ArrayList<>(groups.values());\n}",
+      "RUBY": "def group_anagrams(strs)\n  groups = {}\n  \n  strs.each do |str|\n    key = str.chars.sort.join\n    groups[key] ||= []\n    groups[key] << str\n  end\n  \n  groups.values\nend",
+      "RUST": "fn group_anagrams(strs: Vec<String>) -> Vec<Vec<String>> {\n  let mut groups: std::collections::HashMap<String, Vec<String>> = std::collections::HashMap::new();\n  \n  for s in strs {\n    let mut chars: Vec<char> = s.chars().collect();\n    chars.sort();\n    let key: String = chars.into_iter().collect();\n    \n    groups.entry(key).or_insert_with(Vec::new).push(s);\n  }\n  \n  groups.into_values().collect()\n}",
+      "CSHARP": "public IList<IList<string>> GroupAnagrams(string[] strs) {\n  Dictionary<string, List<string>> groups = new Dictionary<string, List<string>>();\n  \n  foreach (string str in strs) {\n    char[] chars = str.ToCharArray();\n    Array.Sort(chars);\n    string key = new string(chars);\n    \n    if (!groups.ContainsKey(key)) {\n      groups[key] = new List<string>();\n    }\n    groups[key].Add(str);\n  }\n  \n  return groups.Values.Cast<IList<string>>().ToList();\n}",
+      "PYTHON": "def group_anagrams(strs):\n  groups = {}\n  \n  for s in strs:\n    key = ''.join(sorted(s))\n    if key not in groups:\n      groups[key] = []\n    groups[key].append(s)\n  \n  return list(groups.values())",
+      "JAVASCRIPT": "function groupAnagrams(strs) {\n  const groups = {};\n  \n  for (const str of strs) {\n    const key = str.split('').sort().join('');\n    if (!groups[key]) {\n      groups[key] = [];\n    }\n    groups[key].push(str);\n  }\n  \n  return Object.values(groups);\n}",
+      "TYPESCRIPT": "function groupAnagrams(strs: string[]): string[][] {\n  const groups: {[key: string]: string[]} = {};\n  \n  for (const str of strs) {\n    const key = str.split('').sort().join('');\n    if (!groups[key]) {\n      groups[key] = [];\n    }\n    groups[key].push(str);\n  }\n  \n  return Object.values(groups);\n}"
+    },
+    "test_cases": [
+      {
+        "input": "[\"eat\",\"tea\",\"tan\",\"ate\",\"nat\",\"bat\"]",
+        "output": "[[\"bat\"],[\"nat\",\"tan\"],[\"ate\",\"eat\",\"tea\"]]"
+      },
+      {
+        "input": "[\"\"]",
+        "output": "[[\"\"]]"
+      },
+      {
+        "input": "[\"a\"]",
+        "output": "[[\"a\"]]"
+      }
+    ],
+    "hints": [
+      "Use sorted strings as keys to group anagrams",
+      "Hash map with sorted string as key and list of anagrams as value"
+    ],
+    "created_at": "2025-08-03 10:47:10.17675",
+    "updated_at": "2025-08-03 10:47:10.17675",
+    "companies": [
+      "407ec9ad-ffc5-4b8f-b962-0a60cb624a74",
+      "202a36bd-2095-4d13-a8be-e6df6ef32f8a",
+      "ab07275c-4a93-4bf6-9b6a-1f04ab5c06ac",
+      "48133990-7a31-4831-a7dc-112842fcf416"
+    ],
+    "editorial": [
+      {
+        "id": "e1",
+        "type": "p",
+        "children": [
+          {
+            "bold": true,
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e2",
+        "url": "https://www.youtube.com/watch?v=vzdNOK2oB2E",
+        "type": "video",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e3",
+        "type": "p",
+        "children": [
+          {
+            "bold": true,
+            "text": "Difficulty"
+          },
+          {
+            "text": ": Medium\n "
+          },
+          {
+            "bold": true,
+            "text": "Time Complexity"
+          },
+          {
+            "text": ": "
+          },
+          {
+            "code": true,
+            "text": "O(n * k log k)"
+          },
+          {
+            "text": "\n "
+          },
+          {
+            "bold": true,
+            "text": "Space Complexity"
+          },
+          {
+            "text": ": "
+          },
+          {
+            "code": true,
+            "text": "O(n * k)"
+          }
+        ]
+      },
+      {
+        "id": "e4",
+        "type": "hr",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e5",
+        "type": "h2",
+        "children": [
+          {
+            "text": "📌 Problem Summary"
+          }
+        ]
+      },
+      {
+        "id": "e6",
+        "type": "p",
+        "children": [
+          {
+            "text": "Group strings that are anagrams of each other into separate lists."
+          }
+        ]
+      },
+      {
+        "id": "e7",
+        "type": "hr",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e8",
+        "type": "h2",
+        "children": [
+          {
+            "text": "⚠️ Constraints & Goals"
+          }
+        ]
+      },
+      {
+        "id": "e9",
+        "type": "p",
+        "indent": 0,
+        "children": [
+          {
+            "text": "Up to 10,000 strings with max length 100."
+          }
+        ],
+        "listStyleType": ""
+      },
+      {
+        "id": "e10",
+        "type": "p",
+        "indent": 0,
+        "children": [
+          {
+            "text": "Only lowercase English letters."
+          }
+        ],
+        "listStyleType": ""
+      },
+      {
+        "id": "e11",
+        "type": "hr",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e12",
+        "type": "h2",
+        "children": [
+          {
+            "text": "💡 Intuition"
+          }
+        ]
+      },
+      {
+        "id": "e13",
+        "type": "p",
+        "children": [
+          {
+            "text": "Use sorted strings as keys in a hash map to group anagrams together."
+          }
+        ]
+      },
+      {
+        "id": "e14",
+        "type": "hr",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e15",
+        "type": "h2",
+        "children": [
+          {
+            "text": "✅ Hash Map with Sorting (Optimal)"
+          }
+        ]
+      },
+      {
+        "id": "e16",
+        "type": "p",
+        "children": [
+          {
+            "text": "Sort each string to create a key, then group strings with the same key."
+          }
+        ]
+      },
+      {
+        "id": "e17",
+        "type": "hr",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      },
+      {
+        "id": "e18",
+        "type": "h3",
+        "children": [
+          {
+            "text": "📄 Code (Python-style pseudocode)"
+          }
+        ]
+      },
+      {
+        "id": "e19",
+        "type": "code_block",
+        "children": [
+          {
+            "id": "e19-1",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "def group_anagrams(strs):"
+              }
+            ]
+          },
+          {
+            "id": "e19-2",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "  groups = {}"
+              }
+            ]
+          },
+          {
+            "id": "e19-3",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "  for s in strs:"
+              }
+            ]
+          },
+          {
+            "id": "e19-4",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "    key = ''.join(sorted(s))"
+              }
+            ]
+          },
+          {
+            "id": "e19-5",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "    if key not in groups:"
+              }
+            ]
+          },
+          {
+            "id": "e19-6",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "      groups[key] = []"
+              }
+            ]
+          },
+          {
+            "id": "e19-7",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "    groups[key].append(s)"
+              }
+            ]
+          },
+          {
+            "id": "e19-8",
+            "type": "code_line",
+            "children": [
+              {
+                "text": "  return list(groups.values())"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "top_code": {
+      "C": "#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n#include <stdbool.h>",
+      "GO": "package main\nimport (\n  \"fmt\"\n  \"sort\"\n  \"strings\"\n)",
+      "CPP": "#include <iostream>\n#include <vector>\n#include <string>\n#include <unordered_map>\n#include <algorithm>\nusing namespace std;",
+      "JAVA": "import java.util.*;\nclass Solution {",
+      "RUBY": "",
+      "RUST": "use std::collections::HashMap;\nuse std::io;",
+      "CSHARP": "using System;\nusing System.Collections.Generic;\nusing System.Linq;\nclass Solution {",
+      "PYTHON": "import sys",
+      "JAVASCRIPT": "",
+      "TYPESCRIPT": ""
+    },
+    "bottom_code": {
+      "C": "int main() {\n  // Simplified input parsing for C\n  char input[1000];\n  fgets(input, sizeof(input), stdin);\n  \n  // Basic parsing - assumes simple format\n  char* strs[100];\n  int strsSize = 0;\n  \n  // Simple tokenization\n  char* token = strtok(input, \"[],\\\"\\n\");\n  while (token != NULL && strsSize < 100) {\n    if (strlen(token) > 0) {\n      strs[strsSize] = strdup(token);\n      strsSize++;\n    }\n    token = strtok(NULL, \"[],\\\"\\n\");\n  }\n  \n  int returnSize;\n  int* returnColumnSizes;\n  char*** result = groupAnagrams(strs, strsSize, &returnSize, &returnColumnSizes);\n  \n  printf(\"[\");\n  for (int i = 0; i < returnSize; i++) {\n    printf(\"[\");\n    for (int j = 0; j < returnColumnSizes[i]; j++) {\n      printf(\"\\\"%s\\\"\", result[i][j]);\n      if (j < returnColumnSizes[i] - 1) printf(\",\");\n    }\n    printf(\"]\");\n    if (i < returnSize - 1) printf(\",\");\n  }\n  printf(\"]\\n\");\n  \n  return 0;\n}",
+      "GO": "func main() {\n  var input string\n  fmt.Scanln(&input)\n  \n  // Parse JSON-like input\n  input = strings.Trim(input, \"[]\")\n  parts := strings.Split(input, \",\")\n  strs := make([]string, len(parts))\n  \n  for i, part := range parts {\n    strs[i] = strings.Trim(part, \"\\\" \")\n  }\n  \n  result := groupAnagrams(strs)\n  \n  fmt.Print(\"[\")\n  for i, group := range result {\n    fmt.Print(\"[\")\n    for j, str := range group {\n      fmt.Printf(\"\\\"%s\\\"\", str)\n      if j < len(group)-1 {\n        fmt.Print(\",\")\n      }\n    }\n    fmt.Print(\"]\")\n    if i < len(result)-1 {\n      fmt.Print(\",\")\n    }\n  }\n  fmt.Println(\"]\")\n}",
+      "CPP": "int main() {\n  string input;\n  getline(cin, input);\n  \n  // Parse JSON-like input\n  vector<string> strs;\n  size_t start = input.find('[') + 1;\n  size_t end = input.find_last_of(']');\n  string content = input.substr(start, end - start);\n  \n  stringstream ss(content);\n  string item;\n  while (getline(ss, item, ',')) {\n    item.erase(0, item.find_first_not_of(\" \\\"\\t\"));\n    item.erase(item.find_last_not_of(\" \\\"\\t\") + 1);\n    if (!item.empty()) {\n      strs.push_back(item);\n    }\n  }\n  \n  vector<vector<string>> result = groupAnagrams(strs);\n  \n  cout << \"[\";\n  for (size_t i = 0; i < result.size(); i++) {\n    cout << \"[\";\n    for (size_t j = 0; j < result[i].size(); j++) {\n      cout << \"\\\"\" << result[i][j] << \"\\\"\";\n      if (j < result[i].size() - 1) cout << \",\";\n    }\n    cout << \"]\";\n    if (i < result.size() - 1) cout << \",\";\n  }\n  cout << \"]\" << endl;\n  \n  return 0;\n}",
+      "JAVA": "}\n\nclass Main {\n  public static void main(String[] args) {\n    Scanner sc = new Scanner(System.in);\n    String input = sc.nextLine();\n    \n    // Parse JSON-like input\n    input = input.substring(1, input.length() - 1);\n    String[] parts = input.split(\",\");\n    String[] strs = new String[parts.length];\n    \n    for (int i = 0; i < parts.length; i++) {\n      strs[i] = parts[i].trim().replaceAll(\"\\\"\", \"\");\n    }\n    \n    Solution sol = new Solution();\n    List<List<String>> result = sol.groupAnagrams(strs);\n    \n    System.out.print(\"[\");\n    for (int i = 0; i < result.size(); i++) {\n      System.out.print(\"[\");\n      for (int j = 0; j < result.get(i).size(); j++) {\n        System.out.print(\"\\\"\" + result.get(i).get(j) + \"\\\"\");\n        if (j < result.get(i).size() - 1) System.out.print(\",\");\n      }\n      System.out.print(\"]\");\n      if (i < result.size() - 1) System.out.print(\",\");\n    }\n    System.out.println(\"]\");\n  }\n}",
+      "RUBY": "input = gets.strip\nstrs = eval(input)\nresult = group_anagrams(strs)\nputs result.to_s.gsub(\"'\", '\"')",
+      "RUST": "fn main() {\n  let mut input = String::new();\n  io::stdin().read_line(&mut input).unwrap();\n  \n  // Parse JSON-like input\n  let input = input.trim();\n  let input = &input[1..input.len()-1];\n  let strs: Vec<String> = input.split(',').map(|s| {\n    s.trim().trim_matches('\"').to_string()\n  }).collect();\n  \n  let result = group_anagrams(strs);\n  \n  print!(\"[\");\n  for (i, group) in result.iter().enumerate() {\n    print!(\"[\");\n    for (j, s) in group.iter().enumerate() {\n      print!(\"\\\"{}\\\"\", s);\n      if j < group.len() - 1 {\n        print!(\",\");\n      }\n    }\n    print!(\"]\");\n    if i < result.len() - 1 {\n      print!(\",\");\n    }\n  }\n  println!(\"]\");\n}",
+      "CSHARP": "}\n\nclass Program {\n  static void Main() {\n    string input = Console.ReadLine();\n    \n    // Parse JSON-like input\n    input = input.Substring(1, input.Length - 2);\n    string[] parts = input.Split(',');\n    string[] strs = new string[parts.Length];\n    \n    for (int i = 0; i < parts.Length; i++) {\n      strs[i] = parts[i].Trim().Trim('\"');\n    }\n    \n    Solution sol = new Solution();\n    IList<IList<string>> result = sol.GroupAnagrams(strs);\n    \n    Console.Write(\"[\");\n    for (int i = 0; i < result.Count; i++) {\n      Console.Write(\"[\");\n      for (int j = 0; j < result[i].Count; j++) {\n        Console.Write($\"\\\"{result[i][j]}\\\"\");\n        if (j < result[i].Count - 1) Console.Write(\",\");\n      }\n      Console.Write(\"]\");\n      if (i < result.Count - 1) Console.Write(\",\");\n    }\n    Console.WriteLine(\"]\");\n  }\n}",
+      "PYTHON": "input_data = sys.stdin.read().strip()\nstrs = eval(input_data)\nresult = group_anagrams(strs)\nprint(str(result).replace(\"'\", '\"'))",
+      "JAVASCRIPT": "const readline = require('readline');\nconst rl = readline.createInterface({\n  input: process.stdin,\n  output: process.stdout\n});\n\nlet input = '';\nrl.on('line', line => input += line.trim());\nrl.on('close', () => {\n  const strs = JSON.parse(input);\n  const result = groupAnagrams(strs);\n  console.log(JSON.stringify(result));\n});",
+      "TYPESCRIPT": "declare var require: any;\ndeclare var process: any;\n\nconst fs = require('fs');\nconst input = fs.readFileSync(0, 'utf-8').trim();\nconst strs = JSON.parse(input);\nconst result = groupAnagrams(strs);\nconsole.log(JSON.stringify(result));"
+    },
+    "is_premium": false
+  }
+]
