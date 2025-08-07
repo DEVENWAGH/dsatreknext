@@ -1,7 +1,6 @@
 <div align="center">
   <span style="display:inline-flex; align-items:center; gap:16px;">
-    <img src="public/dsaD.svg" alt="DSATrek Logo" width="80" style="vertical-align:middle;" />
-    <span style="font-size:6.2em; font-weight:bold; vertical-align:middle; color:#FFD700;">SATrek</span>
+    <span style="font-size:6.2em; font-weight:bold; vertical-align:middle; color:#FFD700;">DSATrek</span>
   </span>
 </div>
 
@@ -177,99 +176,6 @@ The main issue was "window is not defined" error during server-side rendering. T
 - Educational resources integration
 - API for algorithm submission
 
----
-
-## 🤝 Contributing
-
-1. Fork the repo
-2. Create feature branch: `git checkout -b feature/amazing`
-3. Commit: `git commit -m "Add amazing feature"`
-4. Push: `git push origin feature/amazing`
-5. Open pull request
-
-See `docs/AI_INTERVIEW_README.md` and other docs for guidelines.
-
----
-
-## 📷 Project Screenshots
-
-_Add screenshots here_
-
----
-
-## 📄 License
-
-MIT © License
-
----
-
-Made with ❤️ by DEVEN WAGH
-
-- Responsive design for all devices
-- Clean, intuitive interface with animated transitions
-- Dark mode optimized
-
----
-
-## � Future Enhancements
-
-### Algorithm Features
-
-- Additional algorithm types (Graph, Tree, DP, Greedy, Backtracking)
-- Custom algorithm submission
-- Algorithm explanation tooltips
-- Code viewing for each algorithm
-- Step-by-step execution mode
-
-### User Experience
-
-- User accounts
-- Save favorite algorithms
-- Create custom races
-- Share race results
-- Community leaderboards
-
-### Technical Improvements
-
-- Improved visualization options
-- More detailed performance metrics
-- Algorithm complexity estimator
-- Educational resources integration
-- API for algorithm submission
-
----
-
-## 🤝 Contributing
-
-1. Fork the repo
-2. Create feature branch: `git checkout -b feature/amazing`
-3. Commit: `git commit -m "Add amazing feature"`
-4. Push: `git push origin feature/amazing`
-5. Open pull request
-
-See `docs/AI_INTERVIEW_README.md` and other docs for guidelines.
-
----
-
-## 📷 Project Screenshots
-
-_Add screenshots here_
-
----
-
-## 📄 License
-
-MIT © License
-
----
-
-Made with ❤️ by DEVEN WAGH
-
-- Review step count for each algorithm
-- See time elapsed for all competitors
-- Identify the most efficient solution
-- Learn about algorithm performance characteristics
-
 ### Learning From Races
 
 - Read the "Interpreting Results" section
@@ -323,30 +229,6 @@ Made with ❤️ by DEVEN WAGH
 - Algorithm complexity estimator
 - Educational resources integration
 - API for algorithm submission
-
----
-
-## 🤝 Contributing
-
-1. Fork the repo
-2. Create feature branch: `git checkout -b feature/amazing`
-3. Commit: `git commit -m "Add amazing feature"`
-4. Push: `git push origin feature/amazing`
-5. Open pull request
-
-See `docs/AI_INTERVIEW_README.md` and other docs for guidelines.
-
----
-
-## 📷 Project Screenshots
-
-_Add screenshots here_
-
----
-
-## 📄 License
-
-MIT © License
 
 ---
 
