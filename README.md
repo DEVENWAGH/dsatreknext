@@ -1,12 +1,13 @@
 <div align="center">
-  <span style="display:inline-flex; align-items:center; gap:16px;">
-    <span style="font-size:6.2em; font-weight:bold; vertical-align:middle; color:#FFD700;">DSATrek</span>
+  <span style="display:inline-flex; align-items:center;">
+    <span style="font-size:6.2em; font-weight:bold; vertical-align:middle; color:#000;">D</span>
+    <span style="font-size:6.2em; font-weight:bold; vertical-align:middle; color:#FFD700;">SATrek</span>
   </span>
 </div>
 
 **Status:** Active  
 **License:** MIT  
-**Frameworks:** Next.js 14, React, Tailwind CSS
+**Frameworks:** Next.js 15, React, Tailwind CSS
 
 [dsatrek.com](https://dsatrek.com)
 
@@ -21,7 +22,7 @@ DSATrek is a cutting-edge platform for mastering Data Structures & Algorithms, a
 ## 🚀 What DSATrek Offers
 
 - **DSA Problem Solving**: Hundreds of curated problems with step-by-step visualizations (Array, String, Tree, Graph, DP, Greedy, Backtracking, and more)
-- **AI-Powered Interviews**: Generate and practice coding interviews with OpenAI, Gemini, and Vapi AI. Includes voice interview support.
+- **AI-Powered Interviews**: Generate and practice coding interviews with Deepgram STT/TTS and Gemini LLM. Real-time voice interview support.
 - **Advanced Analytics**: Track your streaks, acceptance rates, skill level, and more with interactive dashboards and heatmaps.
 - **Real-Time Collaboration**: Code together, join rooms, and share solutions with others using Liveblocks.io and Yjs.
 - **Rich Community**: Post, discuss, and learn with other users. Community features for sharing, voting, and commenting.
@@ -148,87 +149,25 @@ The main issue was "window is not defined" error during server-side rendering. T
 - **Debounced Functions**: Utility functions for performance optimization
 - **Proper Image Handling**: Optimized logo loading based on theme
 
----
+## 🤝 Contributing
 
-## 🔮 Future Enhancements
+1. Fork the repo
+2. Create feature branch: `git checkout -b feature/amazing`
+3. Commit: `git commit -m "Add amazing feature"`
+4. Push: `git push origin feature/amazing`
+5. Open pull request
 
-### Algorithm Features
-
-- Additional algorithm types (Graph, Tree, DP, Greedy, Backtracking)
-- Custom algorithm submission
-- Algorithm explanation tooltips
-- Code viewing for each algorithm
-- Step-by-step execution mode
-
-### User Experience
-
-- User accounts
-- Save favorite algorithms
-- Create custom races
-- Share race results
-- Community leaderboards
-
-### Technical Improvements
-
-- Improved visualization options
-- More detailed performance metrics
-- Algorithm complexity estimator
-- Educational resources integration
-- API for algorithm submission
-
-### Learning From Races
-
-- Read the "Interpreting Results" section
-- Compare algorithms with similar functions
-- Observe how input size affects performance
-- Experiment with edge cases
-- Challenge yourself to optimize algorithms
+See `docs/AI_INTERVIEW_README.md` and other docs for guidelines.
 
 ---
 
-## 🔧 Technical Details
-
-- **Next.js** (App Router)
-- **React 18** (Client Components)
-- **Tailwind CSS** (Styling)
-- **Plate.js** (Rich Text Editor)
-- **Drizzle ORM** (Database)
-- **Zustand** (State Management)
-- **OpenAI, Gemini, Vapi** (AI/Voice Services)
-- **Lenis** (Smooth Scrolling)
-- **GSAP** (Animations)
-- **Google Analytics**
-- **Vercel Analytics**
-- **Auth.js v5** (Authentication)
-- **Google & GitHub** (Auth Providers)
+## 📷 Project Screenshots
 
 ---
 
-## 🔮 Future Enhancements
+## 📄 License
 
-### Algorithm Features
-
-- Additional algorithm types (Graph, Tree, DP, Greedy, Backtracking)
-- Custom algorithm submission
-- Algorithm explanation tooltips
-- Code viewing for each algorithm
-- Step-by-step execution mode
-
-### User Experience
-
-- User accounts
-- Save favorite algorithms
-- Create custom races
-- Share race results
-- Community leaderboards
-
-### Technical Improvements
-
-- Improved visualization options
-- More detailed performance metrics
-- Algorithm complexity estimator
-- Educational resources integration
-- API for algorithm submission
+MIT © License
 
 ---
 
