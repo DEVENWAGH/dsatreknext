@@ -69,7 +69,7 @@ const UserInterviews = ({ interviews }) => {
       {interviews.map(interview => (
         <Card
           key={interview.id}
-          className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-2 hover:border-primary/20"
+          className="group cursor-pointer hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/20"
           onClick={e => handleViewDetails(interview, e)}
         >
           <CardHeader className="pb-3">

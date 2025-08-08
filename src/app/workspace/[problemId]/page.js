@@ -87,13 +87,14 @@ const WorkspacePage = () => {
 
   // Navigation functions - memoized for performance
   const sortedProblems = React.useMemo(() => {
-    if (problems.length === 0) return [];
-    return [...problems].sort((a, b) => {
+    const problemsList = problemsData?.problems || [];
+    if (problemsList.length === 0) return [];
+    return [...problemsList].sort((a, b) => {
       const numA = parseInt(a.title.match(/\d+/)?.[0] || '0');
       const numB = parseInt(b.title.match(/\d+/)?.[0] || '0');
       return numA - numB;
     });
-  }, [problems]);
+  }, [problemsData?.problems]);
 
   const currentIndex = React.useMemo(
     () => sortedProblems.findIndex(p => p.id === problemId),

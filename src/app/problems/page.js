@@ -72,8 +72,9 @@ const OptimizedProblemSet = () => {
 
   // Memoize filtered problems count for performance
   const filteredProblemsCount = useMemo(() => {
-    if (!problems?.length) return 0;
-    return problems.filter(problem => {
+    const problemsList = data?.problems || [];
+    if (!problemsList?.length) return 0;
+    return problemsList.filter(problem => {
       const matchesSearch =
         !searchQuery ||
         problem.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -85,7 +86,7 @@ const OptimizedProblemSet = () => {
         problem.difficulty.toLowerCase() === selectedDifficulty.toLowerCase();
       return matchesSearch && matchesDifficulty;
     }).length;
-  }, [problems, searchQuery, selectedDifficulty]);
+  }, [data?.problems, searchQuery, selectedDifficulty]);
 
   // Auto-enable virtualization for large datasets
   React.useEffect(() => {

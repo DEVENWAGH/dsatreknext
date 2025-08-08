@@ -1,5 +1,5 @@
 'use client';
-
+import Image from 'next/image';
 import React from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -59,7 +59,7 @@ const PostDetailPage = () => {
         }
         if (block?.type === 'img' && block?.url) {
           return (
-            <img
+            <Image
               key={block.id || index}
               src={block.url}
               alt={block.name || 'Image'}

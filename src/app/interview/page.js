@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,27 +19,30 @@ import UserInterviews from '@/components/UserInterviews';
 import { useSession } from 'next-auth/react';
 import SplineModel from '@/components/SplineModel';
 
+// Component that handles search params
+function SearchParamsHandler({ setIsDialogOpen }) {
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const isRetry = searchParams.get('retry');
+    if (isRetry === 'true') {
+      console.log(
+        '🔄 Detected retry parameter - this is deprecated. New interviews now reuse existing data.'
+      );
+      setIsDialogOpen(true);
+    }
+  }, [searchParams, setIsDialogOpen]);
+
+  return null;
+}
+
 const Interview = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { data: session } = useSession();
-  const searchParams = useSearchParams();
 
   const { data: userInterviews = [], isLoading } = useInterviews();
   const createInterviewMutation = useCreateInterview();
   const isCreating = createInterviewMutation.isPending;
-
-  // Check if this is a retry from interview details page (deprecated)
-  useEffect(() => {
-    const isRetry = searchParams.get('retry');
-    if (isRetry === 'true') {
-      // This approach is now deprecated - interviews are reused directly
-      console.log(
-        '🔄 Detected retry parameter - this is deprecated. New interviews now reuse existing data.'
-      );
-      // Still open dialog for user convenience
-      setIsDialogOpen(true);
-    }
-  }, [searchParams]);
 
   const onSubmit = async data => {
     try {
@@ -87,6 +90,9 @@ const Interview = () => {
 
   return (
     <div className="min-h-screen">
+      <Suspense fallback={null}>
+        <SearchParamsHandler setIsDialogOpen={setIsDialogOpen} />
+      </Suspense>
       <div className="container mx-auto p-4 max-w-6xl min-h-[calc(100vh-80px)] flex flex-col">
         <div className="flex justify-between items-center mb-6 flex-shrink-0">
           <h1 className="text-2xl font-bold">Interviews</h1>
@@ -184,22 +190,24 @@ const Interview = () => {
                   </div>
                 </div>
                 
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button size="lg" className="text-lg px-12 py-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300">
-                      <PlusCircle className="w-6 h-6 mr-3" />
-                      Start Your First Interview
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[500px]">
-                    <DialogHeader>
-                      <DialogTitle className="text-xl font-semibold">
-                        Create New Interview
-                      </DialogTitle>
-                    </DialogHeader>
-                    <InterviewForm onSubmit={onSubmit} isCreating={isCreating} />
-                  </DialogContent>
-                </Dialog>
+                <div className="hidden lg:block">
+                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="lg" className="text-lg px-12 py-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300">
+                        <PlusCircle className="w-6 h-6 mr-3" />
+                        Start Your First Interview
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[500px]">
+                      <DialogHeader>
+                        <DialogTitle className="text-xl font-semibold">
+                          Create New Interview
+                        </DialogTitle>
+                      </DialogHeader>
+                      <InterviewForm onSubmit={onSubmit} isCreating={isCreating} />
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </div>
               
               <div className="hidden lg:block flex-1">

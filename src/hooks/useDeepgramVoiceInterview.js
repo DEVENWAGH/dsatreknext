@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import DeepgramVoiceAgent from '../services/deepgramVoiceAgent';
 
-export const useDeepgramVoiceInterview = (interviewConfig) => {
+export const useDeepgramVoiceInterview = interviewConfig => {
   const [isConnected, setIsConnected] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [conversation, setConversation] = useState([]);
   const [error, setError] = useState(null);
   const [status, setStatus] = useState('idle');
-  
+
   const voiceAgentRef = useRef(null);
 
   const initializeVoiceAgent = useCallback(async () => {
@@ -18,26 +18,31 @@ export const useDeepgramVoiceInterview = (interviewConfig) => {
 
       const response = await fetch('/api/voice-agent/config');
       const configData = await response.json();
-      
+
       if (!configData.success) {
-        throw new Error(configData.error || 'Failed to get voice agent configuration');
+        throw new Error(
+          configData.error || 'Failed to get voice agent configuration'
+        );
       }
 
       voiceAgentRef.current = new DeepgramVoiceAgent({
         deepgramApiKey: configData.deepgramApiKey,
-        geminiApiKey: configData.geminiApiKey
+        geminiApiKey: configData.geminiApiKey,
       });
 
-      voiceAgentRef.current.setOnConversationUpdate((message) => {
-        setConversation(prev => [...prev, {
-          id: Date.now() + Math.random(),
-          ...message
-        }]);
+      voiceAgentRef.current.setOnConversationUpdate(message => {
+        setConversation(prev => [
+          ...prev,
+          {
+            id: Date.now() + Math.random(),
+            ...message,
+          },
+        ]);
       });
 
-      voiceAgentRef.current.setOnStatusChange((newStatus) => {
+      voiceAgentRef.current.setOnStatusChange(newStatus => {
         setStatus(newStatus);
-        
+
         switch (newStatus) {
           case 'listening':
             setIsListening(true);
@@ -64,14 +69,14 @@ export const useDeepgramVoiceInterview = (interviewConfig) => {
         }
       });
 
-      voiceAgentRef.current.setOnError((errorData) => {
+      voiceAgentRef.current.setOnError(errorData => {
         console.error('Voice Agent Error:', errorData);
         setError(errorData.message || 'Voice agent error occurred');
         setStatus('error');
       });
 
       const success = await voiceAgentRef.current.initialize(interviewConfig);
-      
+
       if (success) {
         setIsConnected(true);
         setStatus('initialized');
@@ -104,18 +109,19 @@ export const useDeepgramVoiceInterview = (interviewConfig) => {
   }, [initializeVoiceAgent]);
 
   const endInterview = useCallback(async () => {
-    if (!voiceAgentRef.current) return { success: false, error: 'No active interview' };
+    if (!voiceAgentRef.current)
+      return { success: false, error: 'No active interview' };
 
     try {
       setStatus('ending');
       const result = await voiceAgentRef.current.endInterview();
       voiceAgentRef.current = null;
-      
+
       return {
         success: true,
         transcript: result.transcript,
         duration: result.duration,
-        stats: result
+        stats: result,
       };
     } catch (error) {
       console.error('Failed to end interview:', error);
@@ -131,7 +137,7 @@ export const useDeepgramVoiceInterview = (interviewConfig) => {
     return conversation.map(msg => ({
       speaker: msg.role === 'user' ? 'Candidate' : 'Interviewer',
       content: msg.content,
-      timestamp: msg.timestamp
+      timestamp: msg.timestamp,
     }));
   }, [conversation]);
 
@@ -139,17 +145,23 @@ export const useDeepgramVoiceInterview = (interviewConfig) => {
     if (voiceAgentRef.current) {
       return voiceAgentRef.current.getStats();
     }
-    
+
     const userMessages = conversation.filter(msg => msg.role === 'user');
-    const assistantMessages = conversation.filter(msg => msg.role === 'assistant');
-    
+    const assistantMessages = conversation.filter(
+      msg => msg.role === 'assistant'
+    );
+
     return {
       totalMessages: conversation.length,
       candidateResponses: userMessages.length,
       interviewerQuestions: assistantMessages.length,
-      averageResponseLength: userMessages.length > 0 
-        ? Math.round(userMessages.reduce((acc, msg) => acc + msg.content.length, 0) / userMessages.length)
-        : 0
+      averageResponseLength:
+        userMessages.length > 0
+          ? Math.round(
+              userMessages.reduce((acc, msg) => acc + msg.content.length, 0) /
+                userMessages.length
+            )
+          : 0,
     };
   }, [conversation]);
 
@@ -160,7 +172,9 @@ export const useDeepgramVoiceInterview = (interviewConfig) => {
       return true;
     } catch (error) {
       console.error('Microphone test failed:', error);
-      setError('Microphone access denied. Please allow microphone access and try again.');
+      setError(
+        'Microphone access denied. Please allow microphone access and try again.'
+      );
       return false;
     }
   }, []);
@@ -179,8 +193,11 @@ export const useDeepgramVoiceInterview = (interviewConfig) => {
   useEffect(() => {
     return () => {
       if (voiceAgentRef.current) {
-        voiceAgentRef.current.endInterview()
-          .catch(error => console.error('Failed to end interview cleanly:', error))
+        voiceAgentRef.current
+          .endInterview()
+          .catch(error =>
+            console.error('Failed to end interview cleanly:', error)
+          )
           .finally(() => {
             voiceAgentRef.current = null;
             setIsConnected(false);
@@ -203,6 +220,6 @@ export const useDeepgramVoiceInterview = (interviewConfig) => {
     getInterviewStats,
     clearError: () => setError(null),
     testMicrophone,
-    testConfiguration
+    testConfiguration,
   };
 };
