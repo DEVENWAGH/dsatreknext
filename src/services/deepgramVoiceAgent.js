@@ -117,8 +117,25 @@ class DeepgramVoiceAgent {
       // Reuse existing stream or create new one
       if (!this.mediaStream) {
         this.mediaStream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
+          audio: {
+            sampleRate: 16000,
+            channelCount: 1,
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
         });
+
+        // Add stream error handling
+        this.mediaStream.getTracks().forEach(track => {
+          track.onended = () => {
+            console.warn('🎤 Audio track ended unexpectedly');
+            this.mediaStream = null;
+          };
+        });
+
+        // Add audio level monitoring for debugging
+        this.setupAudioLevelMonitoring();
       }
 
       this.isListening = true;
@@ -130,7 +147,7 @@ class DeepgramVoiceAgent {
         this.deepgramSocket.readyState !== WebSocket.OPEN
       ) {
         this.deepgramSocket = new WebSocket(
-          `wss://api.deepgram.com/v1/listen?model=nova-3&language=en-IN&smart_format=true&interim_results=true&endpointing=1000&vad_events=true&utterance_end_ms=1500`,
+          `wss://api.deepgram.com/v1/listen?model=nova-2&language=en-US&smart_format=true&interim_results=true&endpointing=500&vad_events=true&utterance_end_ms=1500&punctuate=true&profanity_filter=false&redact=false&filler_words=false&multichannel=false`,
           ['token', this.deepgramApiKey]
         );
 
@@ -142,20 +159,43 @@ class DeepgramVoiceAgent {
 
           // Set up MediaRecorder only if not already created
           if (!this.mediaRecorder || this.mediaRecorder.state === 'inactive') {
-            this.mediaRecorder = new MediaRecorder(this.mediaStream, {
-              mimeType: 'audio/webm;codecs=opus',
-            });
+            // Use the most compatible audio format - prefer webm;codecs=opus for better quality
+            let mimeType = 'audio/webm;codecs=opus';
+            if (!MediaRecorder.isTypeSupported(mimeType)) {
+              mimeType = 'audio/webm';
+              if (!MediaRecorder.isTypeSupported(mimeType)) {
+                mimeType = 'audio/mp4';
+                if (!MediaRecorder.isTypeSupported(mimeType)) {
+                  mimeType = '';
+                }
+              }
+            }
+            console.log('🎧 Using audio format:', mimeType || 'default');
+
+            const options = mimeType ? { mimeType: mimeType } : {};
+            this.mediaRecorder = new MediaRecorder(this.mediaStream, options);
 
             this.mediaRecorder.ondataavailable = event => {
               if (
                 event.data.size > 0 &&
                 this.deepgramSocket.readyState === WebSocket.OPEN
               ) {
+                console.log('🎵 Sending audio data:', event.data.size, 'bytes');
                 this.deepgramSocket.send(event.data);
+              } else {
+                console.warn('⚠️ Audio data not sent:', {
+                  dataSize: event.data.size,
+                  socketState: this.deepgramSocket?.readyState,
+                  socketReadyStateOpen: WebSocket.OPEN,
+                });
               }
             };
 
-            this.mediaRecorder.start(50); // Send data every 50ms for better responsiveness
+            this.mediaRecorder.onerror = event => {
+              console.error('🎤 MediaRecorder error:', event.error);
+            };
+
+            this.mediaRecorder.start(100); // Send data every 100ms for better responsiveness
           } else if (this.mediaRecorder.state === 'paused') {
             this.mediaRecorder.resume();
           }
@@ -163,6 +203,7 @@ class DeepgramVoiceAgent {
 
         this.deepgramSocket.onmessage = async message => {
           const data = JSON.parse(message.data);
+          console.log('📶 Deepgram message:', data);
 
           // Handle speech activity detection
           if (data.type === 'SpeechStarted') {
@@ -171,58 +212,92 @@ class DeepgramVoiceAgent {
 
           if (data.type === 'UtteranceEnd') {
             console.log('🔇 User finished speaking');
-            // Don't process immediately - wait for final transcript or reasonable timeout
+            // Process the last interim transcript when user stops speaking
+            if (
+              this.lastInterimTranscript &&
+              this.lastInterimTranscript.trim().length > 2 &&
+              !this.isProcessing
+            ) {
+              console.log(
+                '🎯 Processing speech on utterance end:',
+                this.lastInterimTranscript
+              );
+              this.processUserSpeech(this.lastInterimTranscript);
+              this.lastInterimTranscript = null;
+            }
           }
 
           if (data.channel?.alternatives?.[0]?.transcript) {
             const transcript = data.channel.alternatives[0].transcript;
+            const confidence = data.channel.alternatives[0].confidence || 0;
+
+            console.log('📝 TRANSCRIPT DETECTED:', {
+              text: transcript,
+              is_final: data.is_final,
+              confidence: confidence,
+              length: transcript.length,
+              words: transcript.split(' ').length,
+            });
 
             // Show interim results for better UX
             if (!data.is_final && transcript.trim()) {
-              console.log('🎤 Interim:', transcript);
-
+              console.log('🎤 INTERIM WORDS:', transcript.split(' '));
               // Store last interim transcript
               this.lastInterimTranscript = transcript;
-
-              // Clear any existing timeout
-              if (this.interimTimeout) {
-                clearTimeout(this.interimTimeout);
-              }
-
-              // Set reasonable timeout to process speech
-              this.interimTimeout = setTimeout(() => {
-                if (
-                  transcript.trim() &&
-                  transcript.length > 1 &&
-                  !this.isProcessing
-                ) {
-                  console.log(
-                    '⏰ Processing interim as final (timeout):',
-                    transcript
-                  );
-                  this.processUserSpeech(transcript);
-                  this.lastInterimTranscript = null;
-                }
-              }, 1500); // Reduced timeout to 1.5 seconds
             }
 
             if (data.is_final && transcript.trim() && transcript.length > 1) {
-              console.log('🗣️ User said (final):', transcript);
-
-              // Clear interim timeout
-              if (this.interimTimeout) {
-                clearTimeout(this.interimTimeout);
-                this.interimTimeout = null;
-              }
-
-              console.log('🚀 About to process final user speech:', transcript);
+              console.log('🗣️ FINAL WORDS:', transcript.split(' '));
+              console.log('🚀 Processing speech:', transcript);
               this.processUserSpeech(transcript);
+              this.lastInterimTranscript = null;
+            }
+          } else {
+            // Enhanced debugging for empty transcript issue
+            if (data.channel?.alternatives?.length > 0) {
+              const alt = data.channel.alternatives[0];
+              
+              // Only log if we're getting consistent empty transcripts
+              if (!alt.transcript || alt.transcript.trim() === '') {
+                // Check if we have audio activity but no transcript
+                if (alt.confidence > 0.1 || (alt.words && alt.words.length > 0)) {
+                  console.warn('🔧 Audio detected but no transcript:', {
+                    confidence: alt.confidence,
+                    words: alt.words?.length || 0,
+                    duration: data.duration,
+                    is_final: data.is_final
+                  });
+                }
+              }
+            } else if (data.type === 'Results') {
+              console.log('⚠️ No alternatives in Results message');
+            } else if (data.type !== 'SpeechStarted' && data.type !== 'UtteranceEnd') {
+              console.log('📡 Non-transcript message:', data.type);
             }
           }
         };
 
         this.deepgramSocket.onerror = error => {
+          console.error('🚨 Deepgram WebSocket error:', error);
           this.handleError('Deepgram connection error', error);
+        };
+
+        this.deepgramSocket.onclose = event => {
+          console.log('🔌 Deepgram WebSocket closed:', {
+            code: event.code,
+            reason: event.reason,
+            wasClean: event.wasClean,
+          });
+
+          // Auto-reconnect if not a clean close and we're still supposed to be listening
+          if (!event.wasClean && this.isListening) {
+            console.log('🔄 Attempting to reconnect to Deepgram...');
+            setTimeout(() => {
+              if (this.isListening) {
+                this.startListening();
+              }
+            }, 1000);
+          }
         };
       } else {
         // WebSocket already connected, just resume recording
@@ -419,9 +494,9 @@ All main questions have been covered. Ask a relevant follow-up question about ${
       this.isSpeaking = true;
       this.updateStatus('speaking');
 
-      // Use Deepgram TTS with Indian English model
+      // Use Deepgram TTS with better voice model
       const response = await fetch(
-        'https://api.deepgram.com/v1/speak?model=aura-asteria-en',
+        'https://api.deepgram.com/v1/speak?model=aura-luna-en',
         {
           method: 'POST',
           headers: {
@@ -573,6 +648,104 @@ All main questions have been covered. Ask a relevant follow-up question about ${
             )
           : 0,
     };
+  }
+
+  // Audio level monitoring for debugging
+  setupAudioLevelMonitoring() {
+    if (!this.mediaStream) return;
+
+    try {
+      const audioContext = new (window.AudioContext ||
+        window.webkitAudioContext)();
+      const analyser = audioContext.createAnalyser();
+      const microphone = audioContext.createMediaStreamSource(this.mediaStream);
+
+      microphone.connect(analyser);
+      analyser.fftSize = 512;
+
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      let lastLogTime = 0;
+
+      const checkAudioLevel = () => {
+        if (!this.isListening) return;
+
+        analyser.getByteFrequencyData(dataArray);
+
+        // Calculate RMS (Root Mean Square) for audio level
+        let sum = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          sum += dataArray[i] * dataArray[i];
+        }
+        const rms = Math.sqrt(sum / bufferLength);
+        const audioLevel = Math.round((rms / 255) * 100);
+
+        // Log audio level every 3 seconds for debugging
+        const now = Date.now();
+        if (now - lastLogTime > 3000) {
+          console.log(`🎵 Audio level: ${audioLevel}%`);
+          if (audioLevel < 3) {
+            console.warn('⚠️ Very low audio level - check microphone or speak louder');
+          } else if (audioLevel > 80) {
+            console.warn('⚠️ Audio level very high - may cause distortion');
+          }
+          lastLogTime = now;
+        }
+
+        requestAnimationFrame(checkAudioLevel);
+      };
+
+      checkAudioLevel();
+    } catch (error) {
+      console.warn('🎤 Could not setup audio level monitoring:', error);
+    }
+  }
+
+  // Test microphone and audio setup
+  async testMicrophone() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log('✅ Microphone access granted');
+      
+      // Test audio levels for 3 seconds
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const analyser = audioContext.createAnalyser();
+      const microphone = audioContext.createMediaStreamSource(stream);
+      microphone.connect(analyser);
+      
+      analyser.fftSize = 512;
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      
+      let maxLevel = 0;
+      const testDuration = 3000;
+      const startTime = Date.now();
+      
+      return new Promise((resolve) => {
+        const checkLevel = () => {
+          analyser.getByteFrequencyData(dataArray);
+          let sum = 0;
+          for (let i = 0; i < bufferLength; i++) {
+            sum += dataArray[i] * dataArray[i];
+          }
+          const rms = Math.sqrt(sum / bufferLength);
+          const level = Math.round((rms / 255) * 100);
+          maxLevel = Math.max(maxLevel, level);
+          
+          if (Date.now() - startTime < testDuration) {
+            requestAnimationFrame(checkLevel);
+          } else {
+            stream.getTracks().forEach(track => track.stop());
+            console.log(`🎤 Microphone test complete. Max level: ${maxLevel}%`);
+            resolve({ success: true, maxLevel });
+          }
+        };
+        checkLevel();
+      });
+    } catch (error) {
+      console.error('❌ Microphone test failed:', error);
+      return { success: false, error: error.message };
+    }
   }
 }
 

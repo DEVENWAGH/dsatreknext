@@ -36,6 +36,18 @@ export const useDeepgramVoiceInterview = interviewConfig => {
         console.log('📝 Message role:', message.role, 'Content:', message.content?.substring(0, 50) + '...');
         
         setConversation(prev => {
+          // Check for duplicates to prevent double updates
+          const isDuplicate = prev.some(msg => 
+            msg.content === message.content && 
+            msg.role === message.role && 
+            Math.abs(new Date(msg.timestamp).getTime() - new Date(message.timestamp).getTime()) < 1000
+          );
+          
+          if (isDuplicate) {
+            console.log('🚫 Duplicate message detected, skipping');
+            return prev;
+          }
+          
           const newMessage = {
             id: Date.now() + Math.random(),
             role: message.role,
@@ -184,7 +196,48 @@ export const useDeepgramVoiceInterview = interviewConfig => {
   const testMicrophone = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      stream.getTracks().forEach(track => track.stop());
+      
+      // Test audio levels for 2 seconds
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const analyser = audioContext.createAnalyser();
+      const microphone = audioContext.createMediaStreamSource(stream);
+      microphone.connect(analyser);
+      
+      analyser.fftSize = 512;
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      
+      let maxLevel = 0;
+      const testDuration = 2000;
+      const startTime = Date.now();
+      
+      const result = await new Promise((resolve) => {
+        const checkLevel = () => {
+          analyser.getByteFrequencyData(dataArray);
+          let sum = 0;
+          for (let i = 0; i < bufferLength; i++) {
+            sum += dataArray[i] * dataArray[i];
+          }
+          const rms = Math.sqrt(sum / bufferLength);
+          const level = Math.round((rms / 255) * 100);
+          maxLevel = Math.max(maxLevel, level);
+          
+          if (Date.now() - startTime < testDuration) {
+            requestAnimationFrame(checkLevel);
+          } else {
+            stream.getTracks().forEach(track => track.stop());
+            console.log(`🎤 Microphone test complete. Max level: ${maxLevel}%`);
+            resolve({ success: true, maxLevel });
+          }
+        };
+        checkLevel();
+      });
+      
+      if (result.maxLevel < 3) {
+        setError('Microphone level very low. Please check your microphone or speak louder.');
+        return false;
+      }
+      
       return true;
     } catch (error) {
       console.error('Microphone test failed:', error);

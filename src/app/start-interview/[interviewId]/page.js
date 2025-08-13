@@ -489,6 +489,42 @@ export default function StartInterviewPage() {
                         ? '🎯 Start New Interview'
                         : '🎙️ Start Interview'}
                     </Button>
+                    
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={async () => {
+                          toast.info('Testing microphone...');
+                          const result = await testMicrophone();
+                          if (result) {
+                            toast.success('✅ Microphone working!');
+                          } else {
+                            toast.error('❌ Microphone test failed');
+                          }
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                      >
+                        🎤 Test Mic
+                      </Button>
+                      <Button
+                        onClick={async () => {
+                          toast.info('Testing configuration...');
+                          const result = await testConfiguration();
+                          if (result) {
+                            toast.success('✅ Configuration OK!');
+                          } else {
+                            toast.error('❌ Configuration failed');
+                          }
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                      >
+                        🔧 Test Config
+                      </Button>
+                    </div>
+                    
                     {feedbackSaved && (
                       <Button
                         onClick={() =>
