@@ -721,7 +721,7 @@ export default function InterviewDetailsPage() {
                 These questions will be covered during your interview
                 {interview.status === 'completed' && (
                   <span className="block mt-1 text-blue-600 dark:text-blue-400 font-medium">
-                    💡 Clicking "Retry Same Interview" will use the exact same
+                    💡 Clicking &quote;Retry Same Interview&quot; will use the exact same
                     questions - no new API calls needed!
                   </span>
                 )}

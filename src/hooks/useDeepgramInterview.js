@@ -7,41 +7,64 @@ export const useDeepgramInterview = (interviewConfig) => {
   const [conversation, setConversation] = useState([]);
   const [currentAudio, setCurrentAudio] = useState(null);
   const [error, setError] = useState(null);
-  const [interviewStatus, setInterviewStatus] = useState('idle'); // idle, connecting, active, ended
+  const [interviewStatus, setInterviewStatus] = useState('idle');
   
   const voiceAgentRef = useRef(null);
-  const mediaRecorderRef = useRef(null);
-  const streamRef = useRef(null);
 
   // Initialize Deepgram Voice Agent
   const initializeVoiceAgent = useCallback(async () => {
     try {
-      // Get Deepgram API key from secure endpoint
-      const keyResponse = await fetch('/api/voice-agent/key');
-      const keyData = await keyResponse.json();
+      // Get API keys from environment or secure endpoint
+      const deepgramApiKey = process.env.NEXT_PUBLIC_DEEPGRAM_API_KEY;
+      const geminiApiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
       
-      if (!keyData.success || !keyData.key) {
-        throw new Error('Failed to get Deepgram API key');
+      if (!deepgramApiKey || !geminiApiKey) {
+        throw new Error('API keys not configured');
       }
 
       setInterviewStatus('connecting');
       setError(null);
 
-      voiceAgentRef.current = new DeepgramVoiceAgent(keyData.key);
+      voiceAgentRef.current = new DeepgramVoiceAgent({
+        deepgramApiKey,
+        geminiApiKey
+      });
 
       // Set up event handlers
-      voiceAgentRef.current.setOnConversationUpdate((data) => {
+      voiceAgentRef.current.setOnConversationUpdate((message) => {
         setConversation(prev => [...prev, {
           id: Date.now() + Math.random(),
-          role: data.role,
-          content: data.content,
-          timestamp: new Date().toISOString()
+          role: message.role,
+          content: message.content,
+          timestamp: message.timestamp
         }]);
       });
 
-      voiceAgentRef.current.setOnAudioReceived((audioBuffer) => {
-        // Handle received audio if needed
-        setCurrentAudio(audioBuffer);
+      voiceAgentRef.current.setOnStatusChange((status) => {
+        console.log('Status changed to:', status);
+        switch (status) {
+          case 'initialized':
+            setIsConnected(true);
+            break;
+          case 'listening':
+            setIsRecording(true);
+            break;
+          case 'processing':
+          case 'speaking':
+            setIsRecording(false);
+            break;
+          case 'ready':
+            setIsRecording(false);
+            break;
+          case 'active':
+            setInterviewStatus('active');
+            break;
+          case 'ended':
+            setInterviewStatus('ended');
+            setIsConnected(false);
+            setIsRecording(false);
+            break;
+        }
       });
 
       voiceAgentRef.current.setOnError((error) => {
@@ -50,11 +73,11 @@ export const useDeepgramInterview = (interviewConfig) => {
         setInterviewStatus('error');
       });
 
-      // Start the voice interview
-      await voiceAgentRef.current.startVoiceInterview(interviewConfig);
-      
-      setIsConnected(true);
-      setInterviewStatus('active');
+      // Initialize the voice agent
+      const initialized = await voiceAgentRef.current.initialize(interviewConfig);
+      if (!initialized) {
+        throw new Error('Failed to initialize voice agent');
+      }
       
       return true;
     } catch (error) {
@@ -65,75 +88,22 @@ export const useDeepgramInterview = (interviewConfig) => {
     }
   }, [interviewConfig]);
 
-  // Start audio recording from microphone
-  const startRecording = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: {
-          sampleRate: 24000,
-          channelCount: 1,
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
-        } 
-      });
-
-      streamRef.current = stream;
-
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
-      });
-
-      mediaRecorderRef.current = mediaRecorder;
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0 && voiceAgentRef.current && isConnected) {
-          // Convert blob to buffer and send to Deepgram
-          event.data.arrayBuffer().then(buffer => {
-            const audioData = new Uint8Array(buffer);
-            voiceAgentRef.current.sendAudioChunk(audioData);
-          });
-        }
-      };
-
-      mediaRecorder.start(100); // Collect data every 100ms
-      setIsRecording(true);
-      
-    } catch (error) {
-      console.error('Failed to start recording:', error);
-      setError('Failed to access microphone');
-    }
-  }, [isConnected]);
-
-  // Stop audio recording
-  const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-    }
-
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-  }, [isRecording]);
+  // The DeepgramVoiceAgent handles its own recording, so we don't need separate recording methods
 
   // Start the interview
   const startInterview = useCallback(async () => {
     const success = await initializeVoiceAgent();
-    if (success) {
-      await startRecording();
+    if (success && voiceAgentRef.current) {
+      const started = await voiceAgentRef.current.startInterview();
+      return started;
     }
     return success;
-  }, [initializeVoiceAgent, startRecording]);
+  }, [initializeVoiceAgent]);
 
   // End the interview
   const endInterview = useCallback(async () => {
     try {
       setInterviewStatus('ending');
-      
-      // Stop recording
-      stopRecording();
 
       // End voice agent interview
       let interviewData = null;
@@ -157,7 +127,7 @@ export const useDeepgramInterview = (interviewConfig) => {
       setError('Failed to end interview properly');
       return { success: false, error: error.message };
     }
-  }, [conversation, stopRecording]);
+  }, [conversation]);
 
   // Get interview transcript
   const getTranscript = useCallback(() => {
@@ -190,14 +160,12 @@ export const useDeepgramInterview = (interviewConfig) => {
         voiceAgentRef.current.endInterview()
           .catch(error => {
             console.error('Failed to end interview cleanly:', error);
-            // Ensure we still reset the state even if ending the interview fails
             setIsConnected(false);
             setInterviewStatus('ended');
           });
       }
-      stopRecording();
     };
-  }, [stopRecording]);
+  }, []);
 
   return {
     // State
@@ -211,8 +179,6 @@ export const useDeepgramInterview = (interviewConfig) => {
     // Actions
     startInterview,
     endInterview,
-    startRecording,
-    stopRecording,
     
     // Data
     getTranscript,

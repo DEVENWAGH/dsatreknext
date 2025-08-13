@@ -23,6 +23,8 @@ import { cn } from '@/lib/utils';
 
 import { useDeepgramVoiceInterview } from '@/hooks/useDeepgramVoiceInterview';
 
+
+
 export default function StartInterviewPage() {
   const { interviewId } = useParams();
   const router = useRouter();
@@ -106,11 +108,14 @@ export default function StartInterviewPage() {
     clearError,
     testMicrophone,
     testConfiguration,
+    voiceAgent,
   } = useDeepgramVoiceInterview(interviewConfig);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
+    console.log('💬 Conversation updated in UI:', conversation.length, 'messages');
     if (conversation.length > 0) {
+      console.log('💬 Latest message in UI:', conversation[conversation.length - 1]);
       const chatEnd = document.getElementById('chat-end');
       if (chatEnd) {
         chatEnd.scrollIntoView({ behavior: 'smooth' });
@@ -551,9 +556,25 @@ export default function StartInterviewPage() {
                       <MessageSquare className="w-4 h-4" />
                       Interview Chat
                     </h4>
-                    <span className="text-xs text-muted-foreground">
-                      {conversation.length} messages
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">
+                        {conversation.length} messages
+                      </span>
+                      {process.env.NODE_ENV === 'development' && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            console.log('🔍 Debug - Current conversation:', conversation);
+                            console.log('🔍 Debug - Voice agent:', voiceAgent);
+                            console.log('🔍 Debug - Status:', interviewStatus);
+                          }}
+                          className="text-xs px-2 py-1 h-6"
+                        >
+                          Debug
+                        </Button>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex-1 bg-muted/20 rounded-lg border overflow-hidden flex flex-col">

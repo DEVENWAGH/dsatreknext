@@ -30,17 +30,29 @@ export const useDeepgramVoiceInterview = interviewConfig => {
         geminiApiKey: configData.geminiApiKey,
       });
 
+      // Set up conversation updates - this is the key fix!
       voiceAgentRef.current.setOnConversationUpdate(message => {
-        setConversation(prev => [
-          ...prev,
-          {
+        console.log('📝 Conversation update received:', message);
+        console.log('📝 Message role:', message.role, 'Content:', message.content?.substring(0, 50) + '...');
+        
+        setConversation(prev => {
+          const newMessage = {
             id: Date.now() + Math.random(),
-            ...message,
-          },
-        ]);
+            role: message.role,
+            content: message.content,
+            timestamp: message.timestamp || new Date().toISOString(),
+          };
+          
+          const newConversation = [...prev, newMessage];
+          console.log('📝 Updated conversation:', newConversation.length, 'messages');
+          console.log('📝 Latest message:', newMessage);
+          
+          return newConversation;
+        });
       });
 
       voiceAgentRef.current.setOnStatusChange(newStatus => {
+        console.log('🔄 Status change:', newStatus);
         setStatus(newStatus);
 
         switch (newStatus) {
@@ -57,7 +69,11 @@ export const useDeepgramVoiceInterview = interviewConfig => {
             setIsSpeaking(false);
             break;
           case 'ready':
+            setIsListening(false);
+            setIsSpeaking(false);
+            break;
           case 'active':
+            setIsConnected(true);
             setIsListening(false);
             setIsSpeaking(false);
             break;
@@ -183,6 +199,7 @@ export const useDeepgramVoiceInterview = interviewConfig => {
     try {
       const response = await fetch('/api/voice-agent/config');
       const configData = await response.json();
+      console.log('🔧 Configuration test result:', configData);
       return configData.success;
     } catch (error) {
       console.error('Configuration test failed:', error);
@@ -221,5 +238,7 @@ export const useDeepgramVoiceInterview = interviewConfig => {
     clearError: () => setError(null),
     testMicrophone,
     testConfiguration,
+    // Expose voice agent for debugging
+    voiceAgent: voiceAgentRef.current,
   };
 };

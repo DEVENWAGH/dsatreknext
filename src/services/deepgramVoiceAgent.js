@@ -203,7 +203,7 @@ class DeepgramVoiceAgent {
                   this.processUserSpeech(transcript);
                   this.lastInterimTranscript = null;
                 }
-              }, 2000); // 2 second timeout
+              }, 1500); // Reduced timeout to 1.5 seconds
             }
 
             if (data.is_final && transcript.trim() && transcript.length > 1) {
@@ -215,6 +215,7 @@ class DeepgramVoiceAgent {
                 this.interimTimeout = null;
               }
 
+              console.log('🚀 About to process final user speech:', transcript);
               this.processUserSpeech(transcript);
             }
           }
@@ -496,8 +497,12 @@ All main questions have been covered. Ask a relevant follow-up question about ${
       total: this.conversation.length,
     });
 
+    // Always trigger the callback for UI updates
     if (this.onConversationUpdate) {
+      console.log('🔄 Triggering conversation update callback for:', role);
       this.onConversationUpdate(message);
+    } else {
+      console.warn('⚠️ No conversation update callback set!');
     }
   }
 
