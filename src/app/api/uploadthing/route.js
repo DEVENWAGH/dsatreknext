@@ -1,8 +1,5 @@
 import { NextResponse } from 'next/server';
 
-import { createRouteHandler } from 'uploadthing/next';
-import { UTFiles } from './core';
-
 export async function POST(request) {
   try {
     const body = await request.json();
@@ -17,7 +14,7 @@ export async function POST(request) {
 
           // Upload to our S3 endpoint
           const uploadResponse = await fetch(
-            'http://localhost:3000/api/upload',
+            '/api/upload',
             {
               method: 'POST',
               body: formData,

@@ -31,11 +31,7 @@ export const getRefererUrl = () => {
  * @returns {string} The base API URL
  */
 export const getApiBaseUrl = () => {
-  const baseUrl = isDevelopment()
-    ? process.env.NEXT_PUBLIC_SITE_URL
-    : process.env.NEXT_PUBLIC_PRODUCTION_URL;
-
-  return `${baseUrl}${process.env.NEXT_PUBLIC_API_BASE_URL || '/api'}`;
+  return '/api';
 };
 
 /**
