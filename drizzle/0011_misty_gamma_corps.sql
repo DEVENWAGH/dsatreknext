@@ -1,1 +1,0 @@
-ALTER TABLE "submissions" DROP COLUMN "language_id";

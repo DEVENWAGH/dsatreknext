@@ -1,1 +1,0 @@
-ALTER TABLE "submissions" ADD COLUMN "language_id" integer;

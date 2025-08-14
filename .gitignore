@@ -38,4 +38,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Old VM deployment files (no longer needed for serverless)
+Dockerfile
+docker-compose.yml
+nginx/
+*.sh
+*.sql
+drizzle/
+
 DSA

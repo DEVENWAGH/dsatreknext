@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-export const runtime = 'nodejs';
+import { createRouteHandler } from 'uploadthing/next';
+import { UTFiles } from './core';
 
 export async function POST(request) {
   try {

@@ -1,11 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
-  turbopack: {
-    resolveAlias: {
-      '@vapi-ai/web': '@vapi-ai/web',
-    },
-  },
   images: {
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
@@ -50,6 +44,12 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'assets.leetcode.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
         port: '',
         pathname: '/**',
       },

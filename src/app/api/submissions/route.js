@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 
-export const runtime = 'nodejs';
 import { db } from '@/lib/db';
 import { Submission, Problem, User } from '@/lib/schema';
 import { eq, desc, and } from 'drizzle-orm';

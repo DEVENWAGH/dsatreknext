@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 
-export const runtime = 'nodejs';
 import { db } from '@/lib/db';
 import { User, PasswordReset } from '@/lib/schema';
 import { eq, and, gt } from 'drizzle-orm';

@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server';
-
-export const runtime = 'nodejs';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { Problem } from '@/lib/schema';
@@ -102,7 +100,8 @@ export async function PUT(request, { params }) {
         starterCode: data.starterCode ?? currentProblem[0].starterCode,
         topCode: data.topCode ?? currentProblem[0].topCode,
         bottomCode: data.bottomCode ?? currentProblem[0].bottomCode,
-        solution: data.referenceSolution ?? data.solution ?? currentProblem[0].solution,
+        solution:
+          data.referenceSolution ?? data.solution ?? currentProblem[0].solution,
         testCases: data.testCases ?? currentProblem[0].testCases,
         hints: data.hints ?? currentProblem[0].hints,
         isPremium: data.isPremium ?? currentProblem[0].isPremium,

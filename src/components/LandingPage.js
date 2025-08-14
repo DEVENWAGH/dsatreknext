@@ -174,12 +174,6 @@ const LandingPage = () => {
       width: 110,
       height: 28,
     },
-    {
-      name: 'NVIDIA',
-      src: 'https://dsatrek.s3.ap-south-1.amazonaws.com/logos/nvidia-logo-svgrepo-com.svg',
-      width: 120,
-      height: 62,
-    },
   ];
 
   return (

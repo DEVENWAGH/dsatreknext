@@ -1,0 +1,49 @@
+# Dependencies
+node_modules
+
+# Build files
+.next/standalone
+.next/cache
+
+# Docker files
+Dockerfile
+docker-compose.yml
+*.dockerfile
+
+# Deployment scripts
+deploy.sh
+cleanup.sh
+simple-deploy.sh
+zero-downtime.sh
+
+# VM/Server specific configs
+nginx/
+
+# Database dumps and migration files
+*.sql
+drizzle/
+
+# Development files
+.env.local
+.env.development
+.env.production
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary files
+tmp/
+temp/

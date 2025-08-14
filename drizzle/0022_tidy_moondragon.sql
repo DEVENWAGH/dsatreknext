@@ -1,1 +1,0 @@
-ALTER TABLE "users" ALTER COLUMN "is_verified" SET NOT NULL;

@@ -1,1 +1,0 @@
-ALTER TABLE "community_messages" ADD COLUMN "downvotes" integer DEFAULT 0;

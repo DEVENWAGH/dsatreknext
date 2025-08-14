@@ -50,7 +50,8 @@ class RoomCleanupService {
 
 export const roomCleanupService = new RoomCleanupService();
 
-// Auto-start cleanup service in browser
-if (typeof window !== 'undefined') {
+// Disable auto-start in serverless environments (Vercel)
+// Background services should use cron jobs instead
+if (typeof window !== 'undefined' && !process.env.VERCEL) {
   roomCleanupService.start();
 }

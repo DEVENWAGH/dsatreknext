@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 
-export const runtime = 'nodejs';
-import { uploadToS3 } from '@/lib/aws/s3';
+import { uploadToS3 } from '@/lib/cloudinary';
 import { auth } from '@/auth';
 
 export async function POST(request) {

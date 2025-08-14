@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
 
-export const runtime = 'nodejs';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { User } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
-import { uploadToS3 } from '@/lib/aws/s3';
+import { uploadToS3 } from '@/lib/cloudinary';
 
 export async function POST(request) {
   try {
@@ -27,7 +26,7 @@ export async function POST(request) {
       );
     }
 
-    // Upload to S3 using utility function
+    // Upload to Cloudinary using utility function
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     const fileName = `${session.user.id}-${Date.now()}.${file.name.split('.').pop()}`;

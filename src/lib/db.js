@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import * as schema from './schema';
+import * as schema from './schema/index.js';
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -14,6 +14,9 @@ const client = postgres(connectionString, {
   ssl: 'require',
   prepare: false,
   onnotice: () => {},
+  idle_timeout: 20,
+  max_lifetime: 60 * 30, // 30 minutes
+  connect_timeout: 10,
 });
 
 const db = drizzle(client, { schema });
