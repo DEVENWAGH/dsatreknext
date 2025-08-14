@@ -13,13 +13,10 @@ export async function POST(request) {
           formData.append('file', blob, file.name);
 
           // Upload to our S3 endpoint
-          const uploadResponse = await fetch(
-            '/api/upload',
-            {
-              method: 'POST',
-              body: formData,
-            }
-          );
+          const uploadResponse = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+          });
 
           const uploadResult = await uploadResponse.json();
 
