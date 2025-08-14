@@ -37,9 +37,9 @@ export async function uploadToCloudinary(
       overwrite: false,
     });
 
-    return { 
-      url: result.secure_url, 
-      key: result.public_id 
+    return {
+      url: result.secure_url,
+      key: result.public_id,
     };
   } catch (error) {
     console.error('Cloudinary upload error:', error);
@@ -78,11 +78,13 @@ export async function getPresignedUploadUrl(key, expiresIn = 3600) {
     // For Cloudinary, we can return the direct upload URL
     // The actual signature should be generated on the client side for security
     const uploadUrl = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/upload`;
-    
+
     return uploadUrl;
   } catch (error) {
     console.error('Cloudinary upload URL error:', error);
-    throw new Error(`Failed to generate Cloudinary upload URL: ${error.message}`);
+    throw new Error(
+      `Failed to generate Cloudinary upload URL: ${error.message}`
+    );
   }
 }
 
