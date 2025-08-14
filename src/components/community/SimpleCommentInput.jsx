@@ -25,11 +25,11 @@ const SimpleCommentInput = ({ postId, onCommentAdded }) => {
       });
 
       console.log('Response status:', response.status);
-      
+
       if (response.ok) {
         const result = await response.json();
         console.log('Comment created:', result);
-        
+
         onCommentAdded?.(result.data);
         setComment('');
         toast.success('Comment added!');
@@ -51,8 +51,8 @@ const SimpleCommentInput = ({ postId, onCommentAdded }) => {
       <Input
         placeholder="Add a comment..."
         value={comment}
-        onChange={(e) => setComment(e.target.value)}
-        onKeyDown={(e) => {
+        onChange={e => setComment(e.target.value)}
+        onKeyDown={e => {
           if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             handleSubmit();

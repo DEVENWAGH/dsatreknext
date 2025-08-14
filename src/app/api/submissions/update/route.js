@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 
-
 export async function PATCH() {
   try {
     return NextResponse.json(

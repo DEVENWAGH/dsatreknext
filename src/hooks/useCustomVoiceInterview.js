@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import CustomVoiceAgent from '../services/customVoiceAgent';
 
-export const useCustomVoiceInterview = (interviewConfig) => {
+export const useCustomVoiceInterview = interviewConfig => {
   const [isConnected, setIsConnected] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [conversation, setConversation] = useState([]);
   const [error, setError] = useState(null);
   const [status, setStatus] = useState('idle'); // idle, initializing, active, speaking, listening, ending, ended
-  
+
   const voiceAgentRef = useRef(null);
 
   // Initialize voice agent
@@ -20,7 +20,7 @@ export const useCustomVoiceInterview = (interviewConfig) => {
       // Get API keys from environment
       const response = await fetch('/api/voice-agent/config');
       const configData = await response.json();
-      
+
       if (!configData.success) {
         throw new Error('Failed to get voice agent configuration');
       }
@@ -28,20 +28,23 @@ export const useCustomVoiceInterview = (interviewConfig) => {
       // Create voice agent instance
       voiceAgentRef.current = new CustomVoiceAgent({
         deepgramApiKey: configData.deepgramApiKey,
-        geminiApiKey: configData.geminiApiKey
+        geminiApiKey: configData.geminiApiKey,
       });
 
       // Set up event handlers
-      voiceAgentRef.current.setOnConversationUpdate((message) => {
-        setConversation(prev => [...prev, {
-          id: Date.now() + Math.random(),
-          ...message
-        }]);
+      voiceAgentRef.current.setOnConversationUpdate(message => {
+        setConversation(prev => [
+          ...prev,
+          {
+            id: Date.now() + Math.random(),
+            ...message,
+          },
+        ]);
       });
 
-      voiceAgentRef.current.setOnStatusChange((newStatus) => {
+      voiceAgentRef.current.setOnStatusChange(newStatus => {
         setStatus(newStatus);
-        
+
         // Update component states based on voice agent status
         switch (newStatus) {
           case 'listening':
@@ -65,7 +68,7 @@ export const useCustomVoiceInterview = (interviewConfig) => {
         }
       });
 
-      voiceAgentRef.current.setOnError((errorData) => {
+      voiceAgentRef.current.setOnError(errorData => {
         console.error('Voice Agent Error:', errorData);
         setError(errorData.message || 'Voice agent error occurred');
         setStatus('error');
@@ -73,7 +76,7 @@ export const useCustomVoiceInterview = (interviewConfig) => {
 
       // Initialize the voice agent
       const success = await voiceAgentRef.current.initialize(interviewConfig);
-      
+
       if (success) {
         setIsConnected(true);
         setStatus('initialized');
@@ -108,18 +111,19 @@ export const useCustomVoiceInterview = (interviewConfig) => {
 
   // End the interview
   const endInterview = useCallback(async () => {
-    if (!voiceAgentRef.current) return { success: false, error: 'No active interview' };
+    if (!voiceAgentRef.current)
+      return { success: false, error: 'No active interview' };
 
     try {
       setStatus('ending');
       const result = await voiceAgentRef.current.endInterview();
       voiceAgentRef.current = null;
-      
+
       return {
         success: true,
         transcript: result.transcript,
         duration: result.duration,
-        stats: result
+        stats: result,
       };
     } catch (error) {
       console.error('Failed to end interview:', error);
@@ -153,16 +157,19 @@ export const useCustomVoiceInterview = (interviewConfig) => {
   }, [isListening]);
 
   // Speak text manually
-  const speak = useCallback(async (text) => {
-    if (voiceAgentRef.current && isConnected && !isSpeaking) {
-      try {
-        await voiceAgentRef.current.speak(text);
-      } catch (error) {
-        console.error('Failed to speak:', error);
-        setError('Failed to generate speech');
+  const speak = useCallback(
+    async text => {
+      if (voiceAgentRef.current && isConnected && !isSpeaking) {
+        try {
+          await voiceAgentRef.current.speak(text);
+        } catch (error) {
+          console.error('Failed to speak:', error);
+          setError('Failed to generate speech');
+        }
       }
-    }
-  }, [isConnected, isSpeaking]);
+    },
+    [isConnected, isSpeaking]
+  );
 
   // Get conversation transcript
   const getTranscript = useCallback(() => {
@@ -172,7 +179,7 @@ export const useCustomVoiceInterview = (interviewConfig) => {
     return conversation.map(msg => ({
       speaker: msg.role === 'user' ? 'Candidate' : 'Interviewer',
       content: msg.content,
-      timestamp: msg.timestamp
+      timestamp: msg.timestamp,
     }));
   }, [conversation]);
 
@@ -181,17 +188,23 @@ export const useCustomVoiceInterview = (interviewConfig) => {
     if (voiceAgentRef.current) {
       return voiceAgentRef.current.getStats();
     }
-    
+
     const userMessages = conversation.filter(msg => msg.role === 'user');
-    const assistantMessages = conversation.filter(msg => msg.role === 'assistant');
-    
+    const assistantMessages = conversation.filter(
+      msg => msg.role === 'assistant'
+    );
+
     return {
       totalMessages: conversation.length,
       candidateResponses: userMessages.length,
       interviewerQuestions: assistantMessages.length,
-      averageResponseLength: userMessages.length > 0 
-        ? Math.round(userMessages.reduce((acc, msg) => acc + msg.content.length, 0) / userMessages.length)
-        : 0
+      averageResponseLength:
+        userMessages.length > 0
+          ? Math.round(
+              userMessages.reduce((acc, msg) => acc + msg.content.length, 0) /
+                userMessages.length
+            )
+          : 0,
     };
   }, [conversation]);
 
@@ -203,7 +216,9 @@ export const useCustomVoiceInterview = (interviewConfig) => {
       return true;
     } catch (error) {
       console.error('Microphone test failed:', error);
-      setError('Microphone access denied. Please allow microphone access and try again.');
+      setError(
+        'Microphone access denied. Please allow microphone access and try again.'
+      );
       return false;
     }
   }, []);
@@ -224,7 +239,8 @@ export const useCustomVoiceInterview = (interviewConfig) => {
   useEffect(() => {
     return () => {
       if (voiceAgentRef.current) {
-        voiceAgentRef.current.endInterview()
+        voiceAgentRef.current
+          .endInterview()
           .catch(error => {
             console.error('Failed to end interview cleanly:', error);
           })
@@ -245,21 +261,21 @@ export const useCustomVoiceInterview = (interviewConfig) => {
     conversation,
     error,
     status, // More detailed status than interviewStatus
-    
+
     // Actions
     startInterview,
     endInterview,
     startListening,
     stopListening,
     speak,
-    
+
     // Data
     getTranscript,
     getInterviewStats,
-    
+
     // Utils
     clearError: () => setError(null),
     testMicrophone,
-    testConfiguration
+    testConfiguration,
   };
 };

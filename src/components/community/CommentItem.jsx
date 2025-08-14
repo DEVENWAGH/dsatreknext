@@ -6,7 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, Edit, Trash2, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -14,12 +19,16 @@ const CommentItem = ({ comment, onCommentUpdated, onCommentDeleted }) => {
   const { data: session } = useSession();
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(
-    typeof comment.content === 'string' 
-      ? comment.content 
-      : Array.isArray(comment.content) 
-        ? comment.content.filter(block => block.type === 'p').map(block => 
-            block.children?.map(child => child?.text || '').join('') || ''
-          ).join('\n')
+    typeof comment.content === 'string'
+      ? comment.content
+      : Array.isArray(comment.content)
+        ? comment.content
+            .filter(block => block.type === 'p')
+            .map(
+              block =>
+                block.children?.map(child => child?.text || '').join('') || ''
+            )
+            .join('\n')
         : ''
   );
   const [isLoading, setIsLoading] = useState(false);
@@ -28,7 +37,7 @@ const CommentItem = ({ comment, onCommentUpdated, onCommentDeleted }) => {
 
   const handleEdit = async () => {
     if (!editContent.trim()) return;
-    
+
     setIsLoading(true);
     try {
       const response = await fetch(`/api/community/comments/${comment.id}`, {
@@ -55,7 +64,7 @@ const CommentItem = ({ comment, onCommentUpdated, onCommentDeleted }) => {
 
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this comment?')) return;
-    
+
     setIsLoading(true);
     try {
       const response = await fetch(`/api/community/comments/${comment.id}`, {
@@ -76,11 +85,11 @@ const CommentItem = ({ comment, onCommentUpdated, onCommentDeleted }) => {
     }
   };
 
-  const renderContent = (content) => {
+  const renderContent = content => {
     if (!content) return 'Content not available';
-    
+
     if (typeof content === 'string') return content;
-    
+
     if (Array.isArray(content)) {
       return content.map((block, index) => {
         if (block?.type === 'p') {
@@ -117,12 +126,14 @@ const CommentItem = ({ comment, onCommentUpdated, onCommentDeleted }) => {
         return null;
       });
     }
-    
+
     return 'Content not available';
   };
 
   return (
-    <div className={`bg-gray-50 dark:bg-gray-800 rounded-lg p-4 ${comment.isOptimistic ? 'opacity-80 border-l-2 border-amber-500' : ''}`}>
+    <div
+      className={`bg-gray-50 dark:bg-gray-800 rounded-lg p-4 ${comment.isOptimistic ? 'opacity-80 border-l-2 border-amber-500' : ''}`}
+    >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <Avatar className="w-6 h-6">
@@ -139,7 +150,7 @@ const CommentItem = ({ comment, onCommentUpdated, onCommentDeleted }) => {
             )}
           </span>
         </div>
-        
+
         {isOwner && !comment.isOptimistic && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -148,11 +159,18 @@ const CommentItem = ({ comment, onCommentUpdated, onCommentDeleted }) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setIsEditing(true)} disabled={isLoading}>
+              <DropdownMenuItem
+                onClick={() => setIsEditing(true)}
+                disabled={isLoading}
+              >
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleDelete} disabled={isLoading} className="text-red-600">
+              <DropdownMenuItem
+                onClick={handleDelete}
+                disabled={isLoading}
+                className="text-red-600"
+              >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete
               </DropdownMenuItem>
@@ -160,33 +178,48 @@ const CommentItem = ({ comment, onCommentUpdated, onCommentDeleted }) => {
           </DropdownMenu>
         )}
       </div>
-      
+
       {isEditing ? (
         <div className="space-y-2">
           <Textarea
             value={editContent}
-            onChange={(e) => setEditContent(e.target.value)}
-            className="text-sm min-h-[60px]" 
+            onChange={e => setEditContent(e.target.value)}
+            className="text-sm min-h-[60px]"
             disabled={isLoading}
             placeholder="Edit your comment..."
           />
           <div className="flex gap-2">
-            <Button size="sm" onClick={handleEdit} disabled={isLoading || !editContent.trim()}>
+            <Button
+              size="sm"
+              onClick={handleEdit}
+              disabled={isLoading || !editContent.trim()}
+            >
               <Check className="h-3 w-3 mr-1" />
               Save
             </Button>
-            <Button size="sm" variant="outline" onClick={() => {
-              setIsEditing(false);
-              setEditContent(
-                typeof comment.content === 'string' 
-                  ? comment.content 
-                  : Array.isArray(comment.content) 
-                    ? comment.content.filter(block => block.type === 'p').map(block => 
-                        block.children?.map(child => child?.text || '').join('') || ''
-                      ).join('\n')
-                    : ''
-              );
-            }} disabled={isLoading}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setIsEditing(false);
+                setEditContent(
+                  typeof comment.content === 'string'
+                    ? comment.content
+                    : Array.isArray(comment.content)
+                      ? comment.content
+                          .filter(block => block.type === 'p')
+                          .map(
+                            block =>
+                              block.children
+                                ?.map(child => child?.text || '')
+                                .join('') || ''
+                          )
+                          .join('\n')
+                      : ''
+                );
+              }}
+              disabled={isLoading}
+            >
               <X className="h-3 w-3 mr-1" />
               Cancel
             </Button>

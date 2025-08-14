@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 
-
 // This endpoint will be called by Vercel Cron Jobs
 export async function GET(request) {
   try {

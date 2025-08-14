@@ -23,9 +23,13 @@ async function seedProblems() {
     console.log('🌱 Starting problems 9, 19, 20 seeding process...\n');
 
     // Read the JSON files
-    const problems9_19_20 = JSON.parse(fs.readFileSync(path.join(__dirname, 'problems-9-19-20.json'), 'utf8'));
-    const problem20 = JSON.parse(fs.readFileSync(path.join(__dirname, 'problem-20.json'), 'utf8'));
-    
+    const problems9_19_20 = JSON.parse(
+      fs.readFileSync(path.join(__dirname, 'problems-9-19-20.json'), 'utf8')
+    );
+    const problem20 = JSON.parse(
+      fs.readFileSync(path.join(__dirname, 'problem-20.json'), 'utf8')
+    );
+
     // Combine all problems
     const allProblems = [...problems9_19_20, problem20];
 

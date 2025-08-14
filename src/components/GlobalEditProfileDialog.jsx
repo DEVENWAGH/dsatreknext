@@ -265,7 +265,9 @@ const GlobalEditProfileDialog = () => {
               onKeyDown={e => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
-                  const nextButton = document.querySelector('[data-dialog-stack-next]');
+                  const nextButton = document.querySelector(
+                    '[data-dialog-stack-next]'
+                  );
                   if (nextButton) nextButton.click();
                 }
               }}
@@ -523,7 +525,9 @@ const GlobalEditProfileDialog = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        const newSkills = formData.skills.filter((_, i) => i !== index);
+                        const newSkills = formData.skills.filter(
+                          (_, i) => i !== index
+                        );
                         handleInputChange('skills', newSkills);
                       }}
                       className="ml-1 hover:text-red-600"
@@ -570,7 +574,9 @@ const GlobalEditProfileDialog = () => {
                 {section.description}
               </p>
             </DialogStackHeader>
-            <div className="h-[400px] py-4 overflow-hidden">{section.content}</div>
+            <div className="h-[400px] py-4 overflow-hidden">
+              {section.content}
+            </div>
 
             <DialogStackFooter>
               {index > 0 && (

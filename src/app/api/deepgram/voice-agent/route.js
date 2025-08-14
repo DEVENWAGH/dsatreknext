@@ -4,7 +4,7 @@ import DeepgramVoiceAgent from '@/services/deepgramVoiceAgent';
 export async function POST(request) {
   try {
     const { action, interviewConfig, audioData } = await request.json();
-    
+
     if (!process.env.DEEPGRAM_API_KEY) {
       return NextResponse.json(
         { error: 'Deepgram API key not configured' },
@@ -15,18 +15,15 @@ export async function POST(request) {
     switch (action) {
       case 'startInterview':
         return await handleStartInterview(interviewConfig);
-      
+
       case 'processAudio':
         return await handleProcessAudio(audioData);
-      
+
       case 'endInterview':
         return await handleEndInterview();
-      
+
       default:
-        return NextResponse.json(
-          { error: 'Invalid action' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
   } catch (error) {
     console.error('Deepgram Voice Agent API Error:', error);
@@ -40,7 +37,11 @@ export async function POST(request) {
 async function handleStartInterview(interviewConfig) {
   try {
     // Validate interview config
-    if (!interviewConfig || !interviewConfig.position || !interviewConfig.interviewType) {
+    if (
+      !interviewConfig ||
+      !interviewConfig.position ||
+      !interviewConfig.interviewType
+    ) {
       return NextResponse.json(
         { error: 'Invalid interview configuration' },
         { status: 400 }
@@ -49,18 +50,18 @@ async function handleStartInterview(interviewConfig) {
 
     // Create voice agent instance
     const voiceAgent = new DeepgramVoiceAgent(process.env.DEEPGRAM_API_KEY);
-    
+
     // Start interview session
     await voiceAgent.startVoiceInterview(interviewConfig);
-    
+
     return NextResponse.json({
       success: true,
       message: 'Interview session started successfully',
       config: {
         position: interviewConfig.position,
         interviewType: interviewConfig.interviewType,
-        language: interviewConfig.language || 'english'
-      }
+        language: interviewConfig.language || 'english',
+      },
     });
   } catch (error) {
     console.error('Failed to start interview:', error);
@@ -83,10 +84,10 @@ async function handleProcessAudio(audioData) {
     // Process audio data with Deepgram
     // This would typically involve real-time processing
     // For now, we'll return a success response
-    
+
     return NextResponse.json({
       success: true,
-      message: 'Audio processed successfully'
+      message: 'Audio processed successfully',
     });
   } catch (error) {
     console.error('Failed to process audio:', error);
@@ -103,7 +104,7 @@ async function handleEndInterview() {
     return NextResponse.json({
       success: true,
       message: 'Interview ended successfully',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     console.error('Failed to end interview:', error);
@@ -125,29 +126,26 @@ export async function GET(request) {
         return NextResponse.json({
           status: 'ready',
           deepgramConfigured: !!process.env.DEEPGRAM_API_KEY,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
-      
+
       case 'config':
         return NextResponse.json({
           features: {
             voiceAgent: true,
             realTimeSTT: true,
             realTimeTTS: true,
-            multiLanguage: true
+            multiLanguage: true,
           },
           supportedLanguages: ['english', 'hindi'],
           models: {
             stt: 'nova-3',
-            tts: 'aura-2-thalia-en'
-          }
+            tts: 'aura-2-thalia-en',
+          },
         });
-      
+
       default:
-        return NextResponse.json(
-          { error: 'Invalid action' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
   } catch (error) {
     console.error('Deepgram Voice Agent GET Error:', error);

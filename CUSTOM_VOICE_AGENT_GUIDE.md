@@ -24,12 +24,14 @@ The following packages have been added to package.json:
 ## Installation Steps
 
 1. **Install the new dependencies:**
+
    ```bash
    npm install @langchain/core @langchain/google-genai langchain
    ```
 
 2. **Environment Variables:**
    Make sure you have both API keys in your `.env.local`:
+
    ```
    DEEPGRAM_API_KEY=your_deepgram_api_key_here
    GEMINI_API_KEY=your_gemini_api_key_here
@@ -37,9 +39,10 @@ The following packages have been added to package.json:
 
 3. **Usage:**
    The custom voice agent can be used through the `useCustomVoiceInterview` hook:
+
    ```javascript
    import { useCustomVoiceInterview } from '@/hooks/useCustomVoiceInterview';
-   
+
    const {
      isConnected,
      isListening,
@@ -48,33 +51,38 @@ The following packages have been added to package.json:
      error,
      status,
      startInterview,
-     endInterview
+     endInterview,
    } = useCustomVoiceInterview(interviewConfig);
    ```
 
 ## Key Features
 
 ### 🎯 **Advanced AI Conversation**
+
 - Uses Google Gemini 1.5 Pro for natural interview conversations
 - LangChain.js for structured conversation flow and memory management
 - Context-aware responses based on interview type and position
 
 ### 🎤 **High-Quality Audio Processing**
+
 - Deepgram Nova-2 for accurate speech recognition
 - Real-time audio streaming with Web Audio API
 - Optimized for interview scenarios with proper endpointing
 
 ### 🔊 **Natural Text-to-Speech**
+
 - Deepgram Aura TTS for human-like voice synthesis
 - Multiple voice options (Asteria, Luna, Stella)
 - Language support for English and Hindi
 
 ### 🧠 **Intelligent Memory Management**
+
 - Conversation history tracking
 - Context-aware follow-up questions
 - Interview progress tracking
 
 ### 🔧 **Robust Error Handling**
+
 - Graceful fallbacks for API failures
 - Microphone access error handling
 - Connection retry mechanisms
@@ -82,7 +90,9 @@ The following packages have been added to package.json:
 ## API Endpoints
 
 ### GET `/api/voice-agent/config`
+
 Returns configuration and API key validation:
+
 ```json
 {
   "success": true,
@@ -139,22 +149,22 @@ const interviewConfig = {
     'Tell me about yourself...',
     'What is your experience with React?',
     // ... more questions
-  ]
+  ],
 };
 ```
 
 ## Comparison: Old vs New
 
-| Feature | Old (Deepgram Voice Agent) | New (Custom Voice Agent) |
-|---------|---------------------------|---------------------------|
-| STT | Deepgram Nova-3 | Deepgram Nova-2 |
-| AI Model | OpenAI GPT-4o-mini | Google Gemini 1.5 Pro |
-| TTS | Deepgram Aura | Deepgram Aura |
-| Framework | Direct Deepgram Agent API | Custom implementation |
-| Memory | Basic conversation log | LangChain Buffer Memory |
-| Error Handling | Limited | Comprehensive |
-| Customization | Minimal | Highly customizable |
-| Performance | Good | Optimized |
+| Feature        | Old (Deepgram Voice Agent) | New (Custom Voice Agent) |
+| -------------- | -------------------------- | ------------------------ |
+| STT            | Deepgram Nova-3            | Deepgram Nova-2          |
+| AI Model       | OpenAI GPT-4o-mini         | Google Gemini 1.5 Pro    |
+| TTS            | Deepgram Aura              | Deepgram Aura            |
+| Framework      | Direct Deepgram Agent API  | Custom implementation    |
+| Memory         | Basic conversation log     | LangChain Buffer Memory  |
+| Error Handling | Limited                    | Comprehensive            |
+| Customization  | Minimal                    | Highly customizable      |
+| Performance    | Good                       | Optimized                |
 
 ## Benefits of the New Implementation
 

@@ -401,7 +401,7 @@ const useBatchCodeSubmission = () => {
   }, [batchQueue.length, batchResults, isBatchProcessing]);
 
   // Update batch configuration
-  const updateBatchConfig = useCallback((newConfig) => {
+  const updateBatchConfig = useCallback(newConfig => {
     batchConfig.current = { ...batchConfig.current, ...newConfig };
     addVoiceDebugLog('Batch configuration updated', newConfig);
   }, []);

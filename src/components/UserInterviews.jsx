@@ -57,7 +57,9 @@ const UserInterviews = ({ interviews }) => {
           </div>
           <div>
             <h3 className="font-semibold text-lg">No interviews found</h3>
-            <p className="text-muted-foreground">Create your first interview to get started</p>
+            <p className="text-muted-foreground">
+              Create your first interview to get started
+            </p>
           </div>
         </div>
       </div>
@@ -77,19 +79,29 @@ const UserInterviews = ({ interviews }) => {
               <CardTitle className="text-lg font-bold group-hover:text-primary transition-colors">
                 {interview.jobPosition || interview.position || 'Interview'}
               </CardTitle>
-              <Badge className={`${getStatusColor(interview.status)} font-medium`}>
-                {interview.status === 'completed' ? '✓ Done' : 
-                 interview.status === 'in-progress' ? '🔄 Active' : 
-                 '⏳ Pending'}
+              <Badge
+                className={`${getStatusColor(interview.status)} font-medium`}
+              >
+                {interview.status === 'completed'
+                  ? '✓ Done'
+                  : interview.status === 'in-progress'
+                    ? '🔄 Active'
+                    : '⏳ Pending'}
               </Badge>
             </div>
-            
+
             <div className="flex flex-wrap gap-2 mt-3">
-              <Badge variant="outline" className="flex items-center gap-1 text-xs">
+              <Badge
+                variant="outline"
+                className="flex items-center gap-1 text-xs"
+              >
                 <Target className="w-3 h-3" />
                 {interview.interviewType || 'Technical'}
               </Badge>
-              <Badge variant="outline" className="flex items-center gap-1 text-xs">
+              <Badge
+                variant="outline"
+                className="flex items-center gap-1 text-xs"
+              >
                 <Clock className="w-3 h-3" />
                 {interview.duration || '30 min'}
               </Badge>
@@ -97,16 +109,18 @@ const UserInterviews = ({ interviews }) => {
                 className={`${getDifficultyColor(interview.interviewDifficulty || interview.difficulty)} flex items-center gap-1 text-xs`}
               >
                 <BarChart2 className="w-3 h-3" />
-                {interview.interviewDifficulty || interview.difficulty || 'medium'}
+                {interview.interviewDifficulty ||
+                  interview.difficulty ||
+                  'medium'}
               </Badge>
             </div>
           </CardHeader>
-          
+
           <CardContent className="pt-0">
             <p className="text-sm text-muted-foreground line-clamp-3 mb-4 leading-relaxed">
               {interview.jobDescription || 'No description available'}
             </p>
-            
+
             <div className="flex items-center justify-between pt-3 border-t">
               <div className="flex items-center gap-4 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1">
@@ -114,10 +128,12 @@ const UserInterviews = ({ interviews }) => {
                   {interview.questions?.length || 0} Questions
                 </span>
                 <span>
-                  {interview.createdAt ? new Date(interview.createdAt).toLocaleDateString() : 'Recent'}
+                  {interview.createdAt
+                    ? new Date(interview.createdAt).toLocaleDateString()
+                    : 'Recent'}
                 </span>
               </div>
-              
+
               <div className="flex gap-2">
                 <Button
                   variant="ghost"

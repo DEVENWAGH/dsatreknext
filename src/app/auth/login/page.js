@@ -68,17 +68,17 @@ export default function Login() {
       });
 
       console.log('Login result:', result);
-      
+
       if (result?.error) {
         console.log('Login failed:', result.error);
         toast.error('Invalid email or password');
         return;
       }
-      
+
       if (result?.ok) {
         const session = await getSession();
         console.log('Session after login:', session?.user);
-        
+
         if (session?.user?.needsVerification) {
           console.log('User needs verification, showing OTP screen');
           setVerificationEmail(values.email);

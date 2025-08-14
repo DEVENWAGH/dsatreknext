@@ -31,13 +31,16 @@ const PostDetailPage = () => {
     isLoading: postLoading,
     error: postError,
   } = useCommunityPost(postId);
-  const { data: commentsData, isLoading: commentsLoading, mutate: mutateComments } =
-    useComments(postId);
+  const {
+    data: commentsData,
+    isLoading: commentsLoading,
+    mutate: mutateComments,
+  } = useComments(postId);
   const [optimisticComments, setOptimisticComments] = React.useState([]);
 
   const post = postData?.data;
   const allComments = [...(commentsData?.data || []), ...optimisticComments];
-  
+
   // Debug logging
   React.useEffect(() => {
     console.log('Comments data:', commentsData);
@@ -112,14 +115,14 @@ const PostDetailPage = () => {
     }
   };
 
-  const handleCommentUpdated = (updatedComment) => {
-    setOptimisticComments(prev => 
-      prev.map(c => c.id === updatedComment.id ? updatedComment : c)
+  const handleCommentUpdated = updatedComment => {
+    setOptimisticComments(prev =>
+      prev.map(c => (c.id === updatedComment.id ? updatedComment : c))
     );
     mutateComments();
   };
 
-  const handleCommentDeleted = (commentId) => {
+  const handleCommentDeleted = commentId => {
     setOptimisticComments(prev => prev.filter(c => c.id !== commentId));
     mutateComments();
   };
@@ -236,7 +239,10 @@ const PostDetailPage = () => {
                 <div className="border-t pt-6">
                   <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
                     <MessageCircle className="w-5 h-5" />
-                    Comments ({(commentsData?.data?.length || 0) + optimisticComments.length})
+                    Comments (
+                    {(commentsData?.data?.length || 0) +
+                      optimisticComments.length}
+                    )
                   </h3>
 
                   {session?.user && (

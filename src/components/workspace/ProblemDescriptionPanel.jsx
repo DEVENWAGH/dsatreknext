@@ -387,7 +387,8 @@ const ProblemDescriptionPanel = ({
         );
       case 'submission-result':
         return (
-          showAcceptedPanel && submissionResult && (
+          showAcceptedPanel &&
+          submissionResult && (
             <SmoothScroll className="p-4 h-full custom-scrollbar">
               <ProblemSubmissionResult
                 submissionResult={submissionResult}

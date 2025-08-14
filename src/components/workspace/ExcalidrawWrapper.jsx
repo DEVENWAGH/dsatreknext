@@ -3,9 +3,11 @@
 import { Excalidraw } from '@excalidraw/excalidraw';
 import '@excalidraw/excalidraw/index.css';
 import { useState, useEffect } from 'react';
+import { useTheme } from '@/components/ui/theme-provider';
 
 const ExcalidrawWrapper = ({ problemId }) => {
   const [isLoaded, setIsLoaded] = useState(false);
+  const { resolvedTheme } = useTheme();
 
   useEffect(() => {
     // Set Excalidraw asset path
@@ -34,6 +36,7 @@ const ExcalidrawWrapper = ({ problemId }) => {
           elements: data.elements || [],
           appState: {
             ...data.appState,
+            // Always ensure collaborators is a Map per Excalidraw API
             collaborators: new Map(),
           } || { collaborators: new Map() },
         };
@@ -54,17 +57,26 @@ const ExcalidrawWrapper = ({ problemId }) => {
 
   const { elements, appState } = loadSketchData();
 
+  // Derive excalidraw theme from site theme; default to light
+  const excalidrawTheme = resolvedTheme === 'dark' ? 'dark' : 'light';
+
+  // Respect saved background if present; otherwise choose sensible default per theme
+  const defaultBg = excalidrawTheme === 'dark' ? '#1a1a1a' : '#ffffff';
+  const initialAppState = {
+    ...appState,
+    theme: excalidrawTheme,
+    viewBackgroundColor: appState?.viewBackgroundColor ?? defaultBg,
+    collaborators: new Map(),
+  };
+
   return (
     <div className="h-full w-full">
       <Excalidraw
+        // Keep Excalidraw UI in sync with site theme
+        theme={excalidrawTheme}
         initialData={{
           elements,
-          appState: {
-            ...appState,
-            theme: 'dark',
-            viewBackgroundColor: '#1a1a1a',
-            collaborators: new Map(),
-          },
+          appState: initialAppState,
         }}
         onChange={handleChange}
       />

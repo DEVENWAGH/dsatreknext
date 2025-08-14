@@ -32,10 +32,13 @@ export async function GET(request) {
     }
 
     // Get total count first
-    const totalCountQuery = showAll 
+    const totalCountQuery = showAll
       ? db.select({ count: count() }).from(Problem)
-      : db.select({ count: count() }).from(Problem).where(eq(Problem.isActive, true));
-    
+      : db
+          .select({ count: count() })
+          .from(Problem)
+          .where(eq(Problem.isActive, true));
+
     const [{ count: totalCount }] = await totalCountQuery;
 
     // Get paginated problems
@@ -43,14 +46,18 @@ export async function GET(request) {
     if (showAll) {
       problems = await query
         .from(Problem)
-        .orderBy(sql`CAST(SUBSTRING(${Problem.title} FROM '[0-9]+') AS INTEGER)`)
+        .orderBy(
+          sql`CAST(SUBSTRING(${Problem.title} FROM '[0-9]+') AS INTEGER)`
+        )
         .limit(limit)
         .offset(offset);
     } else {
       problems = await query
         .from(Problem)
         .where(eq(Problem.isActive, true))
-        .orderBy(sql`CAST(SUBSTRING(${Problem.title} FROM '[0-9]+') AS INTEGER)`)
+        .orderBy(
+          sql`CAST(SUBSTRING(${Problem.title} FROM '[0-9]+') AS INTEGER)`
+        )
         .limit(limit)
         .offset(offset);
     }

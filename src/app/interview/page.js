@@ -131,7 +131,8 @@ const Interview = () => {
                   🤖 Generating Your Interview
                 </AlertTitle>
                 <AlertDescription className="text-blue-600 dark:text-blue-400">
-                  Our AI is creating personalized questions based on your job description. This typically takes 10-30 seconds...
+                  Our AI is creating personalized questions based on your job
+                  description. This typically takes 10-30 seconds...
                 </AlertDescription>
               </div>
             </div>
@@ -152,48 +153,70 @@ const Interview = () => {
                       Master Your Next Interview
                     </h2>
                     <p className="text-xl text-muted-foreground leading-relaxed max-w-2xl">
-                      Practice with AI-powered mock interviews tailored to your role. 
-                      Get real-time feedback and boost your confidence with our advanced voice interview system.
+                      Practice with AI-powered mock interviews tailored to your
+                      role. Get real-time feedback and boost your confidence
+                      with our advanced voice interview system.
                     </p>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
                       <div className="flex items-center gap-3 mb-2">
                         <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                          <span className="text-white text-sm font-bold">🧠</span>
+                          <span className="text-white text-sm font-bold">
+                            🧠
+                          </span>
                         </div>
-                        <span className="font-semibold text-blue-900 dark:text-blue-100">AI-Powered</span>
+                        <span className="font-semibold text-blue-900 dark:text-blue-100">
+                          AI-Powered
+                        </span>
                       </div>
-                      <p className="text-sm text-blue-700 dark:text-blue-300">Personalized questions based on job description</p>
+                      <p className="text-sm text-blue-700 dark:text-blue-300">
+                        Personalized questions based on job description
+                      </p>
                     </div>
-                    
+
                     <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 p-4 rounded-lg border border-green-200 dark:border-green-800">
                       <div className="flex items-center gap-3 mb-2">
                         <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                          <span className="text-white text-sm font-bold">🎙️</span>
+                          <span className="text-white text-sm font-bold">
+                            🎙️
+                          </span>
                         </div>
-                        <span className="font-semibold text-green-900 dark:text-green-100">Voice Interview</span>
+                        <span className="font-semibold text-green-900 dark:text-green-100">
+                          Voice Interview
+                        </span>
                       </div>
-                      <p className="text-sm text-green-700 dark:text-green-300">Real-time voice interaction with AI interviewer</p>
+                      <p className="text-sm text-green-700 dark:text-green-300">
+                        Real-time voice interaction with AI interviewer
+                      </p>
                     </div>
-                    
+
                     <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
                       <div className="flex items-center gap-3 mb-2">
                         <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                          <span className="text-white text-sm font-bold">📊</span>
+                          <span className="text-white text-sm font-bold">
+                            📊
+                          </span>
                         </div>
-                        <span className="font-semibold text-purple-900 dark:text-purple-100">Smart Feedback</span>
+                        <span className="font-semibold text-purple-900 dark:text-purple-100">
+                          Smart Feedback
+                        </span>
                       </div>
-                      <p className="text-sm text-purple-700 dark:text-purple-300">Detailed analysis and improvement suggestions</p>
+                      <p className="text-sm text-purple-700 dark:text-purple-300">
+                        Detailed analysis and improvement suggestions
+                      </p>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="hidden lg:block">
                   <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button size="lg" className="text-lg px-12 py-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300">
+                      <Button
+                        size="lg"
+                        className="text-lg px-12 py-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300"
+                      >
                         <PlusCircle className="w-6 h-6 mr-3" />
                         Start Your First Interview
                       </Button>
@@ -204,12 +227,15 @@ const Interview = () => {
                           Create New Interview
                         </DialogTitle>
                       </DialogHeader>
-                      <InterviewForm onSubmit={onSubmit} isCreating={isCreating} />
+                      <InterviewForm
+                        onSubmit={onSubmit}
+                        isCreating={isCreating}
+                      />
                     </DialogContent>
                   </Dialog>
                 </div>
               </div>
-              
+
               <div className="hidden lg:block flex-1">
                 <SplineModel />
               </div>
@@ -220,10 +246,13 @@ const Interview = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-2xl font-bold">Your Interviews</h2>
-                    <p className="text-muted-foreground">Manage and track your interview progress</p>
+                    <p className="text-muted-foreground">
+                      Manage and track your interview progress
+                    </p>
                   </div>
                   <div className="px-3 py-1 bg-secondary text-secondary-foreground rounded-md text-sm font-medium">
-                    {userInterviews.length} interview{userInterviews.length !== 1 ? 's' : ''}
+                    {userInterviews.length} interview
+                    {userInterviews.length !== 1 ? 's' : ''}
                   </div>
                 </div>
                 <UserInterviews interviews={userInterviews || []} />

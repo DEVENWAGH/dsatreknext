@@ -1,8 +1,8 @@
-"use client"
+'use client';
 
-import { useEffect, useRef } from "react"
-import { ChevronUp, Loader } from "lucide-react"
-import { AnimatePresence, motion } from "motion/react"
+import { useEffect, useRef } from 'react';
+import { ChevronUp, Loader } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 
 export function PopoverForm({
   open,
@@ -10,19 +10,16 @@ export function PopoverForm({
   openChild,
   showSuccess,
   successChild,
-  width = "364px",
-  height = "192px",
-  title = "Feedback",
+  width = '364px',
+  height = '192px',
+  title = 'Feedback',
   showCloseButton = false,
 }) {
-  const ref = useRef(null)
-  useClickOutside(ref, () => setOpen(false))
+  const ref = useRef(null);
+  useClickOutside(ref, () => setOpen(false));
 
   return (
-    <div
-      key={title}
-      className="inline-block"
-    >
+    <div key={title} className="inline-block">
       <motion.button
         layoutId={`${title}-wrapper`}
         onClick={() => setOpen(true)}
@@ -66,17 +63,17 @@ export function PopoverForm({
               {showSuccess ? (
                 <motion.div
                   key="success"
-                  initial={{ y: -32, opacity: 0, filter: "blur(4px)" }}
-                  animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
-                  transition={{ type: "spring", duration: 0.4, bounce: 0 }}
+                  initial={{ y: -32, opacity: 0, filter: 'blur(4px)' }}
+                  animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
+                  transition={{ type: 'spring', duration: 0.4, bounce: 0 }}
                   className="flex h-full flex-col items-center justify-center"
                 >
                   {successChild || <PopoverFormSuccess />}
                 </motion.div>
               ) : (
                 <motion.div
-                  exit={{ y: 8, opacity: 0, filter: "blur(4px)" }}
-                  transition={{ type: "spring", duration: 0.4, bounce: 0 }}
+                  exit={{ y: 8, opacity: 0, filter: 'blur(4px)' }}
+                  transition={{ type: 'spring', duration: 0.4, bounce: 0 }}
                   key="open-child"
                   style={{ borderRadius: 10 }}
                   className="h-full border bg-white dark:bg-[#121212] z-20 "
@@ -89,13 +86,10 @@ export function PopoverForm({
         )}
       </AnimatePresence>
     </div>
-  )
+  );
 }
 
-export function PopoverFormButton({
-  loading,
-  text = "submit",
-}) {
+export function PopoverFormButton({ loading, text = 'submit' }) {
   return (
     <button
       type="submit"
@@ -108,7 +102,7 @@ export function PopoverFormButton({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 25 }}
           transition={{
-            type: "spring",
+            type: 'spring',
             duration: 0.3,
             bounce: 0,
           }}
@@ -122,32 +116,29 @@ export function PopoverFormButton({
         </motion.span>
       </AnimatePresence>
     </button>
-  )
+  );
 }
 
-const useClickOutside = (
-  ref,
-  handleOnClickOutside
-) => {
+const useClickOutside = (ref, handleOnClickOutside) => {
   useEffect(() => {
-    const listener = (event) => {
+    const listener = event => {
       if (!ref.current || ref.current.contains(event.target)) {
-        return
+        return;
       }
-      handleOnClickOutside(event)
-    }
-    document.addEventListener("mousedown", listener)
-    document.addEventListener("touchstart", listener)
+      handleOnClickOutside(event);
+    };
+    document.addEventListener('mousedown', listener);
+    document.addEventListener('touchstart', listener);
     return () => {
-      document.removeEventListener("mousedown", listener)
-      document.removeEventListener("touchstart", listener)
-    }
-  }, [ref, handleOnClickOutside])
-}
+      document.removeEventListener('mousedown', listener);
+      document.removeEventListener('touchstart', listener);
+    };
+  }, [ref, handleOnClickOutside]);
+};
 
 export function PopoverFormSuccess({
-  title = "Success",
-  description = "Thank you for your submission",
+  title = 'Success',
+  description = 'Thank you for your submission',
 }) {
   return (
     <>
@@ -177,13 +168,10 @@ export function PopoverFormSuccess({
         {description}
       </p>
     </>
-  )
+  );
 }
 
-export function PopoverFormSeparator({
-  width = 352,
-  height = 2,
-}) {
+export function PopoverFormSeparator({ width = 352, height = 2 }) {
   return (
     <svg
       className="absolute left-0 right-0 top-[-1px]"
@@ -195,19 +183,16 @@ export function PopoverFormSeparator({
     >
       <path d="M0 1H352" className="stroke-border" strokeDasharray="4 4" />
     </svg>
-  )
+  );
 }
 
-function PopoverFormCutOutTopIcon({
-  width = 44,
-  height = 30,
-}) {
-  const aspectRatio = 6 / 12
-  const calculatedHeight = width * aspectRatio
-  const calculatedWidth = height / aspectRatio
+function PopoverFormCutOutTopIcon({ width = 44, height = 30 }) {
+  const aspectRatio = 6 / 12;
+  const calculatedHeight = width * aspectRatio;
+  const calculatedWidth = height / aspectRatio;
 
-  const finalWidth = Math.min(width, calculatedWidth)
-  const finalHeight = Math.min(height, calculatedHeight)
+  const finalWidth = Math.min(width, calculatedWidth);
+  const finalHeight = Math.min(height, calculatedHeight);
 
   return (
     <svg
@@ -237,7 +222,7 @@ function PopoverFormCutOutTopIcon({
         </clipPath>
       </defs>
     </svg>
-  )
+  );
 }
 
 export function PopoverFormCutOutLeftIcon() {
@@ -267,7 +252,7 @@ export function PopoverFormCutOutLeftIcon() {
         </clipPath>
       </defs>
     </svg>
-  )
+  );
 }
 
 export function PopoverFormCutOutRightIcon() {
@@ -297,5 +282,5 @@ export function PopoverFormCutOutRightIcon() {
         </clipPath>
       </defs>
     </svg>
-  )
+  );
 }

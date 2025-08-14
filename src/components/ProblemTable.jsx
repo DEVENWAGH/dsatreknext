@@ -25,14 +25,11 @@ const ProblemTable = () => {
   const { data, isLoading } = useProblems(currentPage, ITEMS_PER_PAGE);
   const problems = data?.problems || [];
   const pagination = data?.pagination || {};
-  
+
   // Prefetch hook for hover functionality
   const prefetchProblem = usePrefetchProblem();
 
-  const {
-    searchQuery,
-    selectedDifficulty,
-  } = useUIStore();
+  const { searchQuery, selectedDifficulty } = useUIStore();
 
   const { getCompanyFromCache } = useCompanyStore();
   const getAllCompanies = useCompanyStore(state => state.getAllCompanies);
@@ -94,6 +91,11 @@ const ProblemTable = () => {
     getAllCompanies();
   }, [getAllCompanies]);
 
+  // Reset to first page when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedDifficulty, sortBy, sortOrder]);
+
   const SKELETON_ITEMS = Array.from({ length: 5 }, (_, i) => `skeleton-${i}`);
 
   if (isLoading) {
@@ -109,12 +111,10 @@ const ProblemTable = () => {
   // Server-side pagination info
   const totalPages = pagination.totalPages || 1;
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE + 1;
-  const endIndex = Math.min(currentPage * ITEMS_PER_PAGE, pagination.total || 0);
-
-  // Reset to first page when filters change
-  React.useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, selectedDifficulty, sortBy, sortOrder]);
+  const endIndex = Math.min(
+    currentPage * ITEMS_PER_PAGE,
+    pagination.total || 0
+  );
 
   return (
     <div className="space-y-6">
@@ -278,7 +278,7 @@ const ProblemTable = () => {
                 return (
                   <Button
                     key={pageNum}
-                    variant={currentPage === pageNum ? "default" : "outline"}
+                    variant={currentPage === pageNum ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setCurrentPage(pageNum)}
                     className="w-8 h-8 p-0"
@@ -304,7 +304,9 @@ const ProblemTable = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              onClick={() =>
+                setCurrentPage(prev => Math.min(totalPages, prev + 1))
+              }
               disabled={currentPage === totalPages}
             >
               Next

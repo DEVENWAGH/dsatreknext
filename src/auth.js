@@ -28,7 +28,10 @@ export const authConfig = {
         isSignup: { label: 'Is Signup', type: 'hidden' },
       },
       async authorize(credentials) {
-        console.log('Auth function called with:', { email: credentials.email, isSignup: credentials.isSignup });
+        console.log('Auth function called with:', {
+          email: credentials.email,
+          isSignup: credentials.isSignup,
+        });
         try {
           const { email, password, firstName, lastName, username, isSignup } =
             credentials;
@@ -118,7 +121,7 @@ export const authConfig = {
             console.log('User data:', {
               email: existingUser.email,
               isVerified: existingUser.isVerified,
-              isVerifiedType: typeof existingUser.isVerified
+              isVerifiedType: typeof existingUser.isVerified,
             });
 
             // Check password
@@ -203,12 +206,12 @@ export const authConfig = {
           return false;
         }
       }
-      
+
       // Allow all credential logins to proceed
       if (account?.provider === 'credentials') {
         return true;
       }
-      
+
       return true;
     },
     async jwt({ token, user }) {

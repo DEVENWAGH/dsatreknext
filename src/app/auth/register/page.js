@@ -28,7 +28,9 @@ const formSchema = z.object({
     .string()
     .min(3, { message: 'Username must be at least 3 characters.' })
     .max(20, { message: 'Username must be at most 20 characters.' })
-    .regex(/^[a-zA-Z0-9_]+$/, { message: 'Username can only contain letters, numbers, and underscores.' }),
+    .regex(/^[a-zA-Z0-9_]+$/, {
+      message: 'Username can only contain letters, numbers, and underscores.',
+    }),
   password: z
     .string()
     .min(6, { message: 'Password must be at least 6 characters.' }),
@@ -246,7 +248,10 @@ export default function Register() {
                         placeholder="Choose a username"
                         {...register('username')}
                         onChange={e => {
-                          const value = e.target.value.replace(/[^a-zA-Z0-9_]/g, '');
+                          const value = e.target.value.replace(
+                            /[^a-zA-Z0-9_]/g,
+                            ''
+                          );
                           e.target.value = value.slice(0, 20);
                           register('username').onChange(e);
                         }}

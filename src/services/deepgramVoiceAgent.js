@@ -256,22 +256,28 @@ class DeepgramVoiceAgent {
             // Enhanced debugging for empty transcript issue
             if (data.channel?.alternatives?.length > 0) {
               const alt = data.channel.alternatives[0];
-              
+
               // Only log if we're getting consistent empty transcripts
               if (!alt.transcript || alt.transcript.trim() === '') {
                 // Check if we have audio activity but no transcript
-                if (alt.confidence > 0.1 || (alt.words && alt.words.length > 0)) {
+                if (
+                  alt.confidence > 0.1 ||
+                  (alt.words && alt.words.length > 0)
+                ) {
                   console.warn('🔧 Audio detected but no transcript:', {
                     confidence: alt.confidence,
                     words: alt.words?.length || 0,
                     duration: data.duration,
-                    is_final: data.is_final
+                    is_final: data.is_final,
                   });
                 }
               }
             } else if (data.type === 'Results') {
               console.log('⚠️ No alternatives in Results message');
-            } else if (data.type !== 'SpeechStarted' && data.type !== 'UtteranceEnd') {
+            } else if (
+              data.type !== 'SpeechStarted' &&
+              data.type !== 'UtteranceEnd'
+            ) {
               console.log('📡 Non-transcript message:', data.type);
             }
           }
@@ -685,7 +691,9 @@ All main questions have been covered. Ask a relevant follow-up question about ${
         if (now - lastLogTime > 3000) {
           console.log(`🎵 Audio level: ${audioLevel}%`);
           if (audioLevel < 3) {
-            console.warn('⚠️ Very low audio level - check microphone or speak louder');
+            console.warn(
+              '⚠️ Very low audio level - check microphone or speak louder'
+            );
           } else if (audioLevel > 80) {
             console.warn('⚠️ Audio level very high - may cause distortion');
           }
@@ -706,22 +714,23 @@ All main questions have been covered. Ask a relevant follow-up question about ${
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       console.log('✅ Microphone access granted');
-      
+
       // Test audio levels for 3 seconds
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const audioContext = new (window.AudioContext ||
+        window.webkitAudioContext)();
       const analyser = audioContext.createAnalyser();
       const microphone = audioContext.createMediaStreamSource(stream);
       microphone.connect(analyser);
-      
+
       analyser.fftSize = 512;
       const bufferLength = analyser.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
-      
+
       let maxLevel = 0;
       const testDuration = 3000;
       const startTime = Date.now();
-      
-      return new Promise((resolve) => {
+
+      return new Promise(resolve => {
         const checkLevel = () => {
           analyser.getByteFrequencyData(dataArray);
           let sum = 0;
@@ -731,7 +740,7 @@ All main questions have been covered. Ask a relevant follow-up question about ${
           const rms = Math.sqrt(sum / bufferLength);
           const level = Math.round((rms / 255) * 100);
           maxLevel = Math.max(maxLevel, level);
-          
+
           if (Date.now() - startTime < testDuration) {
             requestAnimationFrame(checkLevel);
           } else {

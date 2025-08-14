@@ -15,7 +15,7 @@ const RichCommentInput = React.memo(({ postId, onCommentAdded }) => {
   const { data: session } = useSession();
   const fileInputRef = useRef(null);
 
-  const handleFileUpload = useCallback(async (file) => {
+  const handleFileUpload = useCallback(async file => {
     if (!file) return null;
 
     const formData = new FormData();
@@ -40,55 +40,63 @@ const RichCommentInput = React.memo(({ postId, onCommentAdded }) => {
     }
   }, []);
 
-  const handleFileSelect = useCallback(async (event) => {
-    const files = Array.from(event.target.files);
-    if (files.length === 0) return;
+  const handleFileSelect = useCallback(
+    async event => {
+      const files = Array.from(event.target.files);
+      if (files.length === 0) return;
 
-    setUploading(true);
-    const newAttachments = [];
+      setUploading(true);
+      const newAttachments = [];
 
-    for (const file of files) {
-      if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
-        const url = await handleFileUpload(file);
-        if (url) {
-          newAttachments.push({
-            id: Date.now() + Math.random(),
-            type: file.type.startsWith('image/') ? 'image' : 'video',
-            url,
-            name: file.name,
-          });
+      for (const file of files) {
+        if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
+          const url = await handleFileUpload(file);
+          if (url) {
+            newAttachments.push({
+              id: Date.now() + Math.random(),
+              type: file.type.startsWith('image/') ? 'image' : 'video',
+              url,
+              name: file.name,
+            });
+          }
+        } else {
+          toast.error('Only images and videos are supported');
         }
-      } else {
-        toast.error('Only images and videos are supported');
       }
-    }
 
-    setAttachments(prev => [...prev, ...newAttachments]);
-    setUploading(false);
-    
-    // Reset file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  }, [handleFileUpload]);
+      setAttachments(prev => [...prev, ...newAttachments]);
+      setUploading(false);
 
-  const removeAttachment = useCallback((id) => {
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    },
+    [handleFileUpload]
+  );
+
+  const removeAttachment = useCallback(id => {
     setAttachments(prev => prev.filter(att => att.id !== id));
   }, []);
 
   const handleSubmit = useCallback(async () => {
-    if ((!comment.trim() && attachments.length === 0) || !session?.user || isSubmitting) return;
+    if (
+      (!comment.trim() && attachments.length === 0) ||
+      !session?.user ||
+      isSubmitting
+    )
+      return;
 
     setIsSubmitting(true);
 
     // Create rich content structure
     const richContent = [];
-    
+
     if (comment.trim()) {
       richContent.push({
         id: `p-${Date.now()}`,
         type: 'p',
-        children: [{ text: comment.trim() }]
+        children: [{ text: comment.trim() }],
       });
     }
 
@@ -99,7 +107,7 @@ const RichCommentInput = React.memo(({ postId, onCommentAdded }) => {
         url: attachment.url,
         name: attachment.name,
         children: [{ text: '' }],
-        isUpload: true
+        isUpload: true,
       });
     });
 
@@ -140,29 +148,39 @@ const RichCommentInput = React.memo(({ postId, onCommentAdded }) => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [comment, attachments, session?.user, isSubmitting, postId, onCommentAdded]);
+  }, [
+    comment,
+    attachments,
+    session?.user,
+    isSubmitting,
+    postId,
+    onCommentAdded,
+  ]);
 
-  const handleKeyDown = useCallback((e) => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault();
-      handleSubmit();
-    }
-  }, [handleSubmit]);
+  const handleKeyDown = useCallback(
+    e => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        handleSubmit();
+      }
+    },
+    [handleSubmit]
+  );
 
   return (
     <div className="space-y-3">
       <Textarea
         placeholder="Add a comment... (Ctrl+Enter to submit)"
         value={comment}
-        onChange={(e) => setComment(e.target.value)}
+        onChange={e => setComment(e.target.value)}
         onKeyDown={handleKeyDown}
         className="min-h-[80px] resize-none"
         disabled={isSubmitting}
       />
-      
+
       {attachments.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {attachments.map((attachment) => (
+          {attachments.map(attachment => (
             <div key={attachment.id} className="relative group">
               {attachment.type === 'image' ? (
                 <img
@@ -219,11 +237,15 @@ const RichCommentInput = React.memo(({ postId, onCommentAdded }) => {
             Video
           </Button>
         </div>
-        
+
         <Button
           size="sm"
           onClick={handleSubmit}
-          disabled={(!comment.trim() && attachments.length === 0) || isSubmitting || uploading}
+          disabled={
+            (!comment.trim() && attachments.length === 0) ||
+            isSubmitting ||
+            uploading
+          }
           className="bg-amber-500 hover:bg-amber-600 disabled:opacity-50"
         >
           <Send className="w-4 h-4 mr-1" />

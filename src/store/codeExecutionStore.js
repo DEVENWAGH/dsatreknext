@@ -174,8 +174,10 @@ export const useCodeExecutionStore = create(
 
       // Enhanced voice recognition methods
       setListening: listening => set({ isListening: listening }),
-      setCurrentTranscript: transcript => set({ currentTranscript: transcript }),
-      setInterimTranscript: transcript => set({ interimTranscript: transcript }),
+      setCurrentTranscript: transcript =>
+        set({ currentTranscript: transcript }),
+      setInterimTranscript: transcript =>
+        set({ interimTranscript: transcript }),
       setFinalTranscript: transcript => set({ finalTranscript: transcript }),
       // New methods for enhanced voice feedback
       setAudioActive: active => set({ isAudioActive: active }),

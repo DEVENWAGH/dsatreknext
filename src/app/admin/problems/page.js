@@ -123,7 +123,7 @@ export default function AdminProblems() {
       setIsDeleting(true);
       const deletePromises = selectedProblems.map(id => problemAPI.delete(id));
       await Promise.all(deletePromises);
-      
+
       toast.success(`${selectedProblems.length} problems deleted successfully`);
       setProblems(prev => prev.filter(p => !selectedProblems.includes(p.id)));
       setSelectedProblems([]);
@@ -136,7 +136,7 @@ export default function AdminProblems() {
     }
   };
 
-  const handleSelectAll = (checked) => {
+  const handleSelectAll = checked => {
     if (checked) {
       setSelectedProblems(filteredProblems.map(p => p.id));
     } else {
@@ -162,12 +162,16 @@ export default function AdminProblems() {
         body: JSON.stringify({ isActive: !currentStatus }),
       });
       const result = await response.json();
-      
+
       if (result.success) {
-        toast.success(`Problem ${!currentStatus ? 'enabled' : 'disabled'} successfully`);
-        setProblems(prev => prev.map(p => 
-          p.id === problemId ? { ...p, isActive: !currentStatus } : p
-        ));
+        toast.success(
+          `Problem ${!currentStatus ? 'enabled' : 'disabled'} successfully`
+        );
+        setProblems(prev =>
+          prev.map(p =>
+            p.id === problemId ? { ...p, isActive: !currentStatus } : p
+          )
+        );
       } else {
         toast.error('Failed to update problem status');
       }
@@ -338,8 +342,11 @@ export default function AdminProblems() {
                   <TableHead className="w-12">
                     <input
                       type="checkbox"
-                      checked={selectedProblems.length === filteredProblems.length && filteredProblems.length > 0}
-                      onChange={(e) => handleSelectAll(e.target.checked)}
+                      checked={
+                        selectedProblems.length === filteredProblems.length &&
+                        filteredProblems.length > 0
+                      }
+                      onChange={e => handleSelectAll(e.target.checked)}
                       className="rounded"
                     />
                   </TableHead>
@@ -389,16 +396,18 @@ export default function AdminProblems() {
                       : '0.0';
 
                   return (
-                    <TableRow 
+                    <TableRow
                       key={problem.id}
                       className="cursor-pointer hover:bg-muted/50"
                       onClick={() => router.push(`/workspace/${problem.id}`)}
                     >
-                      <TableCell onClick={(e) => e.stopPropagation()}>
+                      <TableCell onClick={e => e.stopPropagation()}>
                         <input
                           type="checkbox"
                           checked={selectedProblems.includes(problem.id)}
-                          onChange={(e) => handleSelectProblem(problem.id, e.target.checked)}
+                          onChange={e =>
+                            handleSelectProblem(problem.id, e.target.checked)
+                          }
                           className="rounded"
                         />
                       </TableCell>
@@ -423,9 +432,16 @@ export default function AdminProblems() {
                       </TableCell>
                       <TableCell>
                         <Button
-                          variant={problem.isActive !== false ? "default" : "secondary"}
+                          variant={
+                            problem.isActive !== false ? 'default' : 'secondary'
+                          }
                           size="sm"
-                          onClick={() => handleToggleActive(problem.id, problem.isActive !== false)}
+                          onClick={() =>
+                            handleToggleActive(
+                              problem.id,
+                              problem.isActive !== false
+                            )
+                          }
                         >
                           {problem.isActive !== false ? 'Active' : 'Disabled'}
                         </Button>
@@ -469,7 +485,7 @@ export default function AdminProblems() {
                           {new Date(problem.createdAt).toLocaleDateString()}
                         </div>
                       </TableCell>
-                      <TableCell onClick={(e) => e.stopPropagation()}>
+                      <TableCell onClick={e => e.stopPropagation()}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm">
@@ -551,8 +567,9 @@ export default function AdminProblems() {
           <DialogHeader>
             <DialogTitle>Delete Selected Problems</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete {selectedProblems.length} selected problems? 
-              This action cannot be undone and will remove all associated submissions and discussions.
+              Are you sure you want to delete {selectedProblems.length} selected
+              problems? This action cannot be undone and will remove all
+              associated submissions and discussions.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -568,7 +585,9 @@ export default function AdminProblems() {
               onClick={handleBulkDelete}
               disabled={isDeleting}
             >
-              {isDeleting ? 'Deleting...' : `Delete ${selectedProblems.length} Problems`}
+              {isDeleting
+                ? 'Deleting...'
+                : `Delete ${selectedProblems.length} Problems`}
             </Button>
           </DialogFooter>
         </DialogContent>

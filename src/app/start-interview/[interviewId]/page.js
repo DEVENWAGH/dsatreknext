@@ -23,8 +23,6 @@ import { cn } from '@/lib/utils';
 
 import { useDeepgramVoiceInterview } from '@/hooks/useDeepgramVoiceInterview';
 
-
-
 export default function StartInterviewPage() {
   const { interviewId } = useParams();
   const router = useRouter();
@@ -113,9 +111,16 @@ export default function StartInterviewPage() {
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    console.log('💬 Conversation updated in UI:', conversation.length, 'messages');
+    console.log(
+      '💬 Conversation updated in UI:',
+      conversation.length,
+      'messages'
+    );
     if (conversation.length > 0) {
-      console.log('💬 Latest message in UI:', conversation[conversation.length - 1]);
+      console.log(
+        '💬 Latest message in UI:',
+        conversation[conversation.length - 1]
+      );
       const chatEnd = document.getElementById('chat-end');
       if (chatEnd) {
         chatEnd.scrollIntoView({ behavior: 'smooth' });
@@ -489,7 +494,7 @@ export default function StartInterviewPage() {
                         ? '🎯 Start New Interview'
                         : '🎙️ Start Interview'}
                     </Button>
-                    
+
                     <div className="flex gap-2">
                       <Button
                         onClick={async () => {
@@ -524,7 +529,7 @@ export default function StartInterviewPage() {
                         🔧 Test Config
                       </Button>
                     </div>
-                    
+
                     {feedbackSaved && (
                       <Button
                         onClick={() =>
@@ -551,7 +556,12 @@ export default function StartInterviewPage() {
                   <div className="relative">
                     <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
                       {(isRecording || isConnected) && (
-                        <div className={cn('absolute inset-0 rounded-full animate-pulse', isRecording ? 'bg-green-500/20' : 'bg-primary/20')} />
+                        <div
+                          className={cn(
+                            'absolute inset-0 rounded-full animate-pulse',
+                            isRecording ? 'bg-green-500/20' : 'bg-primary/20'
+                          )}
+                        />
                       )}
                       <Bot
                         className={cn(
@@ -601,7 +611,10 @@ export default function StartInterviewPage() {
                           size="sm"
                           variant="outline"
                           onClick={() => {
-                            console.log('🔍 Debug - Current conversation:', conversation);
+                            console.log(
+                              '🔍 Debug - Current conversation:',
+                              conversation
+                            );
                             console.log('🔍 Debug - Voice agent:', voiceAgent);
                             console.log('🔍 Debug - Status:', interviewStatus);
                           }}

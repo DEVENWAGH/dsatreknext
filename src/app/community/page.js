@@ -67,7 +67,7 @@ const CommunityPage = () => {
 
   // Listen for new posts and check sessionStorage fallback
   React.useEffect(() => {
-    const handleNewPost = (event) => {
+    const handleNewPost = event => {
       console.log('New post event received:', event.detail);
       if (event.detail?.post) {
         setUserNewPosts(prev => {
@@ -78,7 +78,7 @@ const CommunityPage = () => {
         toast.success('Post created successfully!');
       }
     };
-    
+
     // Check for new post in sessionStorage (fallback)
     const checkNewPost = () => {
       const newPost = sessionStorage.getItem('newPost');
@@ -94,10 +94,10 @@ const CommunityPage = () => {
         }
       }
     };
-    
+
     window.addEventListener('newPostCreated', handleNewPost);
     checkNewPost();
-    
+
     return () => window.removeEventListener('newPostCreated', handleNewPost);
   }, []);
 
@@ -109,19 +109,21 @@ const CommunityPage = () => {
       'Posts data for vote initialization:',
       allPosts.map(p => ({ id: p.id, votes: p.votes, userVote: p.userVote }))
     );
-    
+
     // Combine and deduplicate posts
     const existingIds = new Set(allPosts.map(p => p.id));
     const uniqueNewPosts = userNewPosts.filter(p => !existingIds.has(p.id));
     const combinedPosts = [...uniqueNewPosts, ...allPosts];
-    
+
     // Separate user's posts and others
     const userPosts = combinedPosts.filter(p => p.userId === session?.user?.id);
-    const otherPosts = combinedPosts.filter(p => p.userId !== session?.user?.id);
-    
+    const otherPosts = combinedPosts.filter(
+      p => p.userId !== session?.user?.id
+    );
+
     // Sort user posts by creation date (newest first), others keep original order
     userPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    
+
     const finalPosts = [...userPosts, ...otherPosts];
     useVoteStore.getState().initializeVotes(finalPosts);
     return finalPosts;
@@ -184,7 +186,7 @@ const CommunityPage = () => {
       // Optimistic update - remove post immediately
       setUserNewPosts(prev => prev.filter(p => p.id !== postId));
       toast.success('Post deleted');
-      
+
       try {
         const response = await fetch(`/api/community/posts/${postId}`, {
           method: 'DELETE',

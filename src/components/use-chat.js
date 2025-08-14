@@ -62,7 +62,15 @@ export const useChat = () => {
     ...options,
   });
 
-  return { ...chat, _abortFakeStream };
+  // Compatibility shim: ensure `setInput` exists for consumers like AIMenu
+  const setInputShim =
+    typeof chat?.setInput === 'function'
+      ? chat.setInput
+      : typeof chat?.handleInputChange === 'function'
+        ? value => chat.handleInputChange({ target: { value } })
+        : () => {};
+
+  return { ...chat, setInput: setInputShim, _abortFakeStream };
 };
 
 // Used for testing. Remove it after implementing useChat api.

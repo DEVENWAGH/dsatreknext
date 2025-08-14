@@ -5,8 +5,7 @@ export const Feedback = pgTable(
   'feedback',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    userId: uuid('user_id')
-      .references(() => User.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id').references(() => User.id, { onDelete: 'cascade' }),
     email: text('email'),
     name: text('name'),
     message: text('message').notNull(),

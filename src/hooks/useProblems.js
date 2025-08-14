@@ -8,7 +8,9 @@ export const useProblems = (page = 1, limit = 10) => {
       try {
         // Fetch problems and companies in parallel
         const [problemsResponse, companiesResponse] = await Promise.all([
-          fetch(`/api/problems?page=${page}&limit=${limit}`).then(res => res.json()),
+          fetch(`/api/problems?page=${page}&limit=${limit}`).then(res =>
+            res.json()
+          ),
           fetch('/api/companies')
             .then(res => res.json())
             .catch(() => ({ success: false, data: [] })),

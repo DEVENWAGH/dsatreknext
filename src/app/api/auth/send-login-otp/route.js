@@ -18,7 +18,7 @@ const transporter = nodemailer.createTransport({
 
 console.log('Email config:', {
   user: process.env.EMAIL_USER,
-  passLength: process.env.EMAIL_PASS?.length
+  passLength: process.env.EMAIL_PASS?.length,
 });
 
 export async function POST(request) {

@@ -41,8 +41,9 @@ export async function POST(request, { params }) {
     }
 
     // Handle both string and rich content
-    const processedContent = typeof content === 'string' ? content.trim() : content;
-    
+    const processedContent =
+      typeof content === 'string' ? content.trim() : content;
+
     if (typeof content === 'string' && !content.trim()) {
       return NextResponse.json({ error: 'Content required' }, { status: 400 });
     }

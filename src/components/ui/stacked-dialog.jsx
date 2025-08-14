@@ -17,7 +17,7 @@ export function DialogStack({ children, open, onOpenChange }) {
     }
   }, [open]);
 
-  const handleOpenChange = (newOpen) => {
+  const handleOpenChange = newOpen => {
     setIsOpen(newOpen);
     if (!newOpen) {
       setCurrentIndex(0); // Reset to first step when closing
@@ -26,7 +26,14 @@ export function DialogStack({ children, open, onOpenChange }) {
   };
 
   return (
-    <DialogStackContext.Provider value={{ currentIndex, setCurrentIndex, isOpen, setIsOpen: handleOpenChange }}>
+    <DialogStackContext.Provider
+      value={{
+        currentIndex,
+        setCurrentIndex,
+        isOpen,
+        setIsOpen: handleOpenChange,
+      }}
+    >
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         {children}
       </Dialog>
@@ -44,7 +51,7 @@ export function DialogStackOverlay({ className, ...props }) {
 
 export function DialogStackBody({ children }) {
   const { currentIndex } = useContext(DialogStackContext);
-  
+
   return (
     <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
       {React.Children.toArray(children)[currentIndex]}
@@ -54,7 +61,7 @@ export function DialogStackBody({ children }) {
 
 export function DialogStackContent({ children, className, ...props }) {
   return (
-    <div className={cn("space-y-4 p-6", className)} {...props}>
+    <div className={cn('space-y-4 p-6', className)} {...props}>
       {children}
     </div>
   );
@@ -62,7 +69,7 @@ export function DialogStackContent({ children, className, ...props }) {
 
 export function DialogStackHeader({ children, className, ...props }) {
   return (
-    <div className={cn("space-y-2 pb-4", className)} {...props}>
+    <div className={cn('space-y-2 pb-4', className)} {...props}>
       {children}
     </div>
   );
@@ -70,7 +77,13 @@ export function DialogStackHeader({ children, className, ...props }) {
 
 export function DialogStackFooter({ children, className, ...props }) {
   return (
-    <div className={cn("flex justify-between items-center pt-4 border-t", className)} {...props}>
+    <div
+      className={cn(
+        'flex justify-between items-center pt-4 border-t',
+        className
+      )}
+      {...props}
+    >
       {children}
     </div>
   );
@@ -78,7 +91,7 @@ export function DialogStackFooter({ children, className, ...props }) {
 
 export function DialogStackPrevious({ children, className, ...props }) {
   const { currentIndex, setCurrentIndex } = useContext(DialogStackContext);
-  
+
   return (
     <Button
       variant="outline"
@@ -94,11 +107,14 @@ export function DialogStackPrevious({ children, className, ...props }) {
 
 export function DialogStackNext({ children, className, ...props }) {
   const { currentIndex, setCurrentIndex } = useContext(DialogStackContext);
-  const totalSteps = React.Children.count(React.useContext(DialogStackContext)?.children) || 4;
-  
+  const totalSteps =
+    React.Children.count(React.useContext(DialogStackContext)?.children) || 4;
+
   return (
     <Button
-      onClick={() => setCurrentIndex(Math.min(totalSteps - 1, currentIndex + 1))}
+      onClick={() =>
+        setCurrentIndex(Math.min(totalSteps - 1, currentIndex + 1))
+      }
       disabled={currentIndex >= totalSteps - 1}
       className={className}
       {...props}

@@ -255,7 +255,9 @@ const SubmissionDetailsModal = ({ submission, open, onOpenChange }) => {
                 <div className="relative">
                   <SmoothScroll className="h-auto max-h-96 w-full border rounded-lg overflow-y-auto overflow-x-hidden">
                     <pre className="bg-muted/50 p-4 text-sm whitespace-pre-wrap break-words">
-                      <code className={`language-${submission.language?.toLowerCase() || 'javascript'} whitespace-pre-wrap break-words`}>
+                      <code
+                        className={`language-${submission.language?.toLowerCase() || 'javascript'} whitespace-pre-wrap break-words`}
+                      >
                         {submission.code}
                       </code>
                     </pre>

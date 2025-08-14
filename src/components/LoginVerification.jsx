@@ -105,7 +105,9 @@ export default function LoginVerification({ email, onVerified, onBack }) {
             type="text"
             placeholder="000000"
             value={otp}
-            onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            onChange={e =>
+              setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))
+            }
             className="h-10 text-center text-lg tracking-widest"
             maxLength={6}
           />
@@ -133,11 +135,7 @@ export default function LoginVerification({ email, onVerified, onBack }) {
           </Button>
         </div>
 
-        <Button
-          variant="outline"
-          onClick={onBack}
-          className="w-full h-10"
-        >
+        <Button variant="outline" onClick={onBack} className="w-full h-10">
           Back to Login
         </Button>
       </div>

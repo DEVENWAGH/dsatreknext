@@ -8,38 +8,38 @@ class CustomVoiceAgent {
   constructor({ deepgramApiKey, geminiApiKey }) {
     // Initialize Deepgram client for STT and TTS
     this.deepgram = createClient(deepgramApiKey);
-    
+
     // Initialize Gemini AI with LangChain
     this.llm = new ChatGoogleGenerativeAI({
       apiKey: geminiApiKey,
-      modelName: "gemini-1.5-pro",
+      modelName: 'gemini-1.5-pro',
       temperature: 0.7,
       maxOutputTokens: 2048,
     });
 
     // Initialize conversation memory
     this.memory = new BufferMemory();
-    
+
     // Set up conversation chain
     this.conversationChain = null;
-    
+
     // Audio handling
     this.isListening = false;
     this.isSpeaking = false;
     this.liveConnection = null;
     this.audioContext = null;
     this.mediaStream = null;
-    
+
     // Interview state
     this.conversationLog = [];
     this.isInitialized = false;
     this.status = 'idle';
-    
+
     // Event callbacks
     this.onConversationUpdate = null;
     this.onStatusChange = null;
     this.onError = null;
-    
+
     // Interview configuration
     this.interviewConfig = null;
   }
@@ -47,10 +47,10 @@ class CustomVoiceAgent {
   async initialize(interviewConfig) {
     try {
       this.interviewConfig = interviewConfig;
-      
+
       // Create interview-specific prompt template
       const promptTemplate = this.createInterviewPrompt(interviewConfig);
-      
+
       // Initialize conversation chain with memory
       this.conversationChain = new ConversationChain({
         llm: this.llm,
@@ -60,11 +60,12 @@ class CustomVoiceAgent {
       });
 
       // Initialize audio context
-      this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      
+      this.audioContext = new (window.AudioContext ||
+        window.webkitAudioContext)();
+
       this.isInitialized = true;
       this.updateStatus('initialized');
-      
+
       return true;
     } catch (error) {
       console.error('Failed to initialize custom voice agent:', error);
@@ -74,14 +75,21 @@ class CustomVoiceAgent {
   }
 
   createInterviewPrompt(interviewConfig) {
-    const { position, interviewType, language = 'english', difficulty = 'medium' } = interviewConfig;
-    
-    const basePrompt = language === 'hindi' 
-      ? `आप एक अनुभवी और दयालु तकनीकी इंटरव्यूअर हैं। आप ${position} पद के लिए ${interviewType} इंटरव्यू ले रहे हैं।`
-      : `You are an experienced and friendly technical interviewer conducting a ${interviewType} interview for a ${position} position.`;
+    const {
+      position,
+      interviewType,
+      language = 'english',
+      difficulty = 'medium',
+    } = interviewConfig;
 
-    const instructions = language === 'hindi'
-      ? `निर्देश:
+    const basePrompt =
+      language === 'hindi'
+        ? `आप एक अनुभवी और दयालु तकनीकी इंटरव्यूअर हैं। आप ${position} पद के लिए ${interviewType} इंटरव्यू ले रहे हैं।`
+        : `You are an experienced and friendly technical interviewer conducting a ${interviewType} interview for a ${position} position.`;
+
+    const instructions =
+      language === 'hindi'
+        ? `निर्देश:
 - हिंदी में बातचीत करें
 - प्रश्न क्रमबद्ध रूप से पूछें
 - उम्मीदवार के उत्तरों के आधार पर फॉलो-अप प्रश्न पूछें
@@ -90,7 +98,7 @@ class CustomVoiceAgent {
 - कुल इंटरव्यू 30-45 मिनट का रखें
 - छोटे और स्पष्ट वाक्य बोलें
 - एक समय में केवल एक प्रश्न पूछें`
-      : `Instructions:
+        : `Instructions:
 - Conduct the interview in English
 - Ask questions in a structured manner
 - Ask follow-up questions based on candidate responses  
@@ -101,17 +109,19 @@ class CustomVoiceAgent {
 - Ask only one question at a time
 - Wait for complete responses before proceeding`;
 
-    const difficultyNote = language === 'hindi'
-      ? `\nकठिनाई स्तर: ${difficulty === 'easy' ? 'आसान' : difficulty === 'hard' ? 'कठिन' : 'मध्यम'}`
-      : `\nDifficulty Level: ${difficulty}`;
+    const difficultyNote =
+      language === 'hindi'
+        ? `\nकठिनाई स्तर: ${difficulty === 'easy' ? 'आसान' : difficulty === 'hard' ? 'कठिन' : 'मध्यम'}`
+        : `\nDifficulty Level: ${difficulty}`;
 
-    const conversationFormat = language === 'hindi'
-      ? `\nबातचीत प्रारूप:
+    const conversationFormat =
+      language === 'hindi'
+        ? `\nबातचीत प्रारूप:
 Current conversation:
 {history}
 Human: {input}
 AI Interviewer:`
-      : `\nConversation Format:
+        : `\nConversation Format:
 Current conversation:
 {history}
 Human: {input}
@@ -129,18 +139,18 @@ AI Interviewer:`;
       }
 
       this.updateStatus('starting');
-      
+
       // Start microphone access
       await this.startMicrophone();
-      
+
       // Initialize Deepgram STT connection
       await this.initializeSTT();
-      
+
       // Send initial greeting
       await this.sendInitialGreeting();
-      
+
       this.updateStatus('active');
-      
+
       return true;
     } catch (error) {
       console.error('Failed to start interview:', error);
@@ -176,9 +186,9 @@ AI Interviewer:`;
       });
 
       // Handle transcription results
-      this.liveConnection.on('Results', async (data) => {
+      this.liveConnection.on('Results', async data => {
         const transcript = data.channel?.alternatives?.[0]?.transcript;
-        
+
         if (transcript && transcript.trim()) {
           if (data.is_final) {
             await this.handleUserSpeech(transcript);
@@ -192,7 +202,7 @@ AI Interviewer:`;
         this.startListening();
       });
 
-      this.liveConnection.on('Error', (error) => {
+      this.liveConnection.on('Error', error => {
         console.error('Deepgram STT error:', error);
         this.handleError('Speech recognition error', error);
       });
@@ -200,7 +210,6 @@ AI Interviewer:`;
       this.liveConnection.on('Close', () => {
         console.log('Deepgram STT connection closed');
       });
-
     } catch (error) {
       throw new Error('Failed to initialize speech recognition');
     }
@@ -210,27 +219,32 @@ AI Interviewer:`;
     if (this.mediaStream && this.liveConnection && !this.isListening) {
       this.isListening = true;
       this.updateStatus('listening');
-      
+
       // Send audio data to Deepgram
-      const source = this.audioContext.createMediaStreamSource(this.mediaStream);
+      const source = this.audioContext.createMediaStreamSource(
+        this.mediaStream
+      );
       const processor = this.audioContext.createScriptProcessor(4096, 1, 1);
-      
-      processor.onaudioprocess = (event) => {
+
+      processor.onaudioprocess = event => {
         if (this.isListening && this.liveConnection) {
           const inputBuffer = event.inputBuffer.getChannelData(0);
           const int16Array = new Int16Array(inputBuffer.length);
-          
+
           for (let i = 0; i < inputBuffer.length; i++) {
-            int16Array[i] = Math.max(-32768, Math.min(32767, inputBuffer[i] * 32768));
+            int16Array[i] = Math.max(
+              -32768,
+              Math.min(32767, inputBuffer[i] * 32768)
+            );
           }
-          
+
           this.liveConnection.send(int16Array.buffer);
         }
       };
-      
+
       source.connect(processor);
       processor.connect(this.audioContext.destination);
-      
+
       this.audioProcessor = processor;
       this.audioSource = source;
     }
@@ -239,17 +253,17 @@ AI Interviewer:`;
   stopListening() {
     if (this.isListening) {
       this.isListening = false;
-      
+
       if (this.audioProcessor) {
         this.audioProcessor.disconnect();
         this.audioProcessor = null;
       }
-      
+
       if (this.audioSource) {
         this.audioSource.disconnect();
         this.audioSource = null;
       }
-      
+
       this.updateStatus('processing');
     }
   }
@@ -257,34 +271,33 @@ AI Interviewer:`;
   async handleUserSpeech(transcript) {
     try {
       this.stopListening();
-      
+
       // Add user message to conversation log
       const userMessage = {
         role: 'user',
         content: transcript,
         timestamp: new Date().toISOString(),
       };
-      
+
       this.conversationLog.push(userMessage);
       this.notifyConversationUpdate(userMessage);
-      
+
       // Generate AI response using Gemini
       this.updateStatus('thinking');
       const aiResponse = await this.generateAIResponse(transcript);
-      
+
       // Add AI response to conversation log
       const aiMessage = {
         role: 'assistant',
         content: aiResponse,
         timestamp: new Date().toISOString(),
       };
-      
+
       this.conversationLog.push(aiMessage);
       this.notifyConversationUpdate(aiMessage);
-      
+
       // Convert AI response to speech
       await this.speak(aiResponse);
-      
     } catch (error) {
       console.error('Error handling user speech:', error);
       this.handleError('Error processing speech', error);
@@ -296,16 +309,17 @@ AI Interviewer:`;
       const response = await this.conversationChain.call({
         input: userInput,
       });
-      
+
       return response.response;
     } catch (error) {
       console.error('Error generating AI response:', error);
-      
+
       // Fallback response
-      const fallback = this.interviewConfig.language === 'hindi'
-        ? 'क्षमा करें, मुझे समझने में कुछ समस्या हुई। कृपया अपना उत्तर दोहराएं।'
-        : 'I apologize, I had trouble understanding. Could you please repeat your answer?';
-      
+      const fallback =
+        this.interviewConfig.language === 'hindi'
+          ? 'क्षमा करें, मुझे समझने में कुछ समस्या हुई। कृपया अपना उत्तर दोहराएं।'
+          : 'I apologize, I had trouble understanding. Could you please repeat your answer?';
+
       return fallback;
     }
   }
@@ -314,34 +328,36 @@ AI Interviewer:`;
     try {
       this.isSpeaking = true;
       this.updateStatus('speaking');
-      
+
       // Use Deepgram TTS to generate audio
       const response = await this.deepgram.speak.request(
         { text },
         {
-          model: this.interviewConfig.language === 'hindi' ? 'aura-kara-en' : 'aura-asteria-en',
+          model:
+            this.interviewConfig.language === 'hindi'
+              ? 'aura-kara-en'
+              : 'aura-asteria-en',
           encoding: 'linear16',
           sample_rate: 24000,
         }
       );
-      
+
       const audioBuffer = await response.arrayBuffer();
-      
+
       // Play the audio
       await this.playAudio(audioBuffer);
-      
+
       this.isSpeaking = false;
-      
+
       // Resume listening after speaking
       setTimeout(() => {
         this.startListening();
       }, 500);
-      
     } catch (error) {
       console.error('Error generating speech:', error);
       this.isSpeaking = false;
       this.handleError('Error generating speech', error);
-      
+
       // Resume listening even on error
       setTimeout(() => {
         this.startListening();
@@ -354,18 +370,18 @@ AI Interviewer:`;
       try {
         this.audioContext.decodeAudioData(
           audioBuffer,
-          (buffer) => {
+          buffer => {
             const source = this.audioContext.createBufferSource();
             source.buffer = buffer;
             source.connect(this.audioContext.destination);
-            
+
             source.onended = () => {
               resolve();
             };
-            
+
             source.start(0);
           },
-          (error) => {
+          error => {
             reject(error);
           }
         );
@@ -377,22 +393,22 @@ AI Interviewer:`;
 
   async sendInitialGreeting() {
     const greeting = this.getInitialGreeting();
-    
+
     const greetingMessage = {
       role: 'assistant',
       content: greeting,
       timestamp: new Date().toISOString(),
     };
-    
+
     this.conversationLog.push(greetingMessage);
     this.notifyConversationUpdate(greetingMessage);
-    
+
     await this.speak(greeting);
   }
 
   getInitialGreeting() {
     const { position, language } = this.interviewConfig;
-    
+
     return language === 'hindi'
       ? `नमस्कार! मैं आपका AI इंटरव्यूअर हूं। आज हम ${position} पद के लिए इंटरव्यू करेंगे। क्या आप तैयार हैं?`
       : `Hello! I'm your AI interviewer. Today we'll be conducting an interview for the ${position} position. Are you ready to begin?`;
@@ -401,30 +417,30 @@ AI Interviewer:`;
   async endInterview() {
     try {
       this.updateStatus('ending');
-      
+
       // Stop listening
       this.stopListening();
-      
+
       // Close STT connection
       if (this.liveConnection) {
         this.liveConnection.finish();
         this.liveConnection = null;
       }
-      
+
       // Stop media stream
       if (this.mediaStream) {
         this.mediaStream.getTracks().forEach(track => track.stop());
         this.mediaStream = null;
       }
-      
+
       // Close audio context
       if (this.audioContext) {
         await this.audioContext.close();
         this.audioContext = null;
       }
-      
+
       this.updateStatus('ended');
-      
+
       return {
         transcript: this.conversationLog,
         duration: this.calculateDuration(),
@@ -439,10 +455,12 @@ AI Interviewer:`;
 
   calculateDuration() {
     if (this.conversationLog.length === 0) return 0;
-    
+
     const startTime = new Date(this.conversationLog[0].timestamp);
-    const endTime = new Date(this.conversationLog[this.conversationLog.length - 1].timestamp);
-    
+    const endTime = new Date(
+      this.conversationLog[this.conversationLog.length - 1].timestamp
+    );
+
     return Math.round((endTime - startTime) / 1000 / 60); // Duration in minutes
   }
 
@@ -455,16 +473,24 @@ AI Interviewer:`;
   }
 
   getStats() {
-    const userMessages = this.conversationLog.filter(msg => msg.role === 'user');
-    const assistantMessages = this.conversationLog.filter(msg => msg.role === 'assistant');
-    
+    const userMessages = this.conversationLog.filter(
+      msg => msg.role === 'user'
+    );
+    const assistantMessages = this.conversationLog.filter(
+      msg => msg.role === 'assistant'
+    );
+
     return {
       totalMessages: this.conversationLog.length,
       candidateResponses: userMessages.length,
       interviewerQuestions: assistantMessages.length,
-      averageResponseLength: userMessages.length > 0 
-        ? Math.round(userMessages.reduce((acc, msg) => acc + msg.content.length, 0) / userMessages.length)
-        : 0,
+      averageResponseLength:
+        userMessages.length > 0
+          ? Math.round(
+              userMessages.reduce((acc, msg) => acc + msg.content.length, 0) /
+                userMessages.length
+            )
+          : 0,
       duration: this.calculateDuration(),
     };
   }
@@ -489,7 +515,7 @@ AI Interviewer:`;
       error: error?.message || error,
       timestamp: new Date().toISOString(),
     };
-    
+
     if (this.onError) {
       this.onError(errorData);
     }
